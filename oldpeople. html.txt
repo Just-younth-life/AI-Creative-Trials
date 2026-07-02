@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安颐长者 · 岁月安康 · 全周期老年康养平台</title>
+    <style>
+        /* ========================================
+           全局规范：适老化 + 人文治愈审美
+           核心原则：护眼、大字体、低饱和、弱动效、高留白、强关怀
+        ========================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", PingFangSC, sans-serif;
+            background-color: #F6F9F7;
+            color: #303834;
+            line-height: 2;
+            letter-spacing: 0.4px;
+        }
+        
+        :root {
+            --primary: #68AD89;
+            --primary-light: #EEF6F2;
+            --primary-deep: #549474;
+            --assist-warm: #EFCFA8;
+            --text-main: #2C332F;
+            --text-normal: #55605B;
+            --text-light: #88948E;
+            --bg-white: #FFFFFF;
+            --border-light: #E2E9E5;
+            --shadow-soft: 0 2px 18px rgba(104, 173, 137, 0.06);
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1240px;
+            margin: 0 auto;
+        }
+
+        /* 导航栏 —— 极简稳重、无花哨、hover克制 */
+        header {
+            background: var(--bg-white);
+            box-shadow: var(--shadow-soft);
+            padding: 22px 0;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .nav-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 1px;
+        }
+
+        .nav-item {
+            font-size: 19px;
+            color: var(--text-main);
+            text-decoration: none;
+            margin-left: 38px;
+            transition: color 0.25s ease;
+            padding: 4px 0;
+        }
+
+        .nav-item:hover {
+            color: var(--primary-deep);
+        }
+
+        /* Banner —— 柔色渐变、无强光、舒适视觉 */
+        .banner {
+            background: linear-gradient(135deg, #EEF6F2 0%, #F4F9F6 100%);
+            padding: 72px 0;
+            margin: 24px 0;
+            border-radius: 22px;
+            text-align: center;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .banner h1 {
+            font-size: 40px;
+            color: var(--text-main);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .banner p {
+            font-size: 21px;
+            color: var(--text-normal);
+        }
+
+        /* 通用模块 —— 大留白、圆角统一、层级干净 */
+        .module {
+            background: var(--bg-white);
+            border-radius: 22px;
+            padding: 48px;
+            margin: 36px 0;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .module h2 {
+            font-size: 30px;
+            color: var(--primary-deep);
+            border-left: 8px solid var(--primary);
+            padding-left: 14px;
+            margin-bottom: 24px;
+            font-weight: 600;
+        }
+
+        .module p {
+            font-size: 20px;
+            color: var(--text-normal);
+            margin: 16px 0;
+        }
+
+        /* 功能卡片 —— 弱悬浮、无剧烈动效、适配老人视觉 */
+        .card-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 36px;
+        }
+
+        .card {
+            background: var(--primary-light);
+            padding: 34px;
+            border-radius: 20px;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px rgba(104, 173, 137, 0.12);
+        }
+
+        .card h3 {
+            font-size: 24px;
+            color: var(--text-main);
+            margin-bottom: 14px;
+            font-weight: 600;
+        }
+
+        .card p {
+            font-size: 18px;
+            color: var(--text-normal);
+            margin: 0;
+        }
+
+        /* 底部 */
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            margin-top: 60px;
+            font-size: 17px;
+            color: var(--text-light);
+            border-top: 1px solid var(--border-light);
+            background: var(--bg-white);
+        }
+
+        /* 响应式严格适配，保证大屏、平板显示一致舒适 */
+        @media (max-width: 992px) {
+            .card-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .banner h1 {
+                font-size: 36px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .card-list {
+                grid-template-columns: 1fr;
+            }
+            .nav-item {
+                margin-left: 16px;
+                font-size: 17px;
+            }
+            .banner h1 {
+                font-size: 32px;
+            }
+            .module {
+                padding: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header>
+        <div class="container nav-wrap">
+            <div class="logo">安颐长者</div>
+            <nav>
+                <a href="#" class="nav-item">首页</a>
+                <a href="#" class="nav-item">健康档案</a>
+                <a href="#" class="nav-item">康养服务</a>
+                <a href="#" class="nav-item">社区活动</a>
+                <a href="#" class="nav-item">个人中心</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 首页横幅 -->
+        <div class="banner">
+            <h1>安颐长者 · 让岁月安康，让晚年舒心</h1>
+            <p>人文适老化大屏设计｜安全可信健康档案｜长效温情康养｜普惠暖心服务</p>
+        </div>
+
+        <!-- 产品理念 -->
+        <div class="module">
+            <h2>产品设计理念</h2>
+            <p>安颐长者是一款人文关怀向、网页端专属老年健康管理产品，区别于市面冰冷商业化的健康工具，主打「温情陪伴、简易安心、专业康养」的产品内核。依托电脑大屏舒适浏览、键鼠舒缓操作的优势，专为长者打造低负担、高信任、有温度的康养服务平台。</p>
+            <p>产品摒弃行业过度营销、功能堆砌、广告骚扰的乱象，以人文关怀为核心，聚焦长者真实需求：看不清、学不会、怕受骗、缺陪伴、无专业养护指导。依托适老化极简体验、社区信任背书、全周期健康追踪、平价普惠服务，填补了市场「有功能、无温度」的老年健康产品空白，让科技真正服务长者、温暖晚年。</p>
+        </div>
+
+        <!-- 核心功能体系 -->
+        <div class="module">
+            <h2>核心功能体系</h2>
+            <div class="card-list">
+                <div class="card">
+                    <h3>适老化极简温情体验</h3>
+                    <p>采用医疗级低饱和护眼配色、超大字体、宽间距人文布局，精简所有复杂操作与冗余跳转，全程无广告、无弹窗、无营销干扰，最大程度降低长者使用负担，做到看得清、用得懂、操作稳。</p>
+                </div>
+                <div class="card">
+                    <h3>全周期健康档案守护</h3>
+                    <p>搭建可视化长效健康档案体系，记录日常体征、追踪慢病状态、留存养护方案、对比周期健康数据，让长者健康有据可查、全程可溯，以长期、细致、稳定的数字化方式守护晚年健康。</p>
+                </div>
+                <div class="card">
+                    <h3>社区信任式暖心服务</h3>
+                    <p>联动社区公益康养活动、专业医护科普背书，构建高信任服务体系。平台规则透明、定价公开，配备7天无忧售后、专属客服答疑、售后补偿保障，消除长者线上顾虑，让每一次选择都安心踏实。</p>
+                </div>
+                <div class="card">
+                    <h3>分层温情会员陪伴</h3>
+                    <p>基于用户活跃度、康养需求、使用周期搭建分层会员体系，为不同阶段长者提供差异化折扣、专属康养咨询、节日暖心权益、优先售后服务，用精细化长效陪伴替代粗放式运营。</p>
+                </div>
+                <div class="card">
+                    <h3>普惠暖心健康商城</h3>
+                    <p>聚焦长者刚需康养用品，剔除商业溢价，坚持平价普惠理念，常态化上新新人福利、限时暖心活动、满减包邮服务，搭配送货上门贴心服务，适配长者谨慎消费、长期养护的生活特征。</p>
+                </div&gt>
+                <div class="card">
+                    <h3>社区温情康养生态</h3>
+                    <p>线下开展公益体检、健康讲座、产品实操教学，线上输出康养科普、熟人暖心裂变，以社区为载体沉淀高粘性长者用户，打造有温度、有邻里感、有专业度的本地化康养服务生态。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 产品差异化优势 -->
+        <div class="module">
+            <h2>产品核心差异化优势</h2>
+            <p>✅ <strong>人文温情品牌壁垒</strong>：打破行业冰冷工具属性，以「岁月安康、温情陪伴」为核心，打造有温度、有记忆点、有人文情怀的老年康养产品，区别于同质化商业工具。</p>
+            <p>✅ <strong>网页大屏适老场景壁垒</strong>：依托电脑大屏视野清晰、操作舒缓的优势，适配长者居家休闲康养场景，降低视觉疲劳与操作失误，体验远优于移动端小屏产品。</p>
+            <p>✅ <strong>去商业化纯粹体验壁垒</strong>：零广告、零弹窗、零营销骚扰，回归康养服务本质，尊重老年用户使用体验，践行人文关怀的产品初心。</p>
+            <p>✅ <strong>线上线下信任闭环壁垒</strong>：结合社区公信力与专业医护背书，解决纯线上产品信任缺失痛点，以靠谱、安心、真诚的服务建立长者长期信赖。</p>
+        </div>
+    </div>
+
+    <footer>
+        安颐长者 · 人文适老化康养平台｜以温柔科技守护岁月安康
+    </footer>
+</body>
+</html>
