@@ -2,80 +2,138 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>多智能体可信决策引擎 | MVP</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三思集 - 你的每一种困惑都值得认真斟酌</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:system-ui;background:#FFFAF5;color:#3A3A3A;}
+body{font-family:system-ui,-apple-system,"Microsoft Yahei";background:#FFFAF5;color:#3A3A3A;}
 .container{display:grid;grid-template-columns:240px 1fr;height:100vh;}
-.left{background:#fff;border-right:1px solid #eee;padding:20px;}
+.left{background:#fff;border-right:1px solid #eee;padding:24px;}
+.left h3{color:#F2A97F;margin-bottom:12px;font-size:18px;}
+.left p.desc{font-size:13px;color:#888;margin-bottom:20px;}
 .main{display:flex;flex-direction:column;}
-.chat{flex:1;padding:20px;overflow:auto;}
-.input-area{padding:16px;border-top:1px solid #eee;background:#fff;}
-.bottom-tag{padding:10px 20px;background:#FFF3EB;border-top:1px solid #eee;display:flex;gap:12px;align-items:center;}
-.tag-item{padding:4px 12px;border-radius:12px;border:1px solid #ccc;font-size:13px;cursor:pointer;}
+.chat{flex:1;padding:24px;overflow:auto;}
+.input-area{padding:16px 24px;border-top:1px solid #eee;background:#fff;}
+textarea{width:100%;height:80px;padding:12px;border-radius:8px;border:1px solid #ddd;resize:none;background:#fff;font-size:14px;}
+button{padding:9px 22px;background:#F2A97F;color:#fff;border:none;border-radius:6px;margin-top:10px;cursor:pointer;font-size:14px;transition:0.2s;}
+button:hover{opacity:0.9;}
+button:disabled{opacity:0.6;cursor:not-allowed;}
+.bottom-tag{padding:12px 24px;background:#FFF3EB;border-top:1px solid #eee;display:flex;gap:12px;align-items:center;}
+.tag-item{padding:5px 14px;border-radius:16px;border:1px solid #ccc;font-size:13px;cursor:pointer;transition:0.2s;}
 .tag-item.active{background:#F2A97F;color:#fff;border-color:#F2A97F;}
-textarea{width:100%;height:80px;padding:12px;border-radius:8px;border:1px solid #ddd;resize:none;background:#fff;}
-button{padding:8px 20px;background:#F2A97F;color:#fff;border:none;border-radius:6px;margin-top:8px;cursor:pointer;}
-.answer-box{background:#fff;padding:16px;border-radius:10px;margin:12px 0;}
-.high{border-left:4px solid #A8D8C7;}
-.diff{border-left:4px solid #F7C287;}
-.warn{border-left:4px solid #E89494;}
-.guide{background:#EFF6FF;padding:10px;border-radius:8px;margin-bottom:12px;}
-.tag-auto{font-size:12px;color:#888;margin-top:6px;}
+.answer-box{background:#fff;padding:18px;border-radius:12px;margin:14px 0;border:1px solid #f0f0f0;}
+.guide{background:#EFF6FF;padding:12px;border-radius:8px;margin-bottom:14px;font-size:14px;}
+.high{border-left:4px solid #A8D8C7;margin:10px 0;padding:10px;border-radius:6px;}
+.diff{border-left:4px solid #F7C287;margin:10px 0;padding:10px;border-radius:6px;}
+.warn{border-left:4px solid #E89494;margin:10px 0;padding:10px;border-radius:6px;}
+.tag-auto{font-size:12px;color:#888;margin-top:8px;}
+.slogan-footer{font-size:12px;color:#888;margin-top:12px;padding-top:12px;border-top:1px solid #f5f5f5;}
+.loading{color:#F2A97F;font-size:14px;margin:10px 0;}
 </style>
 </head>
 <body>
 <div class="container">
     <div class="left">
         <h3>我的决策库</h3>
-        <p style="font-size:13px;color:#888;margin:10px 0;">可搜索、溯源、复盘</p>
+        <p class="desc">可溯源 · 可复盘 · 可迭代</p>
     </div>
     <div class="main">
-        <div class="chat" id="chat"></div>
+        <div class="chat" id="chat">
+            <div style="text-align:center;margin-top:60px;opacity:0.8;">
+                <h2 style="color:#F2A97F;margin-bottom:8px;">三思集</h2>
+                <p>你的每一种困惑都值得认真斟酌</p>
+                <p style="font-size:13px;color:#888;margin-top:4px;">多角度验证，让每一次纠结，都有稳妥答案</p>
+            </div>
+        </div>
         <div class="input-area">
-            <textarea id="q" placeholder="输入你的问题，系统自动适配你的水平与场景"></textarea>
-            <button onclick="send()">发送提问</button>
+            <textarea id="q" placeholder="输入你的问题，系统自动适配你的认知水平与使用场景"></textarea>
+            <button id="sendBtn" onclick="send()">发送提问</button>
         </div>
         <div class="bottom-tag">
-            <span>我的身份：</span>
+            <span style="font-size:14px;">当前场景：</span>
             <div class="tag-item active" onclick="setTag(this,'学生')">学生</div>
             <div class="tag-item" onclick="setTag(this,'职场')">职场</div>
-            <div class="tag-item" onclick="setTag(this,'生活')">生活决策</div>
+            <div class="tag-item" onclick="setTag(this,'生活决策')">生活决策</div>
         </div>
     </div>
 </div>
 <script>
 let nowTag = "学生";
+// 【警告：仅本地自用，上传GitHub务必删除密钥！】
+const API_KEY = "你的大模型API密钥";
+const API_URL = "模型接口地址";
+const SYSTEM_PROMPT = `你是三思集多智能体协同决策系统，主打「温暖稳妥、可溯源、适配认知、零门槛、有温度」的核心服务理念，严格执行以下强制规则：
+1、严格区分客观事实与主观推测，可核验内容标注溯源来源，无法核验内容明确标注存疑，绝对禁止编造资料、链接、论据与数据；
+2、自动识别用户身份、使用场景与认知层级，精准匹配对应内容深浅、专业度与通俗话术，实现千人千面自适应输出；
+3、所有回答必须固定分为【高可信稳妥共识】【多角度分歧争议】【仅供参考存疑内容】三段，分段清晰，不要合并；
+4、针对思辨能力薄弱的普通用户，自动生成通俗阅读指引，明确最优参考内容、适用场景与使用风险，降低甄别门槛；
+5、识别简短、模糊、信息缺失的碎片化提问，全自动补全场景与背景信息；
+6、整体输出风格温柔克制、通俗易懂，拒绝冰冷机械话术。
+当前用户场景：`;
+
 function setTag(dom,tag){
     document.querySelectorAll('.tag-item').forEach(x=>x.classList.remove('active'));
     dom.classList.add('active');
     nowTag = tag;
 }
+
 async function send(){
     let q = document.getElementById('q').value.trim();
-    if(!q) return;
-    let chat = document.getElementById('chat');
-    chat.innerHTML += `<div style="margin:8px 0;"><b>我：</b>${q}</div>`;
-    chat.innerHTML += `
-    <div class="answer-box">
-        <div class="guide">💡【阅读指引】系统已根据【${nowTag}】自动适配内容深度，优先查看高可信结论</div>
-        <div class="answer-box high">
-            <b>✅ 高可信稳妥共识结论</b>
-            <p>多智能体交叉核验、权威资料支撑，适配你的认知水平，可优先参考。</p>
+    const sendBtn = document.getElementById('sendBtn');
+    const chat = document.getElementById('chat');
+    if(!q)return;
+    sendBtn.disabled = true;
+    chat.innerHTML += `<div style="margin:10px 0;"><b>我：</b>${q}</div>`;
+    chat.innerHTML += `<div class="loading" id="loading">三思集多智能体核验中，请稍候...</div>`;
+    chat.scrollTop = chat.scrollHeight;
+
+    try{
+        const res = await fetch(API_URL,{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json",
+                "Authorization":`Bearer ${API_KEY}`
+            },
+            body:JSON.stringify({
+                messages:[
+                    {role:"system",content:SYSTEM_PROMPT+nowTag},
+                    {role:"user",content:q}
+                ],
+                model:"gpt-3.5-turbo",
+                temperature:0.6
+            })
+        })
+        const data = await res.json();
+        document.getElementById('loading').remove();
+        const fullText = data.choices[0].message.content;
+        // 拆分三段内容
+        let high="",diff="",warn="";
+        if(fullText.includes("高可信稳妥共识")&&fullText.includes("多角度分歧争议")&&fullText.includes("仅供参考存疑内容")){
+            high = fullText.split("多角度分歧争议")[0].replace("高可信稳妥共识：","").trim();
+            diff = fullText.split("多角度分歧争议")[1].split("仅供参考存疑内容")[0].trim();
+            warn = fullText.split("仅供参考存疑内容")[1].trim();
+        }else{
+            high = fullText;
+            diff = "不同视角下适配方案存在差异，可结合自身场景取舍";
+            warn = "建议结合权威资料二次核验";
+        }
+        chat.innerHTML += `
+        <div class="answer-box">
+            <div class="guide">💡 阅读指引：系统已根据【${nowTag}】自动适配内容深度，优先参考高可信稳妥结论</div>
+            <div class="high"><b>✅ 高可信稳妥共识结论</b><p>${high}</p></div>
+            <div class="diff"><b>⚖️ 多视角观点分歧（通俗解读）</b><p>${diff}</p></div>
+            <div class="warn"><b>⚠️ 仅供参考存疑内容</b><p>${warn}</p></div>
+            <div class="tag-auto">自动归档标签：${nowTag}｜多智能体核验｜可溯源复盘</div>
+            <div class="slogan-footer">三思集 · 你的每一种困惑都值得认真斟酌</div>
         </div>
-        <div class="answer-box diff">
-            <b>⚖️ 不同视角分歧（通俗解读）</b>
-            <p>各智能体思考侧重不同，无绝对对错，适配不同使用场景。</p>
-        </div>
-        <div class="answer-box warn">
-            <b>⚠️ 仅供参考存疑内容</b>
-            <p>无完整权威溯源支撑，使用前建议自行核验。</p>
-        </div>
-        <p class="tag-auto">自动标签：${nowTag}｜高可信｜可溯源核验</p>
-        <p style="font-size:12px;color:#888;margin-top:10px;">资料来源四层过滤，外网真实来源≥60%，虚构内容已过滤</p>
-    </div>
-    `
+        `
+    }catch(err){
+        document.getElementById('loading').remove();
+        chat.innerHTML += `<div style="color:#E89494;">接口请求失败，请检查API密钥与网络</div>`
+    }
     document.getElementById('q').value = '';
+    sendBtn.disabled = false;
+    chat.scrollTop = chat.scrollHeight;
 }
 </script>
 </body>
