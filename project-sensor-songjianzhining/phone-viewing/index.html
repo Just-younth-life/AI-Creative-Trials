@@ -5,12 +5,19 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>极简适老化健康管理平台</title>
-<!-- 替换为稳定公共CDN，解决modao.cc加载失败问题 -->
+<!-- 稳定公共CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
+<!-- 开启任意值支持，解决[#xxx]、[数字px]失效 -->
+<script>
+tailwind.config = {
+  theme: {
+    extend: {},
+  }
+}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <style>
-/* 你的原有全部CSS样式保留不动 */
         /* 手机尺寸（默认）：全屏 */
         body {
             font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -21,6 +28,177 @@
             max-width: 100%;
             padding: 0;
             margin: 0;
+        }
+        
+        /* 平板/桌面：居中模拟手机屏 */
+        @media (min-width: 768px) {
+            body {
+                width: 500px !important;
+                margin: 0 auto !important;
+                border-left: 1px solid #e0e0e0;
+                border-right: 1px solid #e0e0e0;
+                min-height: 100vh;
+                box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            }
+            html {
+                background: #f0f0f0;
+            }
+        }
+
+        .page-section {
+            width: 100%;
+            max-width: 100%;
+            overflow-y: auto;
+            min-height: 100vh;
+            padding-bottom: 100px;
+            display: none;
+        }
+        .page-section.active {
+            display: flex;
+        }
+
+        .active-feedback:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+            transition: all 0.1s ease;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+        /* SOS 呼吸动画 */
+        @keyframes pulse {
+            0% { transform: scale(1.0); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1.0); }
+        }
+        .animate-sos-pulse {
+            animation: pulse 2s infinite ease-in-out;
+        }
+        .sos-gradient {
+            background: linear-gradient(180deg, #E63E3E 0%, #C62828 100%);
+        }
+        .header-gradient {
+            background: linear-gradient(135deg, #FCD5A0 0%, #F8B88A 100%);
+        }
+        .health-gradient {
+            background: linear-gradient(135deg, #B8D8C8 0%, #8CC4A8 100%);
+        }
+        .profile-gradient {
+            background: linear-gradient(135deg, #FCD5A0 0%, #F8B88A 100%);
+        }
+        .flower-decoration {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 60px;
+            opacity: 0.15;
+            pointer-events: none;
+            transform: rotate(15deg);
+        }
+        .bg-decoration {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.08;
+        }
+        .bg-decoration span {
+            position: absolute;
+            font-size: 40px;
+            color: #7AB89B;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .todo-circle {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          min-width: 32px;
+          border: 3px solid #E8634A;
+          border-radius: 50%;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          margin-right: 16px;
+          box-sizing: border-box;
+          background: transparent;
+          font-size: 18px;
+          color: white;
+          flex-shrink: 0;
+        }
+        .todo-circle.completed {
+          background: #BDBDBD;
+          border-color: #BDBDBD;
+        }
+        .todo-text.completed {
+          color: #9E9E9E !important;
+          text-decoration: line-through;
+        }
+        .nav-item {
+            color: #9E9E9E;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .nav-item.active {
+            color: #E8634A;
+        }
+        .health-card-dot::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 8px;
+            height: 8px;
+            background: #7AB89B;
+            border-radius: 50%;
+        }
+        /* 功能项样式 */
+        .function-grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 16px 0;
+            justify-items: center;
+            width: 100%;
+            margin: 0 auto;
+        }
+        .function-item-circle {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .function-item-circle:active {
+            transform: scale(0.95);
+        }
+        .function-circle-box {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        .function-icon-white {
+            font-size: 34px;
+            line-height: 1;
+            filter: brightness(0) invert(1);
+        }
+        .function-label-bold {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2D2D2D;
+            text-align: center;
         }
 <style>
         /* 手机尺寸（默认）：全屏 */
