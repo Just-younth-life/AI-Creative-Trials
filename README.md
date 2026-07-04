@@ -5,4 +5,4 @@
 
 松间知宁：[https://just-youth-life.github.io/AI-Creative-Trials/project-sensor-songjianzhining/](https://just-younth-life.github.io/AI-Creative-Trials/project-sensor-songjianzhining/)
 
-松间知宁-手机端原型交互预览页：https://just-youth-life.github.io/AI-Creative-Trials/project-sensor-songjianzhining/phone-viewing/
+松间知宁-手机端原型交互预览页：https://just-youth-life.github.io/AI-Creative-Trials/project-sensor-viewing/
