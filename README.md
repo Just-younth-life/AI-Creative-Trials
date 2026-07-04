@@ -4,4 +4,3 @@
 三思集：https://just-youth-life.github.io/AI-Creative-Trials/project-Ai-asssment-sansiji/
 
 松间知宁：https://just-youth-life.github.io/AI-Creative-Trials/project-sensor-songjianzhining/
-
