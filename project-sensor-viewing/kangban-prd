@@ -1,0 +1,99 @@
+kangban-prd
+{
+  "docTitle": "🏥「康伴」极简适老化健康监测平台—产品需求文档",
+  "version": "v1.0",
+  "writeDate": "2026-07-04",
+  "status": "初稿",
+  "targetUser": "65岁以上老年用户及子女/照护者",
+  "productPosition": "老年用户专属的极简健康监测与医疗辅助平台",
+  "chapters": [
+    {
+      "chapterName": "一、文档概述",
+      "sections": [
+        {"sectionName": "1.1文档目的", "content": "本文档旨在明确定义「康伴」极简适老化健康监测平台v1.0（MVP）的产品范围、功能规格、交互要求、适老化设计标准和非功能需求，为设计、开发、测试团队提供统一的交付依据。文档同时面向产品决策者，阐明产品的市场定位、差异化策略和迭代路径。"},
+        {"sectionName": "1.2适用范围", "content": "产品名称：康伴（极简适老化健康监测平台）；发布形态：移动端WebApp（响应式）；技术栈：HTML+CSS+JavaScript（TailwindCSS）；本期版本：v1.0MVP；适用团队：产品、设计、前端开发、测试、运营；不涵盖：后端接口、原生App"},
+        {"sectionName": "1.3术语与缩写", "content": "SOS紧急求助、MVP最小可行产品、适老化、单线程任务流等定义"},
+        {"sectionName": "1.4参考文档", "content": "工信部适老化规范、银发经济政策、通信行业适老化标准、内部原型地址"}
+      ]
+    },
+    {
+      "chapterName": "二、市场背景与行业分析",
+      "sections": [
+        {"sectionName": "2.1老龄化社会趋势", "content": "2025年60岁以上人口3.2亿，银发经济9万亿，老年慢病患病率78%"},
+        {"sectionName": "2.2国家政策驱动", "content": "4项相关政策及产品指导意义表格"},
+        {"sectionName": "2.3竞品分析", "content": "老来健康、小度健康屏、悦龄生活、微信长辈就医对比表格"},
+        {"sectionName": "2.4机会与差异化定位", "content": "极简适老、健康闭环、零认知负担、熟人急救链四大差异化"}
+      ]
+    },
+    {
+      "chapterName": "三、产品定位与目标",
+      "sections": [
+        {"sectionName": "3.1产品定位", "content": "面向65岁以上老人，大字体大触控单线程，聚焦血压/用药/SOS三大场景"},
+        {"sectionName": "3.2目标用户画像", "content": "独居老人张建国、异地子女李婷两套完整画像"},
+        {"sectionName": "3.3核心价值主张", "content": "大字号·大按钮·不绕路——让每一位长辈都能自己管好健康。"},
+        {"sectionName": "3.4产品目标与成功指标", "content": "DAU、血压记录频率、用药依从、7日留存、适老化满意度量化指标"}
+      ]
+    },
+    {
+      "chapterName": "四、用户痛点与需求分析",
+      "sections": [
+        {"sectionName": "4.1老年用户核心痛点", "content": "视力退化、操作慢、认知负担、数字恐惧、健康焦虑对应设计方案"},
+        {"sectionName": "4.2需求优先级矩阵MoSCoW", "content": "Must/Should/Could/Won't四级需求划分"}
+      ]
+    },
+    {
+      "chapterName": "五、功能需求详述",
+      "sections": [
+        {"sectionName": "5.1首页看板", "content": "功能概述、用户故事、交互流程、适老化要点、验收标准"},
+        {"sectionName": "5.2血压测量", "content": "单线程录入流程、页面结构、交互、验收标准"},
+        {"sectionName": "5.3用药提醒", "content": "药品卡片、标记已服用交互逻辑"},
+        {"sectionName": "5.4预约挂号", "content": "科室选择、确认弹窗流程"},
+        {"sectionName": "5.5健康报告与趋势图表", "content": "ECharts7天血压折线图适配"},
+        {"sectionName": "5.6一键求助SOS", "content": "呼叫120、联系人、位置共享、全局悬浮脉冲按钮"},
+        {"sectionName": "5.7健康资讯中心", "content": "自测入口、资讯卡片、用药摘要跳转"},
+        {"sectionName": "5.8个人中心", "content": "信息弹窗、用药设置跳转、退出登录弹窗"}
+      ]
+    },
+    {
+      "chapterName": "六、非功能需求",
+      "sections": [
+        {"sectionName": "6.1适老化设计规范", "content": "字体、触控、对比度、手势、点击反馈硬性标准"},
+        {"sectionName": "6.2性能要求", "content": "首屏、切换、图表渲染、包体积、内存指标"},
+        {"sectionName": "6.3兼容性要求", "content": "手机/平板适配、浏览器、字体、系统放大兼容"},
+        {"sectionName": "6.4安全性要求", "content": "本地存储、隐私脱敏、误触防护规则"}
+      ]
+    },
+    {
+      "chapterName": "七、信息架构与页面流转",
+      "sections": [
+        {"sectionName": "7.1页面结构图", "content": "首页、bp/med/book/report/sos/health/profile页面跳转关系"},
+        {"sectionName": "7.2页面流转说明", "content": "底部Tab、子页面返回、悬浮SOS、模态弹窗规则"}
+      ]
+    },
+    {
+      "chapterName": "八、UI设计规范",
+      "sections": [
+        {"sectionName": "8.1色彩体系", "content": "主辅色、背景、文字、功能色完整色值表"},
+        {"sectionName": "8.2字体规范", "content": "标题/正文/数字字号、字重、字体族"},
+        {"sectionName": "8.3间距与尺寸规范", "content": "边距、卡片、按钮、输入框、导航高度固定值"},
+        {"sectionName": "8.4圆角与阴影规范", "content": "卡片/按钮/SOS悬浮圆角、阴影参数"}
+      ]
+    },
+    {
+      "chapterName": "九、MVP范围与迭代规划",
+      "sections": [
+        {"sectionName": "9.1MVP v1.0交付范围", "content": "9大页面交付清单、本期不包含功能"},
+        {"sectionName": "9.2v1.1迭代规划", "content": "P0/P1级迭代需求：本地存储、数据校验、血糖心率录入"},
+        {"sectionName": "9.3v2.0迭代规划", "content": "子女共享、异常预警、语音交互、电子病历长期规划"}
+      ]
+    },
+    {
+      "chapterName": "附录",
+      "sections": [
+        {"sectionName": "附录A 适老化设计自检清单", "content": "字体/触控/对比度/手势/导航全项检查"},
+        {"sectionName": "附录B 组件库映射", "content": "卡片、按钮、弹窗、Toast、SOS悬浮组件复用标识"},
+        {"sectionName": "附录C 健康数据参考范围", "content": "血压/血糖/心率正常、偏高偏低医学标准"}
+      ]
+    }
+  ]
+}
