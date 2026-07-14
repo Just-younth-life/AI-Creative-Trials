@@ -11,3 +11,7 @@
 ```bash
 pip install -r requirements.txt
 python main.py
+## 方式:命令行本地测试
+```bash
+python main.py
+python api_server.py
