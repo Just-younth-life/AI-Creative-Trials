@@ -7,7 +7,9 @@
 
 ## 项目直达网页
 三思集：https://just-youth-life.github.io/AI-Creative-Trials/project-Ai-assessment-sansiji/
+
 松间知宁：https://just-youth-life.github.io/AI-Creative-Trials/project-sensor-songjianzhining/
+
 松间知宁-手机端原型交互预览页：https://just-youth-life.github.io/AI-Creative-Trials/project-sensor-viewing/
 
 ## Agent 智能体模块（轻量化多模型调度框架）
