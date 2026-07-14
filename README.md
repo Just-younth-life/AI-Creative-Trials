@@ -15,6 +15,7 @@
 
 ## Agent 智能体模块（轻量化多模型调度框架）
 本模块实现灰度策略驱动的AI智能体，支持多家海外大模型厂商接入，面向AI创意产品原型验证。
+
 agent/config_const.py # 产品灰度开关常量定义
 agent/config_loader.py # 配置加载、校验、单例管理
 agent/schema.py # Pydantic 结构化数据模型
