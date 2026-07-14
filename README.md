@@ -7,7 +7,7 @@
 全部项目低门槛复现，适用于学习实践、创业原型验证。
 
 ## 项目直达网页
-三思集：https://just-youth-life.github.io/AI-Creative-Trials/project-Ai-assessment-sansiji/
+三思集：https://just-youth-life.github.io/AI-Creative-Trials/project-Ai-assissment-sansiji/
 
 松间知宁：https://just-youth-life.github.io/AI-Creative-Trials/project-sensor-songjianzhining/
 
