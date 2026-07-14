@@ -6,3 +6,8 @@
 松间知宁：[https://just-youth-life.github.io/AI-Creative-Trials/project-sensor-songjianzhining/](https://just-younth-life.github.io/AI-Creative-Trials/project-sensor-songjianzhining/)
 
 松间知宁-手机端原型交互预览页：[https://just-youth-life.github.io/AI-Creative-Trials/project-sensor-viewing/](https://just-younth-life.github.io/AI-Creative-Trials/project-sensor-viewing/)
+## 快速运行
+1. 安装依赖
+```bash
+pip install -r requirements.txt
+python main.py
