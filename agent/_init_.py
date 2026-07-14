@@ -19,3 +19,15 @@ All code here belongs to underlying support layer, NOT core business orchestrati
 - BPM, melody MIDI matching verification tool
 - Standard SOP text generation helper
 """
+# 对外暴露核心类、异常、模型，方便上层导入
+from .agent_core import AiCreativeAgent
+from .schema import AgentRequest, AgentResponse
+from .exceptions import AgentBaseError, ModelProxyError
+
+__all__ = [
+    "AiCreativeAgent",
+    "AgentRequest",
+    "AgentResponse",
+    "AgentBaseError",
+    "ModelProxyError"
+]
