@@ -165,11 +165,14 @@ function closeModal() {
 }
 
 ## 四、三期优化，赋能 AI 功能落地
-1. 无独立 AI 内容渲染容器
-##现存问题
+### 1. 无独立 AI 内容渲染容器
+#### 现存问题
 健康资讯、健康解读全部静态写死页面，没有预留独立区块渲染 AI 动态生成的个性化健康建议、慢病解读、周报内容。
-##改进方向
+
+#### 改进方向
 统一新增专用容器，用于承载 AI 输出文本、图表。
+
+```html
 <!-- AI专属渲染容器，全局统一 -->
 <div id="ai-report-block" class="hidden bg-white p-5 rounded-[20px] card-shadow my-6">
   <h3 class="text-[20px] font-bold mb-4">AI健康解读</h3>
