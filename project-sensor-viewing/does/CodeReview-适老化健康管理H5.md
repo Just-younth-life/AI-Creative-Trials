@@ -27,39 +27,44 @@
 <div class="function-item-circle" onclick="switchPage('bp-page')">
 <div class="active-feedback" onclick="showAlert('即将上线','血糖记录功能即将上线，敬请期待')">血糖自测</div>
 <button onclick="showAlert('正在呼叫 120','模拟呼叫')">一键呼叫120</button>
-
-## 改进方向
-### 移除全部行内 onclick，统一在 JS 内使用事件委托绑定
+```
+#### 改进方向
+移除全部行内 onclick，统一在 JS 内使用事件委托绑定
 封装全局点击拦截中间件，预留 AI 逻辑插入入口
 
-<!-- HTML 移除onclick，增加自定义标识data-xxx -->
-<div class="function-item-circle" data-target-page="bp-page">
-  <div class="function-circle-box" style="background:#4CAF50;"><span class="function-icon-white">🩺</span></div>
+```html
+<!-- HTML 移除onclick，增加自定义标识data-xxx --><div class="function-item-circle" data-target-page="bp-page"> <div class="function-circle-box" style="background:#4CAF50;"><span class="function-icon-white">🩺</span></div>
   <span class="function-label-bold">测血压</span>
 </div>
+```
+
 // 全局事件绑定，统一拦截埋点/AI前置提示
+```html
 document.querySelectorAll("[data-target-page]").forEach(item=>{
   item.addEventListener('click',(e)=>{
     const pageId = e.currentTarget.dataset.targetPage
     trackEvent('page_click', { pageId }) // 统一埋点
-    // 预留AI智能提醒拦截逻辑
-    // if(aiNeedPopTip(pageId)) return;
-    switchPage(pageId)
-  })
-})
-2. 业务数据全部硬编码在 HTML，无统一数据模型，无法对接 AI 健康模块
-##现存问题
+```    
+预留AI智能提醒拦截逻辑
+```html   
+    if(aiNeedPopTip(pageId)) return;
+    switchPage(pageId)})})
+```  
+### 2. 业务数据全部硬编码在 HTML，无统一数据模型，无法对接 AI 健康模块
+#### 现存问题
 用户名、血压数据、用药记录、紧急联系人、地址、历史健康指标全部写死 DOM；
 无全局 JS 数据仓库，AI 慢病分析、AI 周报、AI 用药问答无法读取用户档案。
-问题代码示例：
+
 <h1 class="text-[32px] font-bold flex items-center gap-2-mt-2">
 <iconify-icon icon="solar:shield-check-bold-duotone" width="36"></iconify-icon>欢迎回家，张伯伯
 </h1>
 <p class="text-[20px] text-gray-700">上次测量：<span class="font-bold">128/82 mmHg</span></p>
 <p>苯磺酸氨氯地平片 每日1次，每次1片</p>
-##改进方向
+
+#### 改进方向
 JS 顶层定义全局用户健康数据仓库，统一管理所有业务变量
 // 全局统一数据仓库，AI模块可直接读取
+```html 
 const userHealthStore = {
   baseInfo: {name:"张伯伯", age:76, address:"北京市朝阳区XX街道XX小区3号楼1单元802"},
   bloodRecord: [{high:128, low:82, date:"2026-07-18"}],
@@ -69,16 +74,20 @@ const userHealthStore = {
     {name:"王芳", relation:"女儿", phone:"139****1234"}
   ]
 }
-3. 三种样式体系混用，视觉规范无法统一管控
-##现存问题
+```
+### 3. 三种样式体系混用，视觉规范无法统一管控
+#### 现存问题
 原生 CSS 自定义样式 + Tailwind class + DOM 行内 style 三套写法混杂
 颜色、尺寸硬编码，无全局主题变量，无法一键切换适老化大号字体 / 高对比模式
+```html 
 <!-- 行内硬编码颜色，无法统一管理 -->
 <div class="function-circle-box" style="background:#4CAF50;">
 /* 原生css全局样式 */
 .sos-gradient {background:linear-gradient(180deg,#E63E3E,#C62828);}
-##改进方向
+```
+#### 改进方向
 废弃所有行内 style，颜色统一放入 tailwind.config 主题扩展；
+```html 
 tailwind.config = {
   theme:{
     extend:{
@@ -91,31 +100,40 @@ tailwind.config = {
   }
 }
 <div class="function-circle-box bg-healthGreen">
-4. 存在破坏性 DOM 操作，页面结构不稳定
-##现存问题
+  ```
+### 4. 存在破坏性 DOM 操作，页面结构不稳定
+#### 现存问题
 用药页面点击按钮直接覆盖父容器 innerHTML，销毁原有 DOM 结构；后续叠加 AI 服药问答、用药知识库模块会直接崩溃。
+```html 
 <button class="active-feedback flex-1 h-[60px] bg-[#4A90A0] text-white text-[22px] font-bold rounded-[20px]" onclick="this.parentElement.innerHTML='<div class=\'w-full h-[60px] bg-green-50 text-green-600 flex items-center justify-center rounded-2xl text-[20px] font-bold\'>✅ 今日已服用</div>'">标记已服用</button>
-
-##改进方向
+```
+#### 改进方向
 通过数据状态控制显示隐藏，使用 class 切换状态，禁止直接覆盖 DOM。
+```html 
 <!-- 增加状态标识，不销毁DOM -->
 <button class="active-feedback medicine-finish-btn w-full h-[60px] bg-[#4A90A0] text-white text-[22px] font-bold rounded-[20px]" data-medicine-id="1">标记已服用</button>
 <div class="finish-tip hidden w-full h-[60px] bg-green-50 text-green-600 flex items-center justify-center rounded-2xl text-[20px] font-bold">✅ 今日已服用</div>
 document.querySelector('.medicine-finish-btn').addEventListener('click', function(){
   this.classList.add('hidden');
   this.nextElementSibling.classList.remove('hidden');
+```
   // 更新全局数据仓库状态，同步给AI模块
+```html 
   userHealthStore.medicineList[0].finish = true;
   trackEvent('medicine_finish', {medicineId: this.dataset.medicineId})
 })
-5. 表单无数值校验，产生脏数据干扰 AI 健康分析
-##现存问题
+```
+### 5. 表单无数值校验，产生脏数据干扰 AI 健康分析
+#### 现存问题
 血压输入框仅限制数字，未做区间校验，可输入 0、负数、300 高压等无效数值；AI 读取脏数据会生成错误健康诊断建议。
+```html 
 <input class="w-full h-[60px] bg-gray-50 border-2 border-gray-100 rounded-2xl px-6 text-[28px] font-bold focus:border-[#E8634A] focus:outline-none focus:bg-white transition-all" placeholder="请输入数字" type="number"/>
-##改进方向
+```
+#### 改进方向
 封装通用数字校验工具函数；
 保存前拦截非法数值，弹出 AI 友好提示文案。
 // 血压数值校验工具
+```html 
 function checkBloodValue(high, low){
   if(high < 60 || high > 220) return {pass:false, msg:"高压数值范围请输入60~220之间"}
   if(low < 40 || low > 140) return {pass:false, msg:"低压数值范围请输入40~140之间"}
@@ -129,23 +147,28 @@ function saveRecord() {
     showAlert('输入数值不规范', checkRes.msg)
     return;
   }
+```
   // 正常保存逻辑
+```html 
   const toast = document.getElementById('toast');
   toast.classList.remove('hidden');
   setTimeout(()=>{toast.classList.add('hidden');switchPage('home-page');},1500);
 }
-
+```
 ## 三、P1 级适老化 & 无障碍缺陷（二期迭代修复，老年核心体验问题）
-1. 无完整无障碍语义化，不支持手机读屏 / AI 语音朗读
-##现存问题
+### 1. 无完整无障碍语义化，不支持手机读屏 / AI 语音朗读
+#### 现存问题
 大量使用 div/span 模拟按钮、勾选框，无原生<button>、<label>；
 图标按钮、弹窗无 aria-label 无障碍描述；
 自定义待办勾选框无法被屏幕阅读器识别状态。
+```html 
 <span class="todo-circle" onclick="toggleTodo(this);event.stopPropagation();"></span>
-##改进方向
+```
+#### 改进方向
 所有可点击交互元素统一使用原生 button；
 图标、无文字按钮补充 aria 说明，适配系统 AI 朗读；
 勾选组件使用原生 checkbox 封装。
+```html 
 <label class="flex items-center">
   <input type="checkbox" class="todo-circle-input mr-4">
   <span class="todo-text text-[20px] font-medium text-[#2D2D2D]">14:30 服用降压药</span>
@@ -163,7 +186,7 @@ function closeModal() {
   // 释放滚动
   document.body.style.overflow = ''
 }
-
+```
 ## 四、三期优化，赋能 AI 功能落地
 ### 1. 无独立 AI 内容渲染容器
 #### 现存问题
@@ -191,3 +214,4 @@ function trackEvent(eventName, params={}){
 <div class="text-[14px] text-gray-500 mt-8 p-4 border-t border-gray-200">
   温馨提示：本平台健康数据、AI解读内容仅供日常参考，不能替代执业医师诊断，身体不适请及时前往医院就诊。
 </div>
+```
