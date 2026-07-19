@@ -1,5 +1,5 @@
-kangban-prd
-{
+// 输入你提供的kangban-prd JSON数据
+const kangbanPrd = {
   "docTitle": "🏥「康伴」极简适老化健康监测平台—产品需求文档",
   "version": "v1.0",
   "writeDate": "2026-07-04",
@@ -97,3 +97,19 @@ kangban-prd
     }
   ]
 }
+
+// JSON转标准Markdown生成函数
+function genPRDMarkdown(jsonData) {
+  let md = `# ${jsonData.docTitle}\n版本：${jsonData.version}\n编写日期：${jsonData.writeDate}\n文档状态：${jsonData.status}\n目标用户：${jsonData.targetUser}\n产品定位：${jsonData.productPosition}\n\n`
+  jsonData.chapters.forEach(chapter => {
+    md += `## ${chapter.chapterName}\n`
+    chapter.sections.forEach(sec => {
+      md += `### ${sec.sectionName}\n${sec.content}\n\n`
+    })
+  })
+  return md
+}
+
+// 执行生成，控制台复制输出文本直接上传GitHub
+const outputMD = genPRDMarkdown(kangbanPrd)
+console.log(outputMD)
