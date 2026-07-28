@@ -3,7 +3,6 @@ from agent.agent_core import AiCreativeAgent
 from agent.schema import AgentRequest
 from agent.exceptions import AgentBaseError
 
-
 async def main():
     # 1. 初始化智能Agent实例
     agent = AiCreativeAgent()
