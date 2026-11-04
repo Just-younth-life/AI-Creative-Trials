@@ -3,1193 +3,610 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>三思集｜人生决策第二意见引擎</title>
+<title>三思集 - 你的每一种困惑都值得认真斟酌</title>
+<script src="https://cdn.jsdelivr.net/npm/vue@3.4/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:system-ui,-apple-system,"Microsoft YaHei";background:#FFFAF5;color:#3A3A3A;}
-.container{display:grid;grid-template-columns:280px 1fr;height:100vh;overflow:hidden;}
-
-/* 左侧边栏 */
-.left{background:#fff;border-right:1px solid #eee;padding:18px;display:flex;flex-direction:column;gap:12px;overflow:hidden;}
-.left-top{flex-shrink:0;}
-.left h3{color:#F2A97F;font-size:18px;margin-bottom:6px;}
-.left .desc{font-size:12px;color:#888;margin-bottom:10px;}
-.left-ctrl{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
-.left-ctrl button{padding:5px 7px;font-size:12px;margin:0;}
-.profile-card{background:#FFF3EB;border-radius:8px;padding:10px;font-size:12px;margin-bottom:10px;}
-.profile-card .row{display:flex;justify-content:space-between;margin:4px 0;}
-.profile-card button{font-size:11px;padding:3px 6px;margin-top:4px;}
-
-.history-title{font-size:13px;font-weight:500;color:#666;margin:6px 0 4px;}
-.history-wrap{flex:1;overflow:auto;border-top:1px solid #eee;padding-top:8px;}
-.history-item{padding:7px 5px;font-size:13px;border-radius:6px;cursor:pointer;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid transparent;}
-.history-item:hover{background:#FFF3EB;}
-.history-item.kb-tag{color:#926F57;}
-.history-item.llm-tag{color:#596B8C;}
-
-/* 主聊天区 */
-.main{display:flex;flex-direction:column;}
-.chat{flex:1;padding:22px;overflow:auto;}
-.input-area{padding:14px 22px;border-top:1px solid #eee;background:#fff;}
-textarea{width:100%;height:80px;padding:11px;border:1px solid #ddd;border-radius:8px;resize:none;font-size:14px;}
-button{padding:8px 18px;background:#F2A97F;color:#fff;border:none;border-radius:7px;cursor:pointer;transition:0.15s;}
-button:hover{opacity:0.92;}
-button:disabled{opacity:0.55;cursor:not-allowed;}
-.bottom-tag{padding:10px 22px;background:#FFF3EB;border-top:1px solid #eee;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-.tag-item{padding:4px 12px;border:1px solid #ccc;border-radius:14px;font-size:13px;cursor:pointer;}
-.tag-item.active{background:#F2A97F;color:#fff;border-color:#F2A97F;}
-
-/* 回答卡片 */
-.answer-box{background:#fff;padding:18px;border-radius:12px;margin:14px 0;border:1px solid #f0f0f0;}
-.meta-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:center;}
-.conf-badge{background:#E8F4F8;color:#2B6A87;padding:3px 7px;border-radius:12px;font-size:12px;}
-.source-badge{background:#F6F0E8;color:#846246;padding:3px 7px;border-radius:12px;font-size:12px;}
-.version-badge{background:#E7E9ED;color:#444;padding:3px 7px;border-radius:12px;font-size:12px;}
-.expire-badge{background:#FEE;padding:3px 7px;border-radius:12px;font-size:12px;color:#992222;}
-.constraint-tip{background:#FFF8E6;border:1px solid #FFE7B3;padding:8px;border-radius:8px;font-size:13px;margin:8px 0;color:#906500;}
-.exclude-tip{background:#FDEDED;border:1px solid #F8CACA;padding:8px;border-radius:8px;font-size:13px;margin:8px 0;color:#A63434;}
-.guide{background:#EFF6FF;padding:10px;border-radius:8px;margin:10px 0;font-size:13px;}
-.high{border-left:4px solid #A8D8C7;padding:9px 10px;border-radius:6px;margin:10px 0;}
-.diff{border-left:4px solid #F7C287;padding:9px 10px;border-radius:6px;margin:10px 0;}
-.warn{border-left:4px solid #E89A9A;padding:9px 10px;border-radius:6px;margin:10px 0;}
-.oper-row{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
-.oper-row button{padding:5px 8px;font-size:12px;margin:0;}
-.tag-auto{font-size:12px;color:#888;margin-top:8px;}
-.slogan{font-size:12px;color:#888;margin-top:10px;padding-top:8px;border-top:1px solid #f2f2f2;}
-.loading{color:#F2A97F;font-size:14px;margin:10px 0;}
-.disclaimer{font-size:11px;color:#999;margin-top:8px;}
-
-/* 对比面板专用 */
-.compare-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;}
-.compare-col{border:1px solid #F2D9C8;border-radius:12px;padding:14px;background:#fff;}
-.compare-title{font-weight:bold;color:#F2A97F;margin-bottom:8px;}
-
-/* 弹窗：知识库管理、画像编辑、对比、审核、导入导出 */
-.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;align-items:center;justify-content:center;z-index:999;}
-.modal{width:720px;background:#fff;border-radius:12px;padding:20px;max-height:82vh;overflow:auto;}
-.modal h4{color:#F2A97F;margin-bottom:12px;}
-.modal-tab{display:flex;border-bottom:1px solid #eee;margin-bottom:12px;flex-wrap:wrap;}
-.modal-tab-item{padding:7px 12px;font-size:14px;cursor:pointer;border-bottom:2px solid transparent;}
-.modal-tab-item.active{border-color:#F2A97F;color:#F2A97F;}
-.tab-content{display:none;}
-.tab-content.active{display:block;}
-.form-row{margin-bottom:9px;}
-.form-row label{display:block;font-size:13px;margin-bottom:3px;}
-.form-row input,.form-row textarea,.form-row select{width:100%;border:1px solid #ddd;border-radius:6px;padding:7px;font-size:14px;}
-.form-row textarea{min-height:65px;resize:vertical;}
-.form-row .inline{display:flex;gap:8px;align-items:center;}
-.kb-list-item{padding:7px;border:1px solid #eee;border-radius:6px;margin:5px 0;display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.kb-list-item .txt{font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.kb-list-item button{padding:3px 6px;margin:0;font-size:12px;}
-.modal-footer{margin-top:12px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;}
-textarea.import-area{min-height:180px;}
+body{font-family:system-ui,-apple-system,"Microsoft Yahei";background:#FFFAF5;color:#3A3A3A;}
+.container{display:grid;grid-template-columns:240px 1fr;height:100vh;overflow:hidden;}
+/* 左侧决策库 */
+.sidebar{background:#fff8ee;border-right:1px solid #eee;padding:16px;overflow-y:auto;}
+.sidebar h3{margin-bottom:12px;color:#d47b46;}
+.tab-group{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.tab{padding:4px 8px;border-radius:6px;border:1px solid #e8d4c4;font-size:13px;cursor:pointer;}
+.tab.active{background:#f2b894;color:#fff;border-color:#f2b894;}
+.history-item{padding:8px 10px;border-radius:8px;background:#fff;margin-bottom:8px;border:1px solid #f0e5db;cursor:pointer;}
+.history-item:hover{background:#fff3e9;}
+.history-item .q{font-size:13px;font-weight:500;}
+.history-item .tag{display:inline-block;font-size:11px;padding:2px 4px;border-radius:4px;margin:2px;}
+.operate-bar{display:flex;gap:6px;margin:12px 0;flex-wrap:wrap;}
+.btn{padding:6px 10px;border-radius:6px;border:none;font-size:13px;cursor:pointer;background:#f7c9aa;color:#6b381c;}
+.btn:disabled{background:#ddd;color:#999;cursor:not-allowed;pointer-events:none;}
+.btn.danger{background:#f5b8b8;color:#882222;}
+.btn.primary{background:#f29e6d;color:#fff;}
+/* 主面板 */
+.main{display:grid;grid-template-rows:1fr auto;overflow:hidden;}
+.chat-area{padding:20px;overflow-y:auto;}
+.msg{margin-bottom:16px;}
+.msg.user{text-align:right;}
+.msg .content{display:inline-block;padding:10px 14px;border-radius:10px;max-width:70%;background:#fff;border:1px solid #f0e5db;}
+.msg.user .content{background:#f9d9c3;}
+.stream-output{white-space:pre-wrap;}
+/* 输入区域 */
+.input-area{padding:16px 20px;border-top:1px solid #eee;background:#fff;}
+.input-row{display:flex;gap:10px;align-items:center;}
+#questionInput{flex:1;padding:10px 12px;border:1px solid #e2d5c9;border-radius:8px;font-size:15px;}
+.submit-btn{padding:10px 20px;border-radius:8px;border:none;background:#f29e6d;color:#fff;font-size:15px;cursor:pointer;position:relative;z-index:2;pointer-events:auto !important;}
+.submit-btn:disabled{background:#ddc8bb;color:#888;cursor:not-allowed;pointer-events:none;}
+/* 对比面板、弹窗、管理面板 */
+.panel-mask{position:fixed;inset:0;background:#00000044;display:flex;align-items:center;justify-content:center;z-index:100;}
+.panel{background:#fff;padding:20px;border-radius:12px;width:min(90%,720px);max-height:80vh;overflow-y:auto;}
+.panel h4{margin-bottom:12px;}
+.form-item{margin-bottom:10px;}
+.form-item label{display:block;margin-bottom:4px;font-size:13px;}
+.form-item input,.form-item textarea{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;}
+.tag-color-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.tag-preview{padding:3px 8px;border-radius:4px;color:#fff;font-size:12px;}
+.stat-box{padding:12px;background:#fff8ee;border-radius:8px;margin:10px 0;}
+.star{color:#ffb800;cursor:pointer;}
+.star-empty{color:#ccc;}
 </style>
 </head>
 <body>
-<div class="container">
-    <div class="left">
-        <div class="left-top">
-            <h3>三思集</h3>
-            <p class="desc">可复盘思辨决策引擎</p>
-            <div class="profile-card" id="profileView">
-                <div class="row"><span>身份大类：</span><span id="p-base">学生</span></div>
-                <div class="row"><span>细分标签：</span><span id="p-sub">应届生求职</span></div>
-                <div class="row"><span>应急存款月数：</span><span id="p-fund">3个月</span></div>
-                <div class="row"><span>目标赛道：</span><span id="p-track">互联网/产品</span></div>
-                <button onclick="openProfilePanel()">修改画像</button>
-            </div>
-            <div class="left-ctrl">
-                <button onclick="openKbPanel()">知识库管理</button>
-                <button onclick="openComparePanel()">决策对比</button>
-                <button onclick="openImportExportPanel()">导入导出</button>
-                <button onclick="openAuditPanel()">社区审核</button>
-                <button onclick="clearHistory()">清空复盘</button>
-            </div>
-            <div class="history-title">📜 复盘历史</div>
-        </div>
-        <div class="history-wrap" id="historyWrap"></div>
+<div id="app" class="container">
+  <!-- 左侧：我的决策库 -->
+  <div class="sidebar">
+    <h3>我的决策库</h3>
+    <div class="tab-group">
+      <div class="tab" :class="{active:currentTab==='list'}" @click="currentTab='list'">全部记录</div>
+      <div class="tab" :class="{active:currentTab==='star'}" @click="currentTab='star'">⭐收藏</div>
+      <div class="tab" :class="{active:currentTab==='admin'}" @click="openAdminPanel">管理后台</div>
     </div>
-
-    <div class="main">
-        <div class="chat" id="chat">
-            <div style="text-align:center;margin-top:70px;opacity:0.8;">
-                <h2 style="color:#F2A97F;margin-bottom:8px;">三思集</h2>
-                <p>输入你的纠结选择，获取分层风险决策意见</p>
-                <p style="font-size:13px;color:#888;margin-top:6px;">共识 · 分歧 · 风险存疑，可沉淀、可复盘、可对照</p>
-            </div>
-        </div>
-        <div class="input-area">
-            <textarea id="q" placeholder="例如：存款3个月，要不要裸辞？保研边缘要不要二战？"></textarea>
-            <button id="sendBtn" onclick="send()">发送提问</button>
-        </div>
-        <div class="bottom-tag">
-            <span style="font-size:14px;">当前主场景：</span>
-            <div class="tag-item active" onclick="setScene(this,'学生')">学生</div>
-            <div class="tag-item" onclick="setScene(this,'职场')">职场</div>
-            <div class="tag-item" onclick="setScene(this,'生活决策')">生活决策</div>
-        </div>
+    <div class="operate-bar">
+      <button class="btn" @click="importJson">导入JSON</button>
+      <button class="btn" @click="exportJson">导出JSON</button>
+      <button class="btn" @click="exportMd">导出Markdown</button>
+      <button class="btn primary" @click="openAddLib">新增知识库条目</button>
     </div>
+    <div v-if="currentTab==='list'">
+      <div class="history-item" v-for="(item,idx) in historyList" :key="idx" @click="loadHistory(item)">
+        <div class="q">{{item.question.slice(0,22)}}{{item.question.length>22?'...':''}}</div>
+        <span class="tag" :style="{background:item.tagColor||'#f2b894'}">{{item.tag}}</span>
+        <span class="star" @click.stop="toggleStar(item)">★</span>
+      </div>
+    </div>
+    <div v-if="currentTab==='star'">
+      <div class="history-item" v-for="(item,idx) in starList" :key="idx" @click="loadHistory(item)">
+        <div class="q">{{item.question.slice(0,22)}}{{item.question.length>22?'...':''}}</div>
+        <span class="tag" :style="{background:item.tagColor||'#f2b894'}">{{item.tag}}</span>
+        <span class="star" @click.stop="toggleStar(item)">★</span>
+      </div>
+    </div>
+  </div>
+  <!-- 主面板 -->
+  <div class="main">
+    <div class="chat-area" ref="chatWrap">
+      <div class="msg" v-for="(msg,idx) in msgList" :key="idx" :class="{user:msg.role==='user'}">
+        <div class="content">
+          <div v-if="msg.role==='user'">{{msg.content}}</div>
+          <div v-else class="stream-output">{{msg.content}}</div>
+          <div style="margin-top:6px;font-size:12px;">
+            <span class="star" :class="{starEmpty:!msg.star}" @click="toggleMsgStar(msg)">★</span>
+            <button class="btn" @click="openCompare(msg)">决策对比</button>
+            <button class="btn" @click="exportPdf(msg)">导出PDF报告</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 输入区域【重点修复：绑定、禁用逻辑】 -->
+    <div class="input-area">
+      <div class="input-row">
+        <input id="questionInput" v-model="inputQuestion" placeholder="输入你的困惑..." @keyup.enter="sendQuestion"/>
+        <button class="submit-btn" :disabled="!inputQuestion.trim() || loading" @click="sendQuestion">发送提问</button>
+      </div>
+      <div style="margin-top:8px;font-size:13px;color:#777">
+        当前主场景：<span style="background:#f2b894;padding:2px 6px;border-radius:4px;color:#fff">生活小白</span>
+        <span style="margin-left:8px;background:#e8d4c4;padding:2px 6px;border-radius:4px">日常消费</span>
+        <span style="margin-left:8px;background:#e8d4c4;padding:2px 6px;border-radius:4px">家庭琐事</span>
+      </div>
+    </div>
+  </div>
+  <!-- 弹窗 -->
+  <div v-if="showAdminPanel" class="panel-mask" @click.self="showAdminPanel=false">
+    <div class="panel">
+      <h4>管理员登录</h4>
+      <div class="form-item">
+        <label>管理员密码</label>
+        <input v-model="adminPwdInput" type="password"/>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn primary" @click="checkAdminPwd">校验登录（走后端接口）</button>
+        <button class="btn" @click="showAdminPanel=false">取消</button>
+      </div>
+    </div>
+  </div>
+  <div v-if="showLibEdit" class="panel-mask" @click.self="showLibEdit=false">
+    <div class="panel">
+      <h4>知识库条目编辑</h4>
+      <div class="form-item">
+        <label>问题</label>
+        <input v-model="libItem.question"/>
+      </div>
+      <div class="form-item">
+        <label>回答</label>
+        <textarea v-model="libItem.answer" rows="4"></textarea>
+      </div>
+      <div class="form-item">
+        <label>标签</label>
+        <input v-model="libItem.tag"/>
+      </div>
+      <div class="form-item">
+        <label>标签颜色</label>
+        <div class="tag-color-row">
+          <input type="color" v-model="libItem.tagColor"/>
+          <span class="tag-preview" :style="{background:libItem.tagColor}">预览</span>
+        </div>
+      </div>
+      <div class="form-item">
+        <label>置信度、过期时间、类型</label>
+        <input placeholder="high/diff/warn" v-model="libItem.diff"/>
+        <input type="date" v-model="libItem.expireTime"/>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button class="btn primary" @click="saveLibItem">保存入库</button>
+        <button class="btn danger" @click="showLibEdit=false">关闭</button>
+      </div>
+    </div>
+  </div>
+  <div v-if="showCompare" class="panel-mask" @click.self="showCompare=false">
+    <div class="panel">
+      <h4>双画像决策对比面板</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="stat-box">
+          <b>画像A</b>
+          <div>{{compareRes.a}}</div>
+        </div>
+        <div class="stat-box">
+          <b>画像B</b>
+          <div>{{compareRes.b}}</div>
+        </div>
+      </div>
+      <button class="btn primary" @click="showCompare=false">关闭</button>
+    </div>
+  </div>
 </div>
-
-<!-- 画像编辑弹窗 -->
-<div class="modal-mask" id="profileMask">
-    <div class="modal">
-        <h4>用户画像配置（会影响检索与LLM输出）</h4>
-        <div class="form-row">
-            <label>身份大类</label>
-            <select id="pfBase">
-                <option value="学生">学生</option>
-                <option value="职场">职场</option>
-            </select>
-        </div>
-        <div class="form-row">
-            <label>细分标签</label>
-            <select id="pfSub">
-                <option>保研党</option>
-                <option>考研党</option>
-                <option>应届生求职</option>
-                <option>留学申请</option>
-                <option>校招新人</option>
-                <option>1-3年跳槽</option>
-                <option>3-5年成长</option>
-            </select>
-        </div>
-        <div class="form-row">
-            <label>应急存款可支撑月数</label>
-            <select id="pfFund">
-                <option>＜3个月</option>
-                <option>3~6个月</option>
-                <option>＞6个月</option>
-            </select>
-        </div>
-        <div class="form-row">
-            <label>目标赛道</label>
-            <input id="pfTrack" placeholder="互联网/产品、国企、考公、传统行业">
-        </div>
-        <div class="modal-footer">
-            <button onclick="saveProfile()">保存画像</button>
-            <button onclick="closeProfilePanel()">关闭</button>
-        </div>
-    </div>
-</div>
-
-<!-- 知识库管理弹窗 -->
-<div class="modal-mask" id="kbMask">
-    <div class="modal">
-        <h4>结构化决策知识库</h4>
-        <div class="modal-tab">
-            <div class="modal-tab-item active" data-tab="platform">平台公共库</div>
-            <div class="modal-tab-item" data-tab="user">我的私有库</div>
-        </div>
-        <div class="tab-content active" id="tab-platform">
-            <div id="platformKbList"></div>
-            <p style="margin-top:10px;font-size:12px;color:#777;">平台库只读，可克隆到私有库修改；带版本、时效标记，政策条目自动降置信</p>
-        </div>
-        <div class="tab-content" id="tab-user">
-            <div id="userKbList"></div>
-            <div style="margin-top:14px;border-top:1px solid #eee;padding-top:12px;">
-                <div class="form-row">
-                    <label>关键词（逗号分隔）</label>
-                    <input id="kbKeywords">
-                </div>
-                <div class="form-row">
-                    <label>场景</label>
-                    <select id="kbScene">
-                        <option>学生</option>
-                        <option>职场</option>
-                        <option>生活决策</option>
-                    </select>
-                </div>
-                <div class="form-row">
-                    <label>适用约束（逗号分隔，例：存款>6个月，应届生）</label>
-                    <input id="kbConstraints">
-                </div>
-                <div class="form-row">
-                    <label>不适用人群（逗号分隔）</label>
-                    <input id="kbExclude">
-                </div>
-                <div class="form-row">
-                    <label>置信度 0~100</label>
-                    <input id="kbConf" value="85">
-                </div>
-                <div class="form-row">
-                    <label>来源标注</label>
-                    <input id="kbSource" value="个人复盘">
-                </div>
-                <div class="form-row inline">
-                    <label><input type="checkbox" id="kbIsPolicy">政策类条目</label>
-                </div>
-                <div class="form-row">
-                    <label>过期时间（时间戳，留空永久有效）</label>
-                    <input id="kbExpireAt" placeholder="1799884800">
-                </div>
-                <div class="form-row">
-                    <label>✅ 高可信稳妥共识</label>
-                    <textarea id="kbHigh"></textarea>
-                </div>
-                <div class="form-row">
-                    <label>⚖️ 多方分歧观点</label>
-                    <textarea id="kbDiff"></textarea>
-                </div>
-                <div class="form-row">
-                    <label>⚠️ 存疑风险提示</label>
-                    <textarea id="kbWarn"></textarea>
-                </div>
-                <input type="hidden" id="editKbIndex" value="-1">
-            </div>
-            <div class="modal-footer">
-                <button onclick="saveUserKbItem()">保存私有条目</button>
-                <button onclick="closeKbPanel()">关闭</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 决策对比面板 -->
-<div class="modal-mask" id="compareMask">
-    <div class="modal">
-        <h4>决策对照面板｜同一问题，两套画像对比</h4>
-        <div class="form-row">
-            <label>待对比问题</label>
-            <input id="compareQ" placeholder="要不要裸辞 / 要不要二战考研">
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div>
-                <div class="form-row"><label>画像A</label>
-                    <select id="cmpA-base">
-                        <option>学生</option><option>职场</option>
-                    </select>
-                    <select id="cmpA-sub">
-                        <option>保研党</option><option>考研党</option><option>应届生求职</option><option>1-3年跳槽</option>
-                    </select>
-                    <select id="cmpA-fund">
-                        <option>＜3个月</option><option>3~6个月</option><option>＞6个月</option>
-                    </select>
-                    <input id="cmpA-track" placeholder="赛道">
-                </div>
-            </div>
-            <div>
-                <div class="form-row"><label>画像B</label>
-                    <select id="cmpB-base">
-                        <option>学生</option><option>职场</option>
-                    </select>
-                    <select id="cmpB-sub">
-                        <option>保研党</option><option>考研党</option><option>应届生求职</option><option>1-3年跳槽</option>
-                    </select>
-                    <select id="cmpB-fund">
-                        <option>＜3个月</option><option>3~6个月</option><option>＞6个月</option>
-                    </select>
-                    <input id="cmpB-track" placeholder="赛道">
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button onclick="runCompare()">生成对照结论</button>
-            <button onclick="closeComparePanel()">关闭</button>
-        </div>
-        <div id="compareResult"></div>
-    </div>
-</div>
-
-<!-- 导入导出面板 -->
-<div class="modal-mask" id="ieMask">
-    <div class="modal">
-        <h4>知识库备份｜JSON / Markdown</h4>
-        <div class="modal-tab">
-            <div class="modal-tab-item active" data-tab="export">导出备份</div>
-            <div class="modal-tab-item" data-tab="import">批量导入JSON</div>
-        </div>
-        <div class="tab-content active" id="tab-export">
-            <div class="form-row">
-                <label>导出格式</label>
-                <select id="exportType">
-                    <option value="json">JSON（全库备份，可导入恢复）</option>
-                    <option value="md">Markdown（Obsidian笔记）</option>
-                </select>
-            </div>
-            <div class="modal-footer">
-                <button onclick="doExport()">执行导出并下载</button>
-            </div>
-            <textarea id="exportPreview" class="import-area" readonly placeholder="预览"></textarea>
-        </div>
-        <div class="tab-content" id="tab-import">
-            <div class="form-row">
-                <label>粘贴JSON备份文本（只导入私有库，平台公共库不会被覆盖）</label>
-                <textarea id="importText" class="import-area"></textarea>
-            </div>
-            <div class="modal-footer">
-                <button onclick="doImport()">导入追加到私有库</button>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button onclick="closeImportExportPanel()">关闭</button>
-        </div>
-    </div>
-</div>
-
-<!-- 社区审核面板 -->
-<div class="modal-mask" id="auditMask">
-    <div class="modal">
-        <h4>社区贡献审核流｜用户提交条目池</h4>
-        <div class="modal-tab">
-            <div class="modal-tab-item active" data-tab="submit">提交新条目</div>
-            <div class="modal-tab-item" data-tab="audit">管理员审核池</div>
-        </div>
-        <div class="tab-content active" id="tab-submit">
-            <p style="font-size:12px;color:#777;margin-bottom:10px;">提交后进入待审池，管理员审核通过才会进入平台公共库</p>
-            <div class="form-row">
-                <label>关键词（逗号分隔）</label>
-                <input id="subKeywords">
-            </div>
-            <div class="form-row">
-                <label>场景</label>
-                <select id="subScene">
-                    <option>学生</option><option>职场</option><option>生活决策</option>
-                </select>
-            </div>
-            <div class="form-row">
-                <label>适用约束</label>
-                <input id="subConstraints">
-            </div>
-            <div class="form-row">
-                <label>不适用人群</label>
-                <input id="subExclude">
-            </div>
-            <div class="form-row">
-                <label>置信度预估</label>
-                <input id="subConf" value="85">
-            </div>
-            <div class="form-row inline">
-                <label><input type="checkbox" id="subIsPolicy">政策类</label>
-            </div>
-            <div class="form-row">
-                <label>过期时间戳</label>
-                <input id="subExpire">
-            </div>
-            <div class="form-row">
-                <label>稳妥共识</label>
-                <textarea id="subHigh"></textarea>
-            </div>
-            <div class="form-row">
-                <label>分歧观点</label>
-                <textarea id="subDiff"></textarea>
-            </div>
-            <div class="form-row">
-                <label>风险存疑</label>
-                <textarea id="subWarn"></textarea>
-            </div>
-            <div class="modal-footer">
-                <button onclick="submitCandidate()">提交候选条目</button>
-            </div>
-        </div>
-        <div class="tab-content" id="tab-audit">
-            <p style="font-size:12px;color:#777;margin-bottom:10px;">管理员操作：通过→并入平台公共库；驳回→移除</p>
-            <div id="auditList"></div>
-        </div>
-        <div class="modal-footer">
-            <button onclick="closeAuditPanel()">关闭</button>
-        </div>
-    </div>
-</div>
-
 <script>
-// ========= 配置区 =========
-const API_KEY = "";
-const API_URL = "";
-const MODEL_NAME = "gpt-3.5-turbo";
-// ==========================
+const {createApp} = Vue
+createApp({
+  data(){
+    return {
+      // ========== 修复核心变量 ==========
+      inputQuestion:"",
+      loading:false,
+      msgList:[],
+      currentTab:"list",
+      showAdminPanel:false,
+      showLibEdit:false,
+      showCompare:false,
+      adminPwdInput:"",
+      isAdmin:false,
+      libItem:{question:"",answer:"",tag:"",tagColor:"#f2b894",diff:"high",expireTime:"",type:""},
+      compareRes:{a:"",b:""},
+      // 公共知识库
+      publicLib:[
+       {"question":"毕业论文延迟答辩怎么办","answer":"和导师沟通修改方案，按学校流程提交；会影响毕业时间，提前规划，尽量避免被动延期。","tag":"学业风险","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"学生"},
+{"question":"学生适合买什么保险","answer":"优先医保，其次意外险；预算充足可以搭配百万医疗，重疾险对于学生性价比偏低，谨慎选择。","tag":"校园生活","tagColor":"#94f2b8","diff":"high","expireTime":"","type":"学生"},
+{"question":"大学要不要考计算机二级","answer":"部分国企、事业单位报名有硬性要求；互联网技术岗不看重。目标体制内建议考，其余按需选择。","tag":"技能提升","tagColor":"#94f2b8","diff":"diff","expireTime":"","type":"学生"},
+{"question":"实习证明重要吗","answer":"校招、保研、部分评优会看；但是比起一纸证明，真实可复盘的项目成果优先级更高，不要花钱买假实习证明。","tag":"实习求职","tagColor":"#94f2b8","diff":"high","expireTime":"","type":"学生"},
+{"question":"面试被问职业规划怎么回答","answer":"短期融入岗位、掌握业务；中期深耕方向、独立负责模块；长期成为领域内专业人员，贴合投递岗位，不要说得太宏大空泛。","tag":"求职准备","tagColor":"#94f2b8","diff":"high","expireTime":"","type":"学生"},
+{"question":"春招和秋招差距大吗","answer":"秋招岗位总量多、优质岗位集中；春招以补录为主，岗位少、竞争更激烈，优先抓住秋招。","tag":"求职准备","tagColor":"#94f2b8","diff":"high","expireTime":"","type":"学生"},
+{"question":"三方协议可以随便签吗","answer":"不可以，三方有约束力；签前看清违约金、报到时间；拿到更好offer要走解约流程，部分企业会收取违约金。","tag":"求职准备","tagColor":"#ffb3b3","diff":"warn","expireTime":"2027-12-31","type":"学生"},
+{"question":"应届生签三方之后反悔怎么办","answer":"先和HR友好沟通解约，按协议处理违约金；拿到解约函才能领取新三方，影响下一家入职。","tag":"求职准备","tagColor":"#ffb3b3","diff":"warn","expireTime":"2027-12-31","type":"学生"},
+{"question":"选调生和普通公务员区别","answer":"选调生面向应届生，有培养倾斜，一般需要基层服务；普通公务员岗位选择更广，报考门槛相对宽松。","tag":"体制方向","tagColor":"#94f2b8","diff":"diff","expireTime":"","type":"学生"},
+{"question":"党员身份对考公有用吗","answer":"很多岗位限制党员报考，竞争更小；但不是考公必备条件，非党员也有大量岗位可以报考。","tag":"体制方向","tagColor":"#94f2b8","diff":"high","expireTime":"","type":"学生"},
+{"question":"考研一志愿落榜调剂难不难","answer":"热门专业调剂竞争激烈；冷门专业更容易捡漏；调剂信息窗口期很短，要主动盯院校官网、及时联系研招办。","tag":"升学选择","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"学生"},
+{"question":"专硕和学硕怎么选","answer":"想就业优先专硕，学制短、偏实践；想读博、走科研优先学硕；部分院校学硕可以直博。","tag":"升学选择","tagColor":"#94f2b8","diff":"high","expireTime":"","type":"学生"},
+{"question":"读研学费贵不贵","answer":"学硕普遍便宜，专硕很多专业学费更高；留意奖学金、助学金、助研岗位，可以覆盖大部分开支。","tag":"研究生","tagColor":"#94f2b8","diff":"diff","expireTime":"","type":"学生"},
+{"question":"研究生要不要做助教","answer":"有补贴、锻炼表达，评优加分；但会占用科研时间，平衡好科研任务再选择。","tag":"研究生","tagColor":"#94f2b8","diff":"diff","expireTime":"","type":"学生"},
+{"question":"研究生要不要换方向","answer":"尽量入学前确定；入学后换方向成本极高，需要导师同意、重新补基础，慎重决策。","tag":"研究生","tagColor":"#94f2b8","diff":"diff","expireTime":"","type":"学生"},
+{"question":"刚入职要不要主动加班","answer":"不要为了表现无意义加班；优先保证交付质量；紧急任务可以配合，避免常态化无效内卷。","tag":"职场生存","tagColor":"#94b8f2","diff":"high","expireTime":"","type":"职场人"},
+{"question":"跨行业跳槽难度大吗","answer":"跨行业难度高于同行业跳槽；最好找到能力迁移点，用作品集、副业项目弥补行业经验缺口。","tag":"职业规划","tagColor":"#94b8f2","diff":"diff","expireTime":"","type":"职场人"},
+{"question":"公司架构调整要不要慌","answer":"先观察业务、预算变化；不盲目焦虑，同步更新简历，保持对外机会的接触，做好两手准备。","tag":"职场风险","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"绩效差怎么办","answer":"先和直属领导对齐绩效标准，找出差距；制定改进计划，定期同步进度，不要躺平或者对抗。","tag":"职场晋升","tagColor":"#94b8f2","diff":"high","expireTime":"","type":"职场人"},
+{"question":"公司内部转岗失败怎么办","answer":"复盘失败原因，是能力匹配问题还是部门名额问题；继续在当前岗位沉淀，或者看外部机会。","tag":"职业规划","tagColor":"#94b8f2","diff":"diff","expireTime":"","type":"职场人"},
+{"question":"HR背调一般查什么","answer":"核实工作经历、岗位、入职离职时间、薪资、是否有竞业、离职原因；不要在简历上造假，背调翻车直接取消offer。","tag":"求职跳槽","tagColor":"#94b8f2","diff":"high","expireTime":"2027-12-31","type":"职场人"},
+{"question":"背调可以拒绝吗","answer":"可以拒绝，但大部分企业会直接终止录用；可以协商只授权背调最近1-2份工作。","tag":"求职跳槽","tagColor":"#94b8f2","diff":"diff","expireTime":"2027-12-31","type":"职场人"},
+{"question":"绩效优化是不是裁员","answer":"绩效优化是裁员的一种包装形式，重点看补偿方案，保留证据协商赔偿。","tag":"职场风险","tagColor":"#ffb3b3","diff":"warn","expireTime":"2027-12-31","type":"职场人"},
+{"question":"要不要参加公司团建","answer":"非强制可以选择性参加；强制团建占用休息时间，可礼貌沟通，不必勉强自己。","tag":"职场人际","tagColor":"#94b8f2","diff":"diff","expireTime":"","type":"职场人"},
+{"question":"工作群消息要不要秒回","answer":"紧急事项及时响应；非紧急工作消息，工作时段回复即可，不用24小时在线待命。","tag":"职场沟通","tagColor":"#94b8f2","diff":"high","expireTime":"","type":"职场人"},
+{"question":"线上会议怎么高效参会","answer":"提前看议程，准备问题；会议记录抓结论、行动项、责任人；会后同步纪要，避免会后扯皮。","tag":"工作管理","tagColor":"#94b8f2","diff":"high","expireTime":"","type":"职场人"},
+{"question":"项目延期了怎么汇报","answer":"主动提前上报，说明卡点、影响范围、备选方案、需要的资源，不要等到最后一刻才暴露。","tag":"工作管理","tagColor":"#94b8f2","diff":"high","expireTime":"","type":"职场人"},
+{"question":"要不要接临时紧急需求","answer":"先评估对原有任务的冲击，同步给领导，调整优先级，而不是直接全盘承接。","tag":"工作管理","tagColor":"#94b8f2","diff":"high","expireTime":"","type":"职场人"},
+{"question":"职场适合发展副业吗","answer":"主业稳定、精力充足、副业不竞争公司业务才适合；不要副业占用主业核心时间。","tag":"副业理财","tagColor":"#94b8f2","diff":"diff","expireTime":"","type":"职场人"},
+{"question":"自媒体适合当副业吗","answer":"变现周期长，前期几乎没有收益；当作长期爱好可以，不要指望短期赚钱。","tag":"副业理财","tagColor":"#f2d294","diff":"diff","expireTime":"","type":"生活小白"},
+{"question":"定期存款和理财哪个好","answer":"定期保本，适合绝对不能亏的钱；理财有波动风险，适合能接受小幅亏损的闲钱。","tag":"个人理财","tagColor":"#f2d294","diff":"high","expireTime":"","type":"生活小白"},
+{"question":"征信报告重要吗","answer":"非常重要，房贷、车贷、信用卡都会看；不要频繁申请信贷，按时还款，避免逾期。","tag":"个人理财","tagColor":"#ffb3b3","diff":"warn","expireTime":"2027-12-31","type":"生活小白"},
+{"question":"逾期一次影响大吗","answer":"短期小额、及时还清，影响有限；连续逾期、大额逾期，会长期留在征信上，影响贷款。","tag":"个人理财","tagColor":"#ffb3b3","diff":"warn","expireTime":"2027-12-31","type":"生活小白"},
+{"question":"租房长租还是短租","answer":"计划稳定居住选长租，单价更低；不确定居住时长、过渡使用选短租，灵活但单价更高。","tag":"租房居住","tagColor":"#f2d294","diff":"high","expireTime":"","type":"生活小白"},
+{"question":"租房合同哪些条款是坑","answer":"口头承诺无效；警惕高额违约金、不合理扣费、房东单方面解约、不允许转租条款。","tag":"租房居住","tagColor":"#ffb3b3","diff":"warn","expireTime":"2027-12-31","type":"生活小白"},
+{"question":"适合新手的运动是什么","answer":"快走、慢跑、瑜伽、跳绳门槛低；从低强度开始，不要一开始高强度训练受伤。","tag":"健康管理","tagColor":"#f2d294","diff":"high","expireTime":"","type":"生活小白"},
+{"question":"运动之后一定要拉伸吗","answer":"拉伸可以缓解肌肉紧张，减少酸痛；不用强制长时间拉伸，简单放松即可。","tag":"健康管理","tagColor":"#f2d294","diff":"high","expireTime":"","type":"生活小白"},
+{"question":"过敏性体质怎么调理","answer":"优先规避过敏原；严重过敏备好急救药物；靠长期运动提升体质，但很难根治。","tag":"健康管理","tagColor":"#f2d294","diff":"diff","expireTime":"","type":"生活小白"},
+{"question":"容易心慌要不要硬扛","answer":"频繁心慌、胸闷，尽快就医检查，不要简单归为焦虑，排除器质性问题。","tag":"健康管理","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"生活小白"},
+{"question":"冥想有用吗","answer":"长期坚持可以缓解焦虑、提升专注力；不是立刻见效，适合日常压力调节。","tag":"心理调节","tagColor":"#f2d294","diff":"diff","expireTime":"","type":"生活小白"},
+{"question":"压力大要不要找人倾诉","answer":"找靠谱亲友倾诉是很好的解压方式；同时注意不要把别人当成唯一情绪垃圾桶。","tag":"心理调节","tagColor":"#f2d294","diff":"high","expireTime":"","type":"生活小白"},
+{"question":"喜欢独处是不是不正常","answer":"独处是正常偏好，内向者靠独处恢复精力；只要不影响正常社交、生活，不需要强迫改变。","tag":"心理调节","tagColor":"#f2d294","diff":"high","expireTime":"","type":"生活小白"},
+{"question":"线上心理咨询靠谱吗","answer":"正规平台持证咨询师有效；低价无资质的“心理疏导”风险很高，注意甄别。","tag":"心理调节","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"生活小白"},
+{"question":"买电子产品选首发还是等降价","answer":"刚需急用可以首发；非刚需，等2-3个月降价，性价比更高。","tag":"消费决策","tagColor":"#f2d294","diff":"high","expireTime":"","type":"生活小白"},
+{"question":"延保服务值得买吗","answer":"高价值精密设备、维修很贵的可以考虑；普通手机、小家电，延保大多是溢价，不推荐。","tag":"消费决策","tagColor":"#f2d294","diff":"diff","expireTime":"","type":"生活小白"},
+{"question":"订阅制服务要不要连续包月","answer":"连续包月首月便宜，忘记取消很容易持续扣费；用的时候再开，用完及时关闭自动续费。","tag":"消费决策","tagColor":"#f2d294","diff":"high","expireTime":"","type":"生活小白"},
+{"question":"出境旅游要不要买旅行保险","answer":"强烈建议购买，覆盖医疗、行程取消、行李丢失；境外医疗费用很高。","tag":"生活休闲","tagColor":"#f2d294","diff":"high","expireTime":"","type":"生活小白"},
+{"question":"小众爱好值得投入钱吗","answer":"预算可控、能给你情绪价值就值得；不要透支生活费、存款去支撑爱好。","tag":"生活休闲","tagColor":"#f2d294","diff":"diff","expireTime":"","type":"生活小白"},
+{"question":"借钱给朋友收利息合适吗","answer":"大额借款提前说好利息，写进借条；小额熟人之间，优先不收利息，避免伤感情。","tag":"人际财务","tagColor":"#f2d294","diff":"diff","expireTime":"","type":"生活小白"},
+{"question":"朋友欠钱不还怎么办","answer":"先友好提醒；协商无效，保留借条转账记录，走调解或者诉讼，不要暴力催债。","tag":"人际财务","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"生活小白"},
+{"question":"如何优雅拒绝借钱","answer":"直接说明自己资金规划，不用编造复杂理由；拒绝一次，避免后续反复开口。","tag":"人际社交","tagColor":"#f2d294","diff":"high","expireTime":"","type":"生活小白"},
+{"question":"要不要参加同学聚会","answer":"想见老朋友就去；如果聚会只有攀比、内耗，不去也完全没问题。","tag":"人际社交","tagColor":"#f2d294","diff":"diff","expireTime":"","type":"生活小白"},
+{"question":"网上认识的网友可以见面吗","answer":"优先公共场所见面，告知亲友行程；不要单独去陌生私密地点，保护人身安全。","tag":"安全风险","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"生活小白"},
+{"question":"快递到付骗局怎么识别","answer":"没有提前购买的到付件，直接拒收；不要扫码、不要付款。","tag":"安全风险","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"生活小白"},
+{"question":"公共WiFi能不能随便连","answer":"公共WiFi不要登录网银、支付账号，容易被盗取信息；必要时搭配流量或者VPN。","tag":"安全风险","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"生活小白"},
+{"question":"要不要转行","answer":"👉方向1：转行。优势：逃离不匹配赛道，找到自己更擅长、薪资上限更高的方向；劣势：沉没成本高，从零开始，前期薪资下降、面试难度大。👉方向2：留在本行业深耕。优势：已有经验积累，跳槽涨薪路径更稳，不用重新学习；劣势：长期内耗，天花板明显。✅抉择建议：先做副业/自学验证新赛道，拿到小项目成果再转；不要裸转；30岁之后转行优先选和原有经验可迁移的方向。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"转行要不要报培训班","answer":"👉方向1：报培训班。优势：体系化路线、项目包装、求职辅导，适合完全零基础、自律差的人；劣势：价格贵，很多课程内容老旧，就业承诺大多是营销话术。👉方向2：自学+免费项目。优势：成本低，自主可控；劣势：信息差大，容易踩坑，缺少面试背书。✅抉择建议：优先自学2个月验证自己能不能坚持；只有需要落地项目、简历包装、内推资源且预算充足，再选口碑机构，避开高额保就业班。","tag":"职业学习","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"工作要不要接受降薪跳槽","answer":"👉方向1：接受降薪跳槽。优势：赛道更好、平台更强、能积累核心履历，长期收益更高；劣势：短期收入缩水，生活压力变大。👉方向2：不接受降薪，继续在原公司/同赛道涨薪。优势：现金流稳定；劣势：赛道差的话越做越贬值。✅抉择建议：降薪幅度控制在20%以内；必须拿到【能力/履历/资源】其中一项长期增益；单纯换一家同类型公司降薪，坚决不接。","tag":"求职抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"面试要不要说真实薪资期望","answer":"👉方向1：先说预期薪资。优势：提前对齐，避免浪费双方时间；劣势：报高直接失去机会，报低被压价。👉方向2：引导对方先出价。优势：掌握议价主动权；劣势：部分HR会持续逼问。✅抉择建议：提前查同城市同岗位薪资区间，给区间而不是固定数字；优先让对方给出预算，再根据预算谈判。","tag":"面试技巧","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"面试被问缺点怎么回答","answer":"👉方向1：说真实短板。优势：真诚；劣势：容易踩雷，直接淘汰。👉方向2：说包装后的成长型缺点。优势：安全，体现反思；劣势：HR听太多套路。✅抉择建议：不说硬技能致命缺点；选可以改进、不影响岗位核心工作的点，并且配套你正在改进的行动。","tag":"面试技巧","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"offer上的薪资结构要注意什么","answer":"👉方向1：看重总包数字。优势：看总收入；劣势：很多是浮动绩效、年终奖，不一定拿得到。👉方向2：优先固定基本工资。优势：收入稳定，裁员赔偿按底薪计算；劣势：固定底薪高的岗位总包可能偏低。✅抉择建议：重点区分固定薪资/绩效/补贴/年终奖；绩效占比超过40%风险很高；确认年终奖发放条件、离职是否折算。","tag":"职场风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"职场人"},
+{"question":"试用期离职会不会有负面影响","answer":"👉方向1：试用期离职。优势：及时止损，不用浪费时间；劣势：简历上短履历多，后续面试容易被质疑稳定性。👉方向2：硬扛做完至少半年。优势：履历好看；劣势：长期消耗自己。✅抉择建议：岗位和预期严重不符、公司违法可以果断走；单纯只是不喜欢，尽量先骑驴找马，控制单段履历尽量不要短于3个月。","tag":"职场风险","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"加班没有加班费要不要接受","answer":"👉方向1：接受无薪加班。优势：快速熟悉业务，给领导留下好印象；劣势：长期透支身体，无偿被压榨。👉方向2：拒绝无薪加班。优势：守住边界，保护自己；劣势：容易被贴上不配合标签。✅抉择建议：短期项目紧急可以偶尔配合；常态化无薪加班，属于不合规，优先看有没有调休；没有调休、长期无偿加班，尽早准备换工作。","tag":"职场边界","tagColor":"#f2b894","diff":"high","expireTime":"","type":"职场人"},
+{"question":"领导画大饼要不要信","answer":"👉方向1：相信大饼。优势：有动力，争取机会；劣势：承诺没有书面记录，最后很难兑现。👉方向2：只看落地和书面约定。优势：风险可控；劣势：容易错过真正的机会。✅抉择建议：口头承诺一律不算数；晋升、加薪、奖金，需要落到绩效制度、邮件、offer里；没有书面凭证，一律当成额外福利，不要纳入规划。","tag":"职场人际","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"要不要主动找领导谈加薪","answer":"👉方向1：主动谈加薪。优势：争取收入提升；劣势：谈崩之后容易被边缘化。👉方向2：等着公司主动调薪。优势：风险低；劣势：大部分公司不会主动涨薪。✅抉择建议：谈薪前准备好成果、数据、行业对标；最好是完成重大项目之后谈；不要只谈辛苦，谈价值。","tag":"职场发展","tagColor":"#f2b894","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"同事找你帮忙，要不要一直帮","answer":"👉方向1：持续帮忙。优势：维持人际关系；劣势：你的工作时间被挤占，别人会把你的帮忙当成理所当然。👉方向2：选择性帮忙。优势：保护自己的时间；劣势：容易被说不合群。✅抉择建议：紧急、一次性、互惠的忙可以帮；重复性、属于对方本职的工作，温和划定边界。","tag":"职场人际","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"职场要不要和同事交朋友","answer":"👉方向1：深度交朋友。优势：上班氛围好，有人倾诉；劣势：利益冲突时容易被出卖，私事容易变成办公室八卦。👉方向2：保持专业距离。优势：安全稳定；劣势：工作氛围冰冷。✅抉择建议：可以友好相处，不聊薪资、不吐槽领导、不泄露个人重大隐私；尽量避免和同组直接竞争同事深度交心。","tag":"职场人际","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"要不要在职考公","answer":"👉方向1：在职备考。优势：有收入兜底，风险低；劣势：时间碎片化，非常累，备考周期拉长。👉方向2：全职备考。优势：全天学习，效率高；劣势：没有收入，心理压力巨大，落榜后空窗很难解释。✅抉择建议：优先在职备考；自律很差、积蓄充足，才考虑全职；不要裸辞考公。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"异地公务员要不要去","answer":"👉方向1：去异地公务员。优势：稳定编制；劣势：离家远，圈子陌生，调动难度极高，回不去家乡。👉方向2：放弃，等本地岗位。优势：生活舒适，亲友在身边；劣势：岗位少、竞争更大。✅抉择建议：优先看城市、房价、服务年限；偏远地区、最低服务5年的岗位慎重，一旦上岸很难调动。","tag":"求职抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"考公三不限岗位值得报吗","answer":"👉方向1：报三不限。优势：岗位选择多；劣势：报名人数爆炸，分数卷得很高，上岸难度极大。👉方向2：等限制专业/学历/党员的岗位。优势：竞争小很多；劣势：可选岗位少，甚至当年没有岗位。✅抉择建议：有符合条件的限制岗优先报；没有合适岗位，再考虑三不限，做好高分竞争的心理准备。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"normal","expireTime":"","type":"学生"},
+{"question":"考研调剂要不要去偏远学校","answer":"👉方向1：接受偏远院校调剂。优势：拿到硕士学历；劣势：学校资源弱，地理位置差，就业认可度有限。👉方向2：放弃调剂，二战或者直接就业。优势：保留选择权；劣势：再承担一年备考压力。✅抉择建议：如果目标只是拿学历、考公不限学校，可接受；如果未来想进大厂、好城市就业，优先评估院校地域和行业认可度。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"二战考研值得吗","answer":"👉方向1：二战考研。优势：有机会去到目标院校；劣势：一年时间成本，心理压力大，再次落榜风险。👉方向2：停止考研，直接就业。优势：开始积累工作经验；劣势：心里留有遗憾。✅抉择建议：一战分数差距不大、清楚自己的问题、有积蓄支撑可以二战；单纯不甘心、没有复盘失败原因，不建议二战。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"保研边缘人要不要冲竞赛","answer":"👉方向1：冲竞赛加分。优势：拉高排名拿到保研名额；劣势：竞赛不确定性高，占用大量复习时间，有可能绩点下滑。👉方向2：稳住绩点优先。优势：保研基础盘稳定；劣势：加分不够，容易卡在名额线外。✅抉择建议：绩点是底线，竞赛是加分项；不要为了竞赛把必修课绩点搞崩。","tag":"学业规划","tagColor":"#b3f2b3","diff":"warn","expireTime":"","type":"学生"},
+{"question":"大学要不要辅修第二专业","answer":"👉方向1：辅修。优势：拓宽知识面，跨专业考研、求职多一条路线；劣势：课业翻倍，非常累，很多辅修证书社会认可度有限。👉方向2：不学辅修。优势：时间留给主专业、实习；劣势：缺少跨学科背景。✅抉择建议：想跨考、跨专业求职可以辅修；单纯觉得好玩，优先自学网课，不用硬卷辅修。","tag":"学业规划","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"大学要不要考证","answer":"👉方向1：多考证。优势：部分证书是岗位硬性门槛；劣势：很多证书含金量低，只是浪费时间金钱。👉方向2：只考刚需证书。优势：聚焦核心能力；劣势：简历缺少证书背书。✅抉择建议：四六级、教资、法考、CPA这类刚需证按需考；各类不知名培训证书、营销类证书不要盲目报考。","tag":"学业规划","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"四六级没过影响找工作吗","answer":"👉方向1：优先刷分考过。优势：很多国企、大厂、外企筛简历硬性要求；劣势：反复备考占用时间。👉方向2：放弃四六级，专注项目实习。优势：把精力放在作品集和项目；劣势：很多岗位直接无法投递。✅抉择建议：目标国企、大厂、涉外岗位，四六级是硬门槛；部分技术岗、小公司不看，但是尽量拿到425以上。","tag":"学业规划","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"要不要去参加线下校招宣讲会","answer":"👉方向1：参加宣讲会。优势：直接和HR沟通，有现场内推、笔试机会；劣势：很多宣讲只是做品牌宣传，没有多少hc。👉方向2：线上投递为主。优势：节省时间；劣势：缺少面对面曝光机会。✅抉择建议：目标企业的宣讲优先去；不知名企业纯宣讲可以不去，把时间留给笔试面试。","tag":"求职抉择","tagColor":"#d8b3ff","diff":"normal","expireTime":"","type":"学生"},
+{"question":"应届生第一份工作选大平台还是高薪小厂","answer":"👉方向1：大平台。优势：体系规范，履历背书强；劣势：分工细，容易做螺丝钉，薪资偏低。👉方向2：高薪小厂。优势：薪资高，接触全链路；劣势：公司不稳定，容易倒闭裁员。✅抉择建议：0-1年优先平台背书；如果小厂赛道极好、老板靠谱、薪资差距巨大，再权衡。","tag":"求职抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"应届生要不要签三方协议","answer":"👉方向1：签三方锁定offer。优势：保住岗位，防止企业反悔；劣势：违约要付违约金，限制后续选择。👉方向2：不签三方，等正式劳动合同。优势：灵活；劣势：口头offer企业可以反悔，缺少约束。✅抉择建议：确认想去这家公司再签；三方违约金超过5000是不合规的；不要随便乱签多个三方。","tag":"职场风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"学生"},
+{"question":"租房要不要租离公司近的贵房子","answer":"👉方向1：租近一点。优势：通勤节省时间，精力更好；劣势：房租贵，每月支出压力大。👉方向2：租远一点便宜房。优势：省钱；劣势：长时间通勤消耗精力。✅抉择建议：通勤时间尽量控制在1小时内；房租不要超过税后收入30%；优先看房间采光、隔音、安全，而不是只看距离。","tag":"生活决策","tagColor":"#94f2b3","diff":"warn","expireTime":"","type":"生活"},
+{"question":"租房要不要和别人合租","answer":"👉方向1：合租。优势：房租便宜；劣势：生活习惯冲突，隐私差，容易产生矛盾。👉方向2：整租独居。优势：自由安静；劣势：成本高。✅抉择建议：预算有限、性格包容可以合租；睡眠浅、喜欢独处优先独居；合租一定要提前约定水电、卫生、访客规则。","tag":"生活决策","tagColor":"#94f2b3","diff":"normal","expireTime":"","type":"生活"},
+{"question":"租房要不要签长约一年","answer":"👉方向1：签一年长租。优势：房租稳定，房东不会随意涨租；劣势：中途换工作搬家会承担违约金。👉方向2：短租/月付。优势：灵活；劣势：租金更高，房东随时不续租。✅抉择建议：确定至少一年不换城市不换工作，签长约；不确定未来变动，优先短租或者可转租的房源。","tag":"生活风险","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"生活"},
+{"question":"租房押金能不能接受高押金","answer":"👉方向1：接受高押金。优势：拿到房源；劣势：退租时容易被扣押金，资金被占用。👉方向2：坚持常规押一付一/押一付三。优势：资金安全；劣势：部分房东不愿意。✅抉择建议：优先押一付三；押二付三、押三付三风险偏高；合同写明押金退还条件，保留全部聊天、转账记录。","tag":"生活风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"生活"},
+{"question":"要不要买电动车通勤","answer":"👉方向1：买电动车。优势：短途通勤灵活，省钱；劣势：充电麻烦，冬天难受，有被盗、交通事故风险。👉方向2：公共交通。优势：不用操心维护；劣势：高峰期拥挤。✅抉择建议：通勤3–8公里、有安全充电位置适合；没有固定充电点、治安差的小区谨慎购买。","tag":"消费抉择","tagColor":"#ffb3b3","diff":"normal","expireTime":"","type":"生活"},
+{"question":"要不要分期买手机","answer":"👉方向1：分期购买。优势：现金流压力小；劣势：有利息，总花费更高，容易养成超前消费习惯。👉方向2：全款购买或者等攒够钱。优势：没有利息，没有负债；劣势：一次性支出大。✅抉择建议：免息分期可以酌情选；有利息分期、本身预算不足，不要强行买高端机型。","tag":"消费抉择","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"生活"},
+{"question":"要不要办信用卡","answer":"👉方向1：办理信用卡。优势：积累征信，享受优惠；劣势：自控力差很容易透支负债。👉方向2：不办信用卡。优势：不会超前消费；劣势：缺少信贷记录。✅抉择建议：自控力强、能每月全额还款可以办；容易冲动消费、月光，不建议办。","tag":"理财抉择","tagColor":"#94b8f2","diff":"high","expireTime":"","type":"生活"},
+{"question":"新手要不要买基金","answer":"👉方向1：定投基金。优势：长期复利，门槛低；劣势：短期会亏损，很多人拿不住割肉。👉方向2：只存银行存款。优势：保本稳定；劣势：收益很低，跑不赢通胀。✅抉择建议：只用3–5年不用的闲钱定投；不要借钱、不要生活费炒股买基金；先学习基础理财知识再入场。","tag":"理财抉择","tagColor":"#94b8f2","diff":"warn","expireTime":"","type":"生活"},
+{"question":"要不要买商业重疾险","answer":"👉方向1：配置重疾险。优势：大病一次性赔付，抵御大病风险；劣势：保费贵，长期缴费，健康告知严格。👉方向2：只保留医保+百万医疗。优势：保费低，覆盖住院医疗；劣势：生病不会一次性给钱。✅抉择建议：家庭经济支柱优先配置；预算紧张优先百万医疗，重疾险放在后面。","tag":"生活保障","tagColor":"#94b8f2","diff":"normal","expireTime":"","type":"生活"},
+{"question":"要不要买理财课","answer":"👉方向1：买理财课。优势：系统学习；劣势：大部分课程是割韭菜，后面引导买高风险产品。👉方向2：免费资料自学。优势：零成本；劣势：信息零散，辨别难度高。✅抉择建议：拒绝高价理财训练营、带跟单荐股的课程；基础理财知识网上免费足够学。","tag":"消费抉择","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"生活"},
+{"question":"要不要做副业","answer":"👉方向1：做副业。优势：增加收入，拓展第二赛道；劣势：挤占休息时间，主业精力下滑。👉方向2：专心做好主业。优势：集中精力提升核心竞争力；劣势：收入单一。✅抉择建议：副业不能影响主业；优先选择可以积累能力的副业，不要选纯消耗时间的廉价体力副业。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"副业要不要交押金入平台","answer":"👉方向1：交押金加入。优势：拿到副业渠道；劣势：90%是骗局，交钱之后被拉黑。👉方向2：凡是先交钱的副业全部拒绝。优势：资金安全；劣势：错过少量正规付费渠道。✅抉择建议：任何刷单、打字员、手工活、剪辑接单先交押金的，一律判定骗局，不要转账。","tag":"职场风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"生活"},
+{"question":"要不要做自媒体","answer":"👉方向1：做自媒体。优势：长期有被动收入，打造个人IP；劣势：起号周期极长，前期几乎没有收益，非常消耗精力。👉方向2：不做自媒体，专注本职。优势：精力集中；劣势：缺少额外可能性。✅抉择建议：当成兴趣副业，不要辞职全职做；坚持3–6个月没有正向反馈及时止损。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"要不要辞职全职做自媒体","answer":"👉方向1：全职自媒体。优势：时间自由；劣势：收入不稳定，竞争激烈，容易断收入。👉方向2：副业慢慢做。优势：有保底收入；劣势：更新节奏慢。✅抉择建议：稳定收益持续3个月超过主业收入，再考虑全职；千万不要裸辞入场。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"high","expireTime":"","type":"职场人"},
+{"question":"要不要和对象同居","answer":"👉方向1：同居。优势：深度磨合，看清生活习惯；劣势：分手成本变高，容易产生经济纠纷。👉方向2：不同居，保持独立空间。优势：保留边界；劣势：很难看清真实生活状态。✅抉择建议：双方都有成熟规划，做好财产分开；不要过早同居，保护好自己，做好避孕。","tag":"亲密关系","tagColor":"#f2b894","diff":"warn","expireTime":"","type":"生活"},
+{"question":"恋爱要不要AA制","answer":"👉方向1：严格AA。优势：经济清晰，互不亏欠；劣势：缺少恋爱氛围感。👉方向2：轮流买单、互相送礼。优势：更自然；劣势：容易心里不平衡。✅抉择建议：找到双方都舒服的模式；大额消费提前商量，不要单方面长期承担所有开销。","tag":"亲密关系","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"生活"},
+{"question":"异地恋要不要结束异地","answer":"👉方向1：一方奔赴对方城市。优势：结束异地，稳定关系；劣势：放弃原有工作、人脉，沉没成本巨大。👉方向2：维持异地，约定时间节点。优势：保留各自发展；劣势：长期异地矛盾多。✅抉择建议：必须约定明确时间、城市、落地计划；没有时间表，无限期异地很难长久。","tag":"亲密关系","tagColor":"#f2b894","diff":"warn","expireTime":"","type":"生活"},
+{"question":"吵架要不要主动低头","answer":"👉方向1：主动让步。优势：快速修复关系；劣势：长期单方面妥协会积累委屈。👉方向2：等对方先道歉。优势：守住底线；劣势：矛盾持续发酵。✅抉择建议：可以主动沟通缓和气氛，但不等于无条件认错；对错要分开，底线问题不能一味退让。","tag":"亲密关系","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"生活"},
+{"question":"要不要分手","answer":"👉方向1：继续在一起磨合。优势：有感情基础，舍不得；劣势：长期内耗、反复踩同样的雷。👉方向2：果断分手。优势：停止内耗；劣势：经历痛苦的情绪期。✅抉择建议：家暴、持续欺骗、三观核心冲突优先分手；只是生活习惯差异、沟通问题优先磨合。","tag":"亲密关系","tagColor":"#f2b894","diff":"high","expireTime":"","type":"生活"},
+{"question":"要不要告诉对象自己的全部存款","answer":"👉方向1：全盘坦白。优势：信任拉满；劣势：后续产生金钱纠纷。👉方向2：保留一部分隐私。优势：资金安全；劣势：对方觉得你不信任。✅抉择建议：准备结婚可以坦诚；恋爱初期，不用全盘托出存款，保护个人资产。","tag":"亲密关系","tagColor":"#f2b894","diff":"warn","expireTime":"","type":"生活"},
+{"question":"要不要借钱给朋友","answer":"👉方向1：借钱。优势：帮朋友渡过难关；劣势：钱很难收回，友情破裂。👉方向2：委婉拒绝。优势：保住钱和关系；劣势：对方会觉得你不够义气。✅抉择建议：借钱等于做好收不回来的心理准备；大额借款一定要写借条，尽量少借大额资金。","tag":"人际抉择","tagColor":"#f2b894","diff":"high","expireTime":"","type":"生活"},
+{"question":"朋友借钱要不要打借条","answer":"👉方向1：主动写借条。优势：留凭证，防止赖账；劣势：显得不信任对方。👉方向2：口头约定。优势：不伤感情；劣势：没有证据，维权很难。✅抉择建议：超过2000元的借款，尽量文字确认金额、还款时间；大额必须借条+转账备注。","tag":"人际抉择","tagColor":"#f2b894","diff":"high","expireTime":"","type":"生活"},
+{"question":"要不要拒绝别人的请求","answer":"👉方向1：尽量不拒绝。优势：维持人缘；劣势：不断消耗自己。👉方向2：学会合理拒绝。优势：保护自己时间精力；劣势：短期别人对你印象下降。✅抉择建议：优先以自己的时间、目标为第一优先级；拒绝的时候温和清晰，不用过度愧疚。","tag":"人际抉择","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"生活"},
+{"question":"要不要讨好别人","answer":"👉方向1：讨好迎合。优势：快速获得好感；劣势：丢失自我，容易被拿捏。👉方向2：保持自我，平等相处。优势：吸引同频的人；劣势：没办法让所有人喜欢自己。✅抉择建议：好的关系是平等互惠，不需要刻意讨好；讨好换来的关系很脆弱。","tag":"自我成长","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"生活"},
+{"question":"要不要在意别人对自己的评价","answer":"👉方向1：听取别人评价。优势：发现自己盲区；劣势：容易被他人看法裹挟，自我内耗。👉方向2：完全不在意评价。优势：内心稳定；劣势：看不到自己的问题。✅抉择建议：区分建设性意见和单纯的闲言碎语；只参考靠谱的人的反馈，陌生人的评价不用放在心上。","tag":"自我成长","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"生活"},
+{"question":"要不要做性格内向的改变","answer":"👉方向1：强迫自己外向。优势：适合销售、公关类岗位；劣势：消耗巨大，容易焦虑。👉方向2：接纳内向，发挥优势。优势：专注、深度思考；劣势：部分社交场景吃亏。✅抉择建议：不用强行变成外向；学会基础社交技能，内向本身不是缺点，适合技术、内容、研究类工作。","tag":"自我成长","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"生活"},
+{"question":"要不要长期熬夜学习加班","answer":"👉方向1：熬夜赶进度。优势：多出时间；劣势：长期损伤免疫力，容易生病。👉方向2：早睡早起，白天高效。优势：保护身体；劣势：可支配时间变少。✅抉择建议：偶尔应急可以熬夜；不要把熬夜当成常态，长期透支身体得不偿失。","tag":"健康抉择","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"生活"},
+{"question":"要不要办健身卡","answer":"👉方向1：办健身卡。优势：有场地、氛围督促自己；劣势：大部分人办卡之后闲置浪费钱。👉方向2：居家徒手、跑步。优势：零成本；劣势：缺少器械，自律要求高。✅抉择建议：先坚持居家运动1个月，确认自己能持续，再办卡；不要冲动办长期年卡。","tag":"健康抉择","tagColor":"#94f2b3","diff":"normal","expireTime":"","type":"生活"},
+{"question":"减肥要不要节食","answer":"👉方向1：节食快速减重。优势：体重掉得快；劣势：极易反弹，伤代谢、脱发、月经紊乱。👉方向2：均衡饮食+运动慢慢减脂。优势：健康可持续；劣势：减重速度慢。✅抉择建议：拒绝极端节食；制造温和热量缺口，优先保证蛋白质摄入。","tag":"健康抉择","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"生活"},
+{"question":"要不要去看心理医生","answer":"👉方向1：预约心理咨询。优势：专业疏导，缓解痛苦；劣势：费用高，部分人有羞耻感。👉方向2：硬扛，靠自己调节。优势：省钱；劣势：情绪持续恶化，发展成病症。✅抉择建议：持续失眠、情绪低落超过2周、影响正常学习工作，一定要寻求专业帮助，心理咨询不是丢人事情。","tag":"健康抉择","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"生活"},
+{"question":"要不要去大城市发展","answer":"👉方向1：去一线/新一线。优势：岗位多、机会多、眼界开阔；劣势：房价高、生活压力大、孤独。👉方向2：留在家乡小城市。优势：生活安逸、亲友近；劣势：高薪岗位少，赛道窄。✅抉择建议：年轻可以去大城市试错；如果追求稳定、家庭重心在老家，小城市也很合适，没有绝对好坏。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"要不要回老家发展","answer":"👉方向1：回老家。优势：生活成本低，陪伴家人；劣势：岗位少、薪资天花板低，人情社会。👉方向2：留在大城市。优势：职业机会多；劣势：压力巨大。✅抉择建议：优先看老家有没有匹配你专业的岗位；单纯因为压力大逃回老家，很容易后续后悔。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"要不要裸辞回老家","answer":"👉方向1：裸辞回家。优势：逃离压力；劣势：回家之后发现工作难找，空窗期被动。👉方向2：先投递老家岗位，拿到offer再回去。优势：稳妥；劣势：需要一边上班一边面试。✅抉择建议：强烈建议先拿到老家书面offer再动；不要裸辞回去，容易进退两难。","tag":"职场风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"职场人"},
+{"question":"落户大城市值得吗","answer":"👉方向1：落户。优势：买房、孩子上学、医保福利；劣势：落户门槛高，后续绑定在这座城市。👉方向2：不落户，只长期工作。优势：灵活；劣势：缺少本地福利。✅抉择建议：有长期定居买房计划优先落户；只是短期打工，落户意义不大。","tag":"生活决策","tagColor":"#94f2b3","diff":"warn","expireTime":"","type":"生活"},
+{"question":"要不要买房","answer":"👉方向1：买房。优势：资产稳定，归属感；劣势：首付压力、几十年房贷，现金流被锁死。👉方向2：长期租房。优势：灵活，压力小；劣势：房租持续支出，没有资产。✅抉择建议：准备长期定居、首付充足、月供不超过家庭收入30%再考虑；不要掏空六个钱包强行上车。","tag":"理财抉择","tagColor":"#94b8f2","diff":"high","expireTime":"","type":"生活"},
+{"question":"买房要不要买期房","answer":"👉方向1：期房。优势：价格便宜；劣势：烂尾风险，交付延期。👉方向2：买现房二手房。优势：看得见实物，风险低；劣势：价格更高。✅抉择建议：优先现房；买期房一定要选央企、国企大开发商，避开高风险房企。","tag":"理财抉择","tagColor":"#94b8f2","diff":"high","expireTime":"","type":"生活"},
+{"question":"要不要买车位","answer":"👉方向1：买车位。优势：停车方便，房产增值；劣势：占用一大笔资金，流动性差。👉方向2：租车位。优势：资金灵活；劣势：车位紧张的时候抢不到。✅抉择建议：小区车位配比很低、长期自住再考虑买；车位贵、转手难，优先租。","tag":"消费抉择","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"生活"},
+{"question":"要不要报驾校学车","answer":"👉方向1：早点学车。优势：学生时间多，学费便宜；劣势：学车耗时间。👉方向2：等需要用车再学。优势：不浪费时间；劣势：后面工作很难抽出连续时间。✅抉择建议：大学时间充裕优先考完；短期内没有买车用车计划，也可以延后。","tag":"学业规划","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"拿到驾照要不要买车","answer":"👉方向1：买车。优势：出行自由；劣势：油费、保养、保险、停车费持续支出。👉方向2：只打车租车。优势：没有固定养车成本；劣势：出行不自由。✅抉择建议：通勤刚需、经常长途回老家再买车；城市公共交通完善，打车性价比更高。","tag":"消费抉择","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"生活"},
+{"question":"要不要加入行业社群","answer":"👉方向1：加入付费社群。优势：获取信息、人脉；劣势：很多社群只是割韭菜，没有干货。👉方向2：免费渠道自学。优势：省钱；劣势：信息滞后。✅抉择建议：先看社群内容、往期分享；只有能提供一手行业信息、内推资源，才值得付费。","tag":"职业学习","tagColor":"#d8b3ff","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"要不要参加行业峰会线下活动","answer":"👉方向1：参加线下峰会。优势：拓展人脉，了解行业趋势；劣势：很多是营销展会，含金量低，耗费时间路费。👉方向2：线上看回放。优势：低成本；劣势：缺少面对面交流。✅抉择建议：头部大厂主办、有核心嘉宾的峰会值得去；纯销售展会可以跳过。","tag":"职业学习","tagColor":"#d8b3ff","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"简历要不要放照片","answer":"👉方向1：放证件照。优势：HR印象更立体；劣势：部分公司会有外貌偏见。👉方向2：不放照片。优势：规避外貌歧视；劣势：少一点记忆点。✅抉择建议：国企、事业单位、服务岗建议放干净证件照；互联网技术岗可以不放。","tag":"面试技巧","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"学生"},
+{"question":"简历要不要写自我评价","answer":"👉方向1：写自我评价。优势：快速总结亮点；劣势：大部分都是空话套话，HR不爱看。👉方向2：用项目经历直接体现能力。优势：干货为主；劣势：缺少一句话总结。✅抉择建议：简短3行以内，结合岗位写；不要写热爱学习、吃苦耐劳这类无意义话术。","tag":"面试技巧","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"学生"},
+{"question":"简历要不要写校园经历","answer":"👉方向1：写校园经历。优势：应届生没有工作经验时丰富简历；劣势：和岗位无关的经历只会稀释重点。👉方向2：只保留和目标岗位相关经历。优势：聚焦匹配度；劣势：简历内容偏少。✅抉择建议：优先保留竞赛、项目、实习；无关社团打杂经历尽量删掉。","tag":"面试技巧","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"学生"},
+{"question":"面试之后要不要主动追问结果","answer":"👉方向1：面试结束后主动询问进度。优势：表达积极性；劣势：追问太频繁会引起反感。👉方向2：等对方通知。优势：稳妥；劣势：长时间没有消息，白白等待。✅抉择建议：面试结束3–5个工作日之后礼貌发消息询问；不要面试第二天就催HR。","tag":"面试技巧","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"学生"},
+{"question":"offer来了之后要不要拖一段时间再回复","answer":"👉方向1：延期回复。优势：等其他更好offer；劣势：企业有可能收回offer。👉方向2：尽快确认。优势：稳妥保住岗位；劣势：错过其他机会。✅抉择建议：礼貌沟通，争取合理期限（一般1–3天）；不要无限拖延，企业有招聘节奏。","tag":"求职抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"试用期被辞退怎么办","answer":"👉方向1：协商拿到补偿。优势：拿到赔偿；劣势：沟通成本高。👉方向2：直接走人，不争取。优势：快速脱身；劣势：本可以拿到补偿金。✅抉择建议：不是你重大过错被辞退，公司需要支付补偿金；保留聊天记录、考勤、工作证据。","tag":"职场风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"职场人"},
+{"question":"公司要求无偿加班到深夜要不要拒绝","answer":"👉方向1：长期配合加班。优势：保住工作；劣势：身体持续受损。👉方向2：明确拒绝无意义加班。优势：保护自己；劣势：容易被边缘化。✅抉择建议：区分紧急项目和常态化压榨；长期强制无偿加班，收集证据准备维权和找下家。","tag":"职场边界","tagColor":"#f2b894","diff":"high","expireTime":"","type":"职场人"},
+{"question":"公司让你背业绩黑锅怎么办","answer":"👉方向1：当场反驳。优势：立刻澄清；劣势：激化矛盾。👉方向2：文字留痕，冷静同步上级。优势：用证据自保；劣势：当下看起来被动。✅抉择建议：优先邮件/工作群同步事实，不情绪化争吵；多次甩锅，整理证据向上一级反馈。","tag":"职场人际","tagColor":"#f2b894","diff":"high","expireTime":"","type":"职场人"},
+{"question":"要不要加入公司的团建酒局","answer":"👉方向1：参加酒局。优势：维护职场关系；劣势：被迫喝酒，容易被劝酒。👉方向2：礼貌拒绝酒局。优势：保护自己；劣势：被认为不合群。✅抉择建议：可以到场，以茶代酒；强制劝酒、灌酒的酒局，有权利拒绝，保护自身安全。","tag":"职场人际","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"要不要在公司吐槽领导同事","answer":"👉方向1：和同事吐槽。优势：情绪释放；劣势：话一定会传出去，埋下大坑。👉方向2：工作只聊业务，不私下吐槽。优势：安全；劣势：情绪无处释放。✅抉择建议：公司内部任何聊天软件、当面都不要吐槽；吐槽只和公司外信任的朋友说。","tag":"职场人际","tagColor":"#f2b894","diff":"high","expireTime":"","type":"职场人"},
+{"question":"要不要把自己的工作方法分享给同事","answer":"👉方向1：大方分享。优势：打造靠谱形象；劣势：对方学会之后抢你的绩效。👉方向2：保留核心方法。优势：维持竞争力；劣势：团队协作感差。✅抉择建议：通用流程可以分享；属于你核心竞争力、差异化的独家方法，酌情保留。","tag":"职场人际","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"要不要主动承担难度高的项目","answer":"👉方向1：主动承接高难度项目。优势：做出成果，加速晋升；劣势：项目容易翻车，背锅风险大。👉方向2：先做好手上稳定任务。优势：稳扎稳打；劣势：缺少高光机会。✅抉择建议：有资源支持、领导愿意兜底再接；没有资源支持的烫手项目谨慎承接。","tag":"职场发展","tagColor":"#f2b894","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"晋升机会来了要不要争取","answer":"👉方向1：主动争取晋升。优势：薪资、职级提升；劣势：竞争激烈，争取失败之后尴尬。👉方向2：等领导主动提拔。优势：风险低；劣势：很多机会不会自动给到你。✅抉择建议：梳理自己的业绩成果，主动和领导沟通你的规划；不要默默等待。","tag":"职场发展","tagColor":"#f2b894","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"公司内卷严重要不要跑路","answer":"👉方向1：立刻跳槽。优势：逃离内卷环境；劣势：下一家公司可能同样内卷。👉方向2：调整心态，降低期待，只做好本职。优势：保留收入；劣势：长期内耗。✅抉择建议：内卷但是能学到东西、薪资不错可以蛰伏；纯无效内卷、没有成长，开始看外部机会。","tag":"职场风险","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"要不要考教资当老师","answer":"👉方向1：考教资走教师路线。优势：稳定、寒暑假；劣势：现在教师编竞争极大，薪资不高，琐事多。👉方向2：选择其他赛道。优势：薪资上限更高；劣势：不稳定。✅抉择建议：真心喜欢教书、能接受低薪资、擅长和学生沟通再考；单纯图稳定，现在教师岗非常卷。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"文科专业要不要考研","answer":"👉方向1：文科考研。优势：提升学历，考公、教师岗选择更多；劣势：文科考研内卷严重，就业薪资提升有限。👉方向2：直接就业。优势：早点积累经验；劣势：文科很多岗位门槛高。✅抉择建议：目标考公、国企、教师，考研性价比高；想做运营、市场，实习优先，不一定非要考研。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"理工科要不要考研","answer":"👉方向1：理工科考研。优势：研发、算法、大厂核心岗硬性要求硕士；劣势：备考难，周期长。👉方向2：本科就业。优势：部分开发、测试岗位本科足够；劣势：很多高端岗位无法投递。✅抉择建议：想做研发、芯片、算法优先考研；做前端、测试、运维，本科+好项目也可以就业。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"要不要参加学科竞赛","answer":"👉方向1：参加高含金量竞赛。优势：保研加分、简历亮点；劣势：占用大量时间，很难拿奖。👉方向2：不卷竞赛，专注绩点实习。优势：稳定保底；劣势：缺少加分项。✅抉择建议：保研刚需就冲竞赛；打算直接就业，优先项目和实习，竞赛属于加分项。","tag":"学业规划","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"大学要不要进实验室","answer":"👉方向1：进课题组实验室。优势：科研经历，适合保研、读博；劣势：打杂多，压榨时间，没有产出。👉方向2：不进实验室，去企业实习。优势：贴近产业；劣势：缺少科研经历。✅抉择建议：目标读研、做科研优先找靠谱导师实验室；目标就业优先实习。","tag":"学业规划","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"读博值得吗","answer":"👉方向1：读博。优势：科研路线、高校教职、高端研发岗门槛；劣势：周期极长，压力巨大，延毕风险高。👉方向2：硕士毕业直接工作。优势：早点赚钱；劣势：部分科研岗位无法投递。✅抉择建议：真心热爱科研，能接受长期枯燥，再读博；只是为了逃避就业，强烈不建议读博。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"high","expireTime":"","type":"学生"},
+{"question":"留学值得吗","answer":"👉方向1：出国留学。优势：海外视野、部分学校学历背书；劣势：费用极高，现在很多专业回国认可度下降。👉方向2：国内读研。优势：成本低，适配国内就业市场；劣势：考研内卷。✅抉择建议：家里预算充足、目标海外岗位或者特定专业再留学；普通家庭不要掏空家底出国。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"留学要不要找中介","answer":"👉方向1：找留学中介。优势：省心，文书、投递一条龙；劣势：中介费贵，很多中介流水线文书。👉方向2：DIY申请。优势：省钱；劣势：信息差大，容易踩坑。✅抉择建议：自律强、信息搜集能力强可以DIY；预算充足、时间紧张，选择口碑好的中介，拒绝保录取骗局。","tag":"学业规划","tagColor":"#b3f2b3","diff":"warn","expireTime":"","type":"学生"},
+{"question":"毕业论文选题选简单还是难的","answer":"👉方向1：简单稳妥选题。优势：容易顺利毕业；劣势：很难拿高分，不适合保研评优。👉方向2：高难度创新选题。优势：容易拿优秀论文；劣势：做不出来，延期风险高。✅抉择建议：优先保证顺利毕业；只有能力强、导师愿意强力指导，再选高难度选题。","tag":"学业风险","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"学生"},
+{"question":"毕业论文要不要找代写","answer":"👉方向1：找人代写。优势：省时间；劣势：学术不端，查重、盲审被抓直接取消学位，终身污点。👉方向2：自己写，找导师反复修改。优势：合规安全；劣势：很累。✅抉择建议：绝对不要找代写；可以找同学、导师帮忙提修改意见，但是不能代写。","tag":"学业风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"学生"},
+{"question":"查重过高怎么办","answer":"👉方向1：自己逐句改写降重。优势：安全；劣势：耗时间。👉方向2：付费降重服务。优势：省事；劣势：很多是AI改写，逻辑混乱，甚至包含违规内容。✅抉择建议：优先自己改写；任何声称包过查重的服务都有学术风险。","tag":"学业风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"学生"},
+{"question":"大学要不要翘课","answer":"👉方向1：选择性翘水课。优势：时间用来做更有价值的事情；劣势：点名挂科，影响绩点。👉方向2：每节课都到场。优势：稳妥；劣势：水课浪费时间。✅抉择建议：先确认点名规则、考核方式；不要因为翘课挂科，代价远大于收益。","tag":"校园选择","tagColor":"#ffe6b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"要不要参加暑期夏令营","answer":"👉方向1：参加保研夏令营。优势：拿到预录取offer；劣势：准备材料、面试成本高。👉方向2：专心准备考研。优势：聚焦考研；劣势：失去保研机会。✅抉择建议：绩点够保研线，一定要冲夏令营；保研无望，重心放在考研。","tag":"学业规划","tagColor":"#b3f2b3","diff":"warn","expireTime":"","type":"学生"},
+{"question":"大学要不要考计算机二级","answer":"👉方向1：报考计算机二级。优势：部分国企、事业单位报名门槛，简历加分；劣势：证书实操性弱，很多岗位不认可。👉方向2：不考，直接学实操技能。优势：把时间放在Python、Office实战；劣势：部分岗位报名被卡。✅抉择建议：目标考公、国企、行政岗建议考；互联网、技术岗优先级很低，优先实战项目。","tag":"学业规划","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"要不要加入学生会","answer":"👉方向1：加入学生会。优势：锻炼组织协调，评优加分，认识更多同学；劣势：大量无意义打杂，挤占学习、竞赛时间。👉方向2：不加入学生会。优势：时间自主，专注学业实习；劣势：缺少校园管理经历。✅抉择建议：只选对口部门，拒绝纯跑腿打杂；保研评优刚需再投入，不要占用核心学习时间。","tag":"校园选择","tagColor":"#ffe6b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"宿舍和室友关系很差要不要换宿舍","answer":"👉方向1：申请换宿舍。优势：脱离内耗环境，休息变好；劣势：流程麻烦，容易被议论。👉方向2：继续磨合，减少交集。优势：不用折腾；劣势：长期压抑，影响睡眠情绪。✅抉择建议：存在噪音、冷暴力、矛盾持续无法调和，果断申请换宿舍；只是生活习惯小差异，优先物理隔离减少冲突。","tag":"校园选择","tagColor":"#ffe6b3","diff":"warn","expireTime":"","type":"学生"},
+{"question":"大学要不要搬出去住","answer":"👉方向1：校外租房独居。优势：安静自由，作息不受干扰；劣势：房租成本高，通勤麻烦，安全风险上升。👉方向2：留在宿舍。优势：省钱，方便上课，社交简单；劣势：容易被室友影响休息。✅抉择建议：神经衰弱、备考需要安静环境、预算充足再考虑；大一优先宿舍，熟悉校园之后再评估。","tag":"校园选择","tagColor":"#ffe6b3","diff":"warn","expireTime":"","type":"学生"},
+{"question":"选修课选水课还是硬核课","answer":"👉方向1：选水课刷高分。优势：轻松拿高绩点，降低压力；劣势：学不到东西。👉方向2：选硬核有内容的课。优势：学到专业知识，对后续深造求职有用；劣势：难度高，容易拉低绩点。✅抉择建议：保研优先保绩点，适当选水课平衡；打算就业、夯实专业能力优先硬核课。","tag":"学业规划","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"挂科了要不要重修还是补考","answer":"👉方向1：补考通过。优势：成本最低，不用额外选课；劣势：补考分数普遍记录为及格，不利于绩点。👉方向2：重修刷分。优势：可以拿到更高分数，拉高GPA；劣势：占用下一学期时间。✅抉择建议：只需要及格不影响毕业优先补考；保研、留学对均分要求高，评估后重修刷分。","tag":"学业风险","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"学生"},
+{"question":"要不要休学一段时间","answer":"👉方向1：申请休学。优势：调整身心、治病、实习、准备考试；劣势：学业进度中断，和同龄人拉开差距，复学流程繁琐。👉方向2：坚持读完。优势：按时毕业；劣势：长期内耗、身心崩溃。✅抉择建议：心理疾病、重病、重大变故适合休学；单纯不想读书、逃避学习不建议休学。","tag":"学业风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"学生"},
+{"question":"网课要不要认真听","answer":"👉方向1：认真跟着网课学习。优势：吃透知识点，应对考核；劣势：很多网课内容水，浪费时间。👉方向2：只看重点、刷考点。优势：节省时间；劣势：基础薄弱容易挂科。✅抉择建议：核心专业课网课认真学；水课、考核简单的网课，抓考点即可。","tag":"学业规划","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"要不要找直系学长学姐内推实习","answer":"👉方向1：主动找学长学姐求助内推。优势：简历通过率更高，拿到一手信息；劣势：需要人情维护，麻烦对方。👉方向2：自己海投。优势：独立，不欠人情；劣势：简历容易石沉大海。✅抉择建议：礼貌沟通，提前准备好简历；优先同赛道、同公司的学长学姐，不要盲目打扰。","tag":"求职抉择","tagColor":"#d8b3ff","diff":"normal","expireTime":"","type":"学生"},
+{"question":"实习没有工资要不要去","answer":"👉方向1：无薪实习。优势：大厂、头部平台背书，丰富简历；劣势：付出时间没有收入，生活压力大。👉方向2：找有补贴实习。优势：有基础保障；劣势：平台体量一般。✅抉择建议：顶级稀缺头部岗位、能产出可写进简历成果可以短期接受；普通小公司无薪实习直接拒绝，属于压榨。","tag":"求职抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"实习岗位和预期不符要不要跑路","answer":"👉方向1：坚持做完实习周期。优势：拿到实习证明，履历完整；劣势：全程打杂，学不到东西。👉方向2：及时止损离开。优势：节省时间找下一份好实习；劣势：简历上短实习记录。✅抉择建议：连续1个月纯打杂、没有核心业务接触，果断离开；前期只是熟悉流程，可以再坚持一段时间观察。","tag":"求职抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"实习要不要加班","answer":"👉方向1：跟着团队加班。优势：融入团队，争取留用机会；劣势：挤占个人时间，透支精力。👉方向2：按时下班完成本职。优势：守住边界；劣势：容易被贴上不积极标签。✅抉择建议：项目紧急阶段性加班可以配合；常态化无偿加班，且没有留用承诺，慎重考虑。","tag":"职场边界","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"学生"},
+{"question":"实习结束要不要争取留用","answer":"👉方向1：主动争取留用。优势：拿到转正offer，省去秋招压力；劣势：竞争激烈，不一定能拿到名额。👉方向2：把实习当成简历素材，同步秋招。优势：多条路备选；劣势：精力分散。✅抉择建议：实习评价好、有HC名额全力争取；HC极少、评价一般，同步准备秋招不要押宝。","tag":"求职抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"秋招要不要海投","answer":"👉方向1：大范围海投。优势：增加笔试面试机会；劣势：分散精力，没有针对性，面试准备不足。👉方向2：精准投递少量目标岗位。优势：每一份简历深度打磨；劣势：机会变少。✅抉择建议：少量精准投递为主，搭配少量广撒网；不要几百份盲目投递，简历不做定制通过率极低。","tag":"求职抉择","tagColor":"#d8b3ff","diff":"normal","expireTime":"","type":"学生"},
+{"question":"春招还有机会吗要不要等春招","answer":"👉方向1：全力等春招。优势：部分企业补录；劣势：春招HC总量远少于秋招，优质岗位少。👉方向2：秋招保底，不把希望放在春招。优势：手握保底offer；劣势：秋招压力大。✅抉择建议：秋招是主战场；秋招没拿到满意offer，再全力冲春招，同时留意社招补录。","tag":"求职抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"求职要不要花钱简历优化","answer":"👉方向1：付费简历优化。优势：专业包装，突出亮点；劣势：很多服务商流水线套模板，溢价高，甚至造假。👉方向2：自己打磨+找前辈免费看。优势：低成本，真实可控；劣势：缺少专业视角。✅抉择建议：找靠谱前辈免费先看；预算充足只选纯润色，拒绝简历造假、虚构项目经历。","tag":"消费抉择","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"学生"},
+{"question":"面试被问薪资期望说高还是低","answer":"👉方向1：报偏高区间。优势：争取更高薪资；劣势：超过预算直接淘汰。👉方向2：报保守偏低区间。优势：更容易拿到offer；劣势：入职薪资被压，后续很难涨。✅抉择建议：查本地同岗中位数，给出区间，下限是你的底线；不要把底线直接报出来。","tag":"面试技巧","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"学生"},
+{"question":"面试要不要隐瞒考研考公计划","answer":"👉方向1：隐瞒考研/考公计划。优势：更容易拿到offer；劣势：入职后时间冲突，容易违约。👉方向2：如实告知。优势：诚信；劣势：大部分HR直接淘汰。✅抉择建议：不主动提；如果被问到，委婉说明自己优先工作，不把备考当成短期首要目标；做好时间冲突的风险预案。","tag":"面试技巧","tagColor":"#f2b894","diff":"warn","expireTime":"","type":"学生"},
+{"question":"收到offer之后要不要背调","answer":"👉方向1：主动背调公司。优势：提前了解加班、裁员、口碑；劣势：信息真假混杂。👉方向2：直接相信HR描述。优势：省心；劣势：入职踩坑。✅抉择建议：去职场匿名平台查在职评价，重点看裁员、薪资发放、加班情况；重点核实绩效、年终奖发放规则。","tag":"职场风险","tagColor":"#ffb3b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"入职要不要签竞业协议","answer":"👉方向1：签署竞业协议。优势：顺利入职；劣势：离职后限制就业，企业不按月给钱协议无效但维权麻烦。👉方向2：拒绝不合理竞业。优势：保护后续择业自由；劣势：可能拿不到offer。✅抉择建议：看清补偿金额、限制时长；没有按月补偿、范围过大的竞业，谨慎签署。","tag":"职场风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"职场人"},
+{"question":"入职第一天要不要主动加同事微信","answer":"👉方向1：主动认识同事。优势：快速融入，对接工作顺畅；劣势：社交消耗大。👉方向2：先专注业务，慢慢熟悉。优势：压力小；劣势：前期对接容易信息不通。✅抉择建议：对接业务的同事主动添加；无关同事不用强行社交，顺其自然。","tag":"职场人际","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"新人要不要主动揽活","answer":"👉方向1：主动承接工作。优势：给领导留下积极印象；劣势：杂活全部甩给你，本职被挤压。👉方向2：先做好分配给自己的任务。优势：保证交付质量；劣势：显得不够主动。✅抉择建议：优先保证本职交付；有余力再承接，学会区分是成长机会还是甩锅杂活。","tag":"职场发展","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"工作做错了要不要主动上报","answer":"👉方向1：第一时间上报。优势：止损，避免更大事故；劣势：挨批评，留下负面印象。👉方向2：尝试自己悄悄修复。优势：不被发现；劣势：问题扩大，后果更严重。✅抉择建议：错误影响到业务、资金、客户，立刻上报；小问题可以先修复再同步。","tag":"职场风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"职场人"},
+{"question":"领导给的任务模糊不清要不要追问","answer":"👉方向1：反复追问清楚需求。优势：避免做出来不符合预期返工；劣势：显得理解能力差。👉方向2：先按自己理解先做一版。优势：快速出初稿；劣势：方向完全做错，大量返工。✅抉择建议：关键指标、交付标准、截止时间一定要确认，同步文字留痕。","tag":"职场边界","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"跨部门对接被甩锅怎么办","answer":"👉方向1：群里公开对峙。优势：当场澄清；劣势：激化部门矛盾。👉方向2：单独对接+文字同步给双方领导。优势：理性留痕；劣势：流程繁琐。✅抉择建议：优先以事实、聊天记录、需求文档为依据，不带情绪同步；避免当众争吵。","tag":"职场人际","tagColor":"#f2b894","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"公司绩效改革对自己不利怎么办","answer":"👉方向1：主动找领导沟通诉求。优势：争取调整；劣势：容易被贴上刺头标签。👉方向2：被动接受，调整目标。优势：稳妥；劣势：收入下降。✅抉择建议：先算清楚新绩效对收入影响；有数据支撑、合理诉求再沟通，沟通无效就开始看外部机会。","tag":"职场风险","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"公司要裁员了要不要先跑","answer":"👉方向1：立刻开始找下家。优势：手握备选，主动；劣势：分心，容易被公司察觉。👉方向2：等裁员补偿。优势：拿到N+1；劣势：裁员名单不确定，可能被优先裁。✅抉择建议：悄悄更新简历面试；如果被约谈，优先谈法定补偿，不要主动自离。","tag":"职场风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"职场人"},
+{"question":"被裁员要不要签自愿离职协议","answer":"👉方向1：拒绝自愿离职。优势：保留拿到补偿的权利；劣势：公司持续施压。👉方向2：签自愿离职。优势：快速脱身；劣势：没有任何补偿金。✅抉择建议：非本人主动意愿，坚决不签自愿离职；协商一致解除，要把补偿金额、到账时间写进协议。","tag":"职场风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"职场人"},
+{"question":"要不要做外包岗位","answer":"👉方向1：接外包岗。优势：快速入职，有收入；劣势：不属于正式员工，福利差，很难转核心，履历认可度低。👉方向2：优先找正式岗。优势：稳定福利；劣势：求职周期更长。✅抉择建议：短期过渡、空档期可以临时外包；长期职业发展，优先正式劳动合同岗位。","tag":"求职抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"远程居家办公好不好","answer":"👉方向1：居家远程办公。优势：省去通勤，时间自由；劣势：边界模糊，容易随时被找，社交缺失。👉方向2：线下坐班。优势：沟通高效，职场氛围好；劣势：通勤消耗。✅抉择建议：自律强、沟通成熟适合远程；容易拖延、需要大量面对面协作的岗位，线下更合适。","tag":"职场边界","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"要不要跳槽到更高职级但是压力更大的岗位","answer":"👉方向1：接受高职级岗位。优势：职级提升、薪资上涨；劣势：责任翻倍，压力巨大，容易扛不住。👉方向2：留在当前舒适岗位。优势：稳定轻松；劣势：长期成长停滞。✅抉择建议：评估自己能力是否匹配，有没有上级资源兜底；不要单纯为了title硬接扛不住的岗位。","tag":"职场发展","tagColor":"#f2b894","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"30岁之后要不要转岗","answer":"👉方向1：30岁后转岗。优势：脱离衰退赛道；劣势：年龄劣势，面试难，薪资大概率下探。👉方向2：深耕原有赛道。优势：经验积累形成壁垒；劣势：赛道萎缩，后续被动。✅抉择建议：优先选和过往经验可迁移的方向；不建议从零跨完全无关赛道。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"技术岗要不要转产品经理","answer":"👉方向1：技术转产品。优势：懂技术，沟通研发有优势；劣势：需要补用户思维、需求、数据分析，初期很难。👉方向2：继续深耕技术路线。优势：技术壁垒强，越老越吃香；劣势：持续跟进新技术，内卷激烈。✅抉择建议：喜欢思考用户需求、愿意承担多方沟通压力再转；单纯觉得写代码累，不建议转。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"运营岗要不要转销售","answer":"👉方向1：转销售。优势：收入上限高；劣势：业绩压力极大，收入不稳定。👉方向2：深耕运营。优势：成长平稳，下限稳定；劣势：薪资天花板低于头部销售。✅抉择建议：擅长主动沟通、抗压强、能接受收入波动再转；讨厌被业绩指标追赶，不适合销售。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"要不要考事业编","answer":"👉方向1：考事业编。优势：稳定，压力相对小；劣势：薪资普通，晋升慢，条条框框多。👉方向2：留在市场化企业。优势：薪资上限高；劣势：不稳定，波动大。✅抉择建议：追求低风险稳定、接受普通收入适合考编；想要高薪、快速成长适合企业。","tag":"求职抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"乡镇事业编值得去吗","answer":"👉方向1：入职乡镇事业编。优势：编制稳定；劣势：离家远、琐事多、调动难，服务年限约束强。👉方向2：继续等城区岗位。优势：生活便利；劣势：竞争更激烈。✅抉择建议：能接受长期扎根乡镇、本地安家再报考；单纯拿编制当跳板，风险很高。","tag":"求职抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"考公报限制党员的岗位竞争小吗","answer":"👉方向1：报党员限制岗。优势：过滤大量对手；劣势：自己必须具备党员身份，可选岗位少。👉方向2：不限党员岗位。优势：岗位多；劣势：报名人数爆炸。✅抉择建议：有党员身份优先选限制党员、专业、学历多重限制的岗位，竞争压力更小。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"normal","expireTime":"","type":"学生"},
+{"question":"考公申论要不要报班","answer":"👉方向1：申论报班。优势：学习答题框架、批改思路；劣势：模板化严重，容易低分。👉方向2：自学+真题复盘。优势：形成自己的答题逻辑；劣势：缺少专业批改反馈。✅抉择建议：先刷真题自测；完全找不到答题思路再选小班，拒绝万能模板套路。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"normal","expireTime":"","type":"学生"},
+{"question":"考公行测要不要大量刷题","answer":"👉方向1：海量刷题。优势：提升做题速度；劣势：不复盘，错的反复错。👉方向2：少量精做、重点复盘。优势：吃透考点；劣势：做题速度提不上来。✅抉择建议：刷题+复盘缺一不可；优先保证错题复盘，而不是盲目堆题量。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"normal","expireTime":"","type":"学生"},
+{"question":"考研专业课要不要报辅导班","answer":"👉方向1：专业课报班。优势：拿到内部资料、学长辅导；劣势：高价，很多资料网上能找到，部分机构割韭菜。👉方向2：找直系学长买笔记自学。优势：性价比更高；劣势：信息真假难辨。✅抉择建议：目标院校极度难考、信息闭塞，再考虑靠谱辅导；普通专业优先自学真题。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"考研要不要寄宿考研基地","answer":"👉方向1：寄宿考研。优势：氛围强，统一作息；劣势：费用高，管理压抑，容易被周围人节奏裹挟。👉方向2：在家/学校自习备考。优势：省钱自由；劣势：自律要求高。✅抉择建议：自律很差、容易分心适合寄宿；本身能稳定学习，优先学校自习室。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"normal","expireTime":"","type":"学生"},
+{"question":"考研中途心态崩了要不要放弃","answer":"👉方向1：暂时放弃考研。优势：停止内耗，转向求职；劣势：前期时间成本沉没。👉方向2：短暂休息调整，继续坚持。优势：保留上岸机会；劣势：持续痛苦。✅抉择建议：不是完全没有基础，只是短期焦虑可以休息3–5天调整；本身基础差距巨大、完全学不进去，及时转向求职。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"考研上岸之后要不要找导师提前联系","answer":"👉方向1：提前联系导师。优势：争取心仪导师，提前进课题组；劣势：导师名额紧张，容易被拒绝。👉方向2：开学再双向选择。优势：稳妥；劣势：好导师被提前选完。✅抉择建议：复试结束、确定录取后，准备简洁邮件联系导师，附上简历。","tag":"学业规划","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"读研选导师选年轻还是资深教授","answer":"👉方向1：选资深大教授。优势：资源多、名气大；劣势：学生多，很难一对一指导，大多交给小导师。👉方向2：年轻导师。优势：时间充足，亲自带学生；劣势：资源、项目经费有限。✅抉择建议：想要手把手指导选年轻导师；需要平台资源、项目背书选资深教授。","tag":"学业规划","tagColor":"#b3f2b3","diff":"warn","expireTime":"","type":"学生"},
+{"question":"读研要不要做横向项目","answer":"👉方向1：做横向项目。优势：实操强，贴近产业，方便就业；劣势：偏工程，很难产出论文，不利于读博。👉方向2：专注纵向科研项目。优势：容易发论文，适合读博深造；劣势：偏理论，和企业需求脱节。✅抉择建议：目标就业优先横向；目标读博、学术路线优先纵向课题。","tag":"学业规划","tagColor":"#b3f2b3","diff":"warn","expireTime":"","type":"学生"},
+{"question":"读研要不要发论文","answer":"👉方向1：努力发论文。优势：保研、申博、部分国企加分；劣势：投入巨大，周期长，容易延毕。👉方向2：完成毕业要求即可。优势：节省时间去实习；劣势：缺少学术成果。✅抉择建议：计划读博、进科研院所，优先发论文；毕业后直接企业就业，达标即可，重心放在实习。","tag":"学业规划","tagColor":"#b3f2b3","diff":"warn","expireTime":"","type":"学生"},
+{"question":"硕士延毕怎么办","answer":"👉方向1：全力赶进度争取按时答辩。优势：按时拿证；劣势：质量差，盲审风险高。👉方向2：主动申请延期。优势：打磨论文，保证质量；劣势：推迟毕业、错过校招。✅抉择建议：差距极大、盲审大概率不过，主动延期；差少量修改，集中冲刺按时答辩。","tag":"学业风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"学生"},
+{"question":"读博选国内还是海外","answer":"👉方向1：海外读博。优势：学术视野、海外成果；劣势：费用高、远离家人，部分地区安全风险。👉方向2：国内读博。优势：成本低，导师和国内产业衔接紧密；劣势：内卷，竞争激烈。✅抉择建议：目标海外教职、特定前沿方向选海外；国内高校、科研院所就业，国内优质课题组性价比更高。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"留学申请多申请几个学校吗","answer":"👉方向1：梯度申请多所院校（冲/稳/保）。优势：保证有offer兜底；劣势：文书工作量巨大。👉方向2：只申少数目标院校。优势：文书打磨精细；劣势：容易全拒没有学上。✅抉择建议：一定要分冲稳保搭配，不要只申一所梦校。","tag":"学业规划","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"留学拿到多个offer怎么选学校","answer":"👉方向1：优先排名高的学校。优势：学历背书强；劣势：专业方向不一定匹配。👉方向2：优先匹配专业方向和导师。优势：学到对口内容；劣势：学校综合排名偏低。✅抉择建议：回国就业优先学校排名；走学术科研路线优先专业、导师资源。","tag":"学业抉择","tagColor":"#b3d8ff","diff":"warn","expireTime":"","type":"学生"},
+{"question":"要不要考雅思托福","answer":"👉方向1：备考雅思托福。优势：留学、外企、部分跨境岗位刚需；劣势：报名费贵，有效期只有2年。👉方向2：不考，专注国内赛道。优势：省下时间金钱；劣势：无法投递涉外岗位。✅抉择建议：留学、外企、跨境业务岗位再考；国内普通赛道不需要。","tag":"学业规划","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"大学要不要学第二外语","answer":"👉方向1：学习二外。优势：多一门技能，部分岗位加分；劣势：占用大量时间，很难精通。👉方向2：深耕英语。优势：英语通用性最强；劣势：缺少小语种能力。✅抉择建议：日语、韩语、西班牙语等有明确求职目标再学；没有明确用途，优先把英语打磨好。","tag":"学业规划","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"要不要参加大学生创新创业大赛","answer":"👉方向1：参加大创。优势：保研加分、锻炼项目能力；劣势：很多项目偏水，耗费大量时间。👉方向2：不参加，专注实习竞赛。优势：时间留给含金量更高的经历；劣势：少一个加分项。✅抉择建议：保研刚需可以组队参与；项目偏空谈、没有落地，不建议投入太多精力。","tag":"学业规划","tagColor":"#b3f2b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"大学生要不要做校园代理","answer":"👉方向1：做校园代理。优势：赚零花钱，锻炼沟通；劣势：很多是传销、培训、课程分销坑，容易踩雷。👉方向2：不做校园代理。优势：规避风险；劣势：少一个赚钱渠道。✅抉择建议：只做正规品牌短期代理；凡是拉人头、囤货、交加盟费的项目直接拒绝。","tag":"消费抉择","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"学生"},
+{"question":"大学生要不要网贷","answer":"👉方向1：网贷借钱。优势：当下资金充足；劣势：利息极高，很容易滚雪球负债，影响征信。👉方向2：向家人周转或者克制消费。优势：无负债风险；劣势：短期不能买到想要的东西。✅抉择建议：学生严禁网贷；哪怕生活费紧张，优先和家长沟通，远离各类消费贷。","tag":"理财抉择","tagColor":"#94b8f2","diff":"high","expireTime":"","type":"学生"},
+{"question":"要不要分期买电脑","answer":"👉方向1：免息分期买电脑。优势：现金流宽松；劣势：容易养成超前消费习惯。👉方向2：全款或者等攒够钱。优势：没有负债；劣势：一次性支出压力大。✅抉择建议：免息、预算内、学习刚需可以分期；有利息、超出预算，不要强行购买。","tag":"消费抉择","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"学生"},
+{"question":"要不要买平板用来学习","answer":"👉方向1：购入平板学习。优势：看课件、做笔记方便；劣势：容易刷视频分心，溢价高。👉方向2：只用纸质笔记本和电脑。优势：省钱，不容易分心；劣势：笔记整理麻烦。✅抉择建议：自律强、有电子笔记习惯再买；自制力差，不建议为了学习买平板。","tag":"消费抉择","tagColor":"#ffb3b3","diff":"normal","expireTime":"","type":"学生"},
+{"question":"租房遇到房东不退押金怎么办","answer":"👉方向1：和房东协商沟通。优势：温和解决；劣势：房东刻意克扣很难谈成。👉方向2：保留证据走平台投诉/12315。优势：强制维权；劣势：耗费时间精力。✅抉择建议：提前拍照留存房屋状态、转账记录；房东无故克扣，直接准备证据维权。","tag":"生活风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"生活"},
+{"question":"租房要不要找中介","answer":"👉方向1：找中介租房。优势：房源多，合同相对规范；劣势：高额中介费，部分中介隐瞒隐患。👉方向2：直租房东。优势：省下中介费；劣势：房源少，合同容易不规范。✅抉择建议：预算充足选正规中介；预算有限优先平台直租，仔细核对合同条款。","tag":"生活决策","tagColor":"#94f2b3","diff":"normal","expireTime":"","type":"生活"},
+{"question":"合租室友经常带外人回来怎么办","answer":"👉方向1：直接沟通约定规则。优势：明确边界；劣势：容易吵架。👉方向2：忍耐，减少在家停留。优势：避免冲突；劣势：长期不舒服。✅抉择建议：提前约定访客规则；对方持续不遵守，考虑换房。","tag":"生活决策","tagColor":"#94f2b3","diff":"normal","expireTime":"","type":"生活"},
+{"question":"要不要买二手电子产品","answer":"👉方向1：买二手设备。优势：省钱，性价比高；劣势：暗病、维修隐患，没有质保。👉方向2：全新国行。优势：保修稳定；劣势：价格贵。✅抉择建议：找靠谱渠道验机、支持验货再入手；核心刚需设备，优先全新。","tag":"消费抉择","tagColor":"#ffb3b3","diff":"normal","expireTime":"","type":"生活"},
+{"question":"要不要办健身房私教课","answer":"👉方向1：买私教课。优势：动作标准，有人督促；劣势：价格贵，容易被推销续课，教练水平参差不齐。👉方向2：自学健身，跟着免费视频练。优势：低成本；劣势：动作错误容易受伤。✅抉择建议：零基础、体态问题明显可以少量买课；有基础之后，停止续课自主训练。","tag":"健康抉择","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"生活"},
+{"question":"减肥要不要吃代餐","answer":"👉方向1：代餐减脂。优势：热量可控，方便；劣势：长期单一饮食营养不良，恢复饮食极易反弹。👉方向2：正常三餐控热量。优势：可持续；劣势：需要自己做饭规划。✅抉择建议：短期应急可以少量代餐；长期减脂，优先天然食物搭配。","tag":"健康抉择","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"生活"},
+{"question":"熬夜之后要不要补觉","answer":"👉方向1：白天长时间补觉。优势：缓解困意；劣势：打乱生物钟，晚上继续失眠。👉方向2：短时间小憩，晚上按时睡。优势：保护节律；劣势：白天疲惫。✅抉择建议：午休控制20–30分钟，不要白天睡很久；尽量固定作息。","tag":"健康抉择","tagColor":"#ffb3b3","diff":"normal","expireTime":"","type":"生活"},
+{"question":"要不要定期体检","answer":"👉方向1：每年定期体检。优势：早发现问题；劣势：花费时间金钱，部分项目过度检查。👉方向2：没有不舒服就不体检。优势：省钱省事；劣势：小病拖成大病。✅抉择建议：成年人每年常规体检；有家族病史针对性增加专项项目。","tag":"健康抉择","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"生活"},
+{"question":"要不要打HPV疫苗","answer":"👉方向1：预约HPV疫苗。优势：预防相关病毒，降低患病风险；劣势：排队久，价格高，不是万能。👉方向2：不打，定期筛查。优势：节省费用；劣势：缺少提前防护。✅抉择建议：符合年龄条件优先预约；抢到几价打几价，不要死等高价九价错过窗口期。","tag":"健康抉择","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"生活"},
+{"question":"要不要买商业意外险","answer":"👉方向1：配置意外险。优势：保费极低，杠杆高，覆盖意外受伤；劣势：只保意外，疾病不赔。👉方向2：只靠医保。优势：不用额外花钱；劣势：意外大额支出压力大。✅抉择建议：所有人都适合配置意外险，一年一两百，性价比很高。","tag":"生活保障","tagColor":"#94b8f2","diff":"normal","expireTime":"","type":"生活"},
+{"question":"新手要不要炒股","answer":"👉方向1：尝试炒股。优势：博取高收益；劣势：波动极大，新手大概率亏损。👉方向2：只做基金定投。优势：风险相对分散；劣势：收益上限低。✅抉择建议：只用亏完也不影响生活的闲钱；不要借钱炒股、不要重仓，先学习再小额试手。","tag":"理财抉择","tagColor":"#94b8f2","diff":"high","expireTime":"","type":"生活"},
+{"question":"要不要买黄金理财","answer":"👉方向1：配置黄金。优势：抗通胀、避险；劣势：短期没有利息，价格波动。👉方向2：存款、债券。优势：稳定付息；劣势：通胀下购买力缩水。✅抉择建议：当成资产小比例配置，不要重仓投机；黄金适合保值，不适合短期赚差价。","tag":"理财抉择","tagColor":"#94b8f2","diff":"warn","expireTime":"","type":"生活"},
+{"question":"要不要买债券","answer":"👉方向1：配置债券基金。优势：波动小，稳健；劣势：收益不高，也不是保本。👉方向2：全部放活期存款。优势：绝对安全；劣势：收益很低。✅抉择建议：想要稳健增值，可以小比例配置债券；追求零风险，选存款。","tag":"理财抉择","tagColor":"#94b8f2","diff":"normal","expireTime":"","type":"生活"},
+{"question":"要不要开通花呗","answer":"👉方向1：开通花呗，按时全额还清。优势：灵活周转；劣势：容易无意识透支。👉方向2：不开通，只用自有资金消费。优势：避免超前消费；劣势：应急周转不方便。✅抉择建议：自控力强、每月能全额结清可以开通；月光、自控差，不要开通。","tag":"理财抉择","tagColor":"#94b8f2","diff":"warn","expireTime":"","type":"生活"},
+{"question":"要不要存应急金","answer":"👉方向1：强制存3–6个月生活费应急金。优势：失业、生病有兜底；劣势：资金闲置，收益低。👉方向2：钱全部拿去投资。优势：争取更高收益；劣势：突发情况被迫割肉亏损。✅抉择建议：优先建立应急金，这是理财第一步骤，再考虑投资。","tag":"理财抉择","tagColor":"#94b8f2","diff":"high","expireTime":"","type":"生活"},
+{"question":"要不要提前还房贷","answer":"👉方向1：提前还贷。优势：减少总利息；劣势：占用大量现金流，资金流动性变差。👉方向2：保持原还款计划，资金拿去投资。优势：保留现金流；劣势：持续付利息。✅抉择建议：房贷利率很高、没有稳健理财渠道优先提前还；利率低、有稳定投资渠道，不急着还。","tag":"理财抉择","tagColor":"#94b8f2","diff":"warn","expireTime":"","type":"生活"},
+{"question":"要不要加盟开店","answer":"👉方向1：加盟品牌开店。优势：有成熟供应链、品牌；劣势：加盟费高，很多加盟是割韭菜，总部收割。👉方向2：自己独立开店。优势：自主可控，省下加盟费；劣势：从零摸索，踩坑多。✅抉择建议：先实地暗访多家门店，算清楚真实回本周期；绝大多数普通加盟项目不适合新手。","tag":"消费抉择","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"生活"},
+{"question":"要不要摆摊创业","answer":"👉方向1：摆摊试错。优势：启动成本极低，快速验证生意；劣势：收入不稳定，受天气、管制影响。👉方向2：先上班，不碰实体小生意。优势：收入稳定；劣势：缺少创业体验。✅抉择建议：当成副业小额试错，不要辞职全职摆摊；先跑通一单再加大投入。","tag":"消费抉择","tagColor":"#ffb3b3","diff":"warn","expireTime":"","type":"生活"},
+{"question":"要不要做线上带货","answer":"👉方向1：做短视频带货。优势：上限高；劣势：内卷严重，起号难，投入时间多。👉方向2：专注主业。优势：稳定；劣势：收入单一。✅抉择建议：副业起步，不要全职；先测试流量和转化，稳定盈利再考虑加大投入。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"生活"},
+{"question":"要不要接付费PPT/文案接单","answer":"👉方向1：接单。优势：变现，锻炼技能；劣势：客户需求反复改，耗时间，压价严重。👉方向2：不接低价单，专注作品集。优势：打磨作品；劣势：没有额外收入。✅抉择建议：有溢价、时间充裕再接；低价消耗型订单尽量拒绝。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"要不要接远程外包开发单","answer":"👉方向1：接外包开发。优势：增收；劣势：需求频繁变更、拖欠尾款，消耗精力。👉方向2：不接外包，打磨主业项目。优势：沉淀核心履历；劣势：收入单一。✅抉择建议：签清楚需求范围、阶段付款；不接没有预付款的单子。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"要不要和伴侣一起合伙做生意","answer":"👉方向1：情侣合伙创业。优势：信任度高，目标一致；劣势：生意矛盾会直接毁掉感情，公私不分。👉方向2：分开各自发展。优势：感情和事业隔离；劣势：没法一起做项目。✅抉择建议：强烈不建议情侣合伙；如果一定要做，权责、分红、退出规则白纸黑字写清楚。","tag":"亲密关系","tagColor":"#f2b894","diff":"high","expireTime":"","type":"生活"},
+{"question":"恋爱要不要告诉父母","answer":"👉方向1：早点告诉父母。优势：获得家人参考意见；劣势：父母容易干涉，增加压力。👉方向2：稳定之后再告知。优势：感情成熟再面对家庭；劣势：瞒到后期容易爆发矛盾。✅抉择建议：短期恋爱、还不稳定可以暂缓；打算长期发展，合适时机和父母沟通。","tag":"亲密关系","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"生活"},
+{"question":"父母强烈反对这段恋情怎么办","answer":"👉方向1：坚持继续相处，慢慢说服父母。优势：忠于自己感受；劣势：长期家庭矛盾。👉方向2：认真评估，考虑分开。优势：减少家庭冲突；劣势：割舍感情。✅抉择建议：区分父母反对是现实硬问题（负债、人品）还是单纯距离、家境偏见；人品红线问题优先听劝。","tag":"亲密关系","tagColor":"#f2b894","diff":"warn","expireTime":"","type":"生活"},
+{"question":"要不要婚前同居试婚","answer":"👉方向1：婚前同居试婚。优势：看清生活习惯、消费观；劣势：分手成本高，容易产生财产纠纷。👉方向2：保持分开居住，婚后再一起生活。优势：保留边界；劣势：很难发现生活里的矛盾。✅抉择建议：做好财产隔离，大额资金分开；不要长期无规划同居。","tag":"亲密关系","tagColor":"#f2b894","diff":"warn","expireTime":"","type":"生活"},
+{"question":"结婚要不要彩礼","answer":"👉方向1：按照习俗收取彩礼。优势：尊重传统，给到女方保障；劣势：金额过高造成双方家庭压力。👉方向2：简化或者不要彩礼。优势：减轻男方负担；劣势：部分长辈觉得不被重视。✅抉择建议：以双方家庭都能承受为底线，彩礼最好作为小家庭启动资金，不搞天价彩礼。","tag":"亲密关系","tagColor":"#f2b894","diff":"warn","expireTime":"","type":"生活"},
+{"question":"结婚要不要办婚礼","answer":"👉方向1：办婚礼。优势：仪式感，给亲友交代；劣势：花钱多、非常累。👉方向2：旅行结婚，简单领证。优势：省钱省心；劣势：长辈容易有意见。✅抉择建议：优先两个人共识；预算有限、讨厌应酬可以简化，不用硬撑盛大婚礼。","tag":"亲密关系","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"生活"},
+{"question":"婚后要不要和公婆同住","answer":"👉方向1：一起居住。优势：互相帮忙带娃、分担房租；劣势：生活习惯冲突，婆媳矛盾高发。👉方向2：就近分开住。优势：保持边界，减少摩擦；劣势：独自承担家务育儿压力。✅抉择建议：优先就近分开居住；只有需要老人短期帮忙，并且提前约定好规则再短期同住。","tag":"亲密关系","tagColor":"#f2b894","diff":"warn","expireTime":"","type":"生活"},
+{"question":"要不要借钱给亲戚买房","answer":"👉方向1：借钱支持亲戚。优势：维系亲情；劣势：回款周期极长，容易因为钱撕破脸。👉方向2：委婉拒绝。优势：保住自己资金；劣势：亲戚觉得你冷漠。✅抉择建议：只借出就算收不回也不影响自己生活的金额；大额资金直接婉拒。","tag":"人际抉择","tagColor":"#f2b894","diff":"high","expireTime":"","type":"生活"},
+{"question":"亲戚不停催婚怎么回应","answer":"👉方向1：认真解释自己规划。优势：争取理解；劣势：对方继续说教。👉方向2：温和打太极转移话题。优势：避免争吵；劣势：对方不会改变想法。✅抉择建议：不用争辩，礼貌敷衍转移话题；你的人生节奏不需要亲戚来定义。","tag":"人际抉择","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"生活"},
+{"question":"要不要参加很久不联系同学的婚礼","answer":"👉方向1：到场参加，随份子。优势：维持同学情面；劣势：花钱花时间，平时几乎无交集。👉方向2：不去，简单祝福。优势：省钱省事；劣势：对方心里不舒服。✅抉择建议：关系已经疏远，可以不去，礼貌祝福；关系尚可再酌情随礼。","tag":"人际抉择","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"生活"},
+{"question":"要不要维持消耗型友情","answer":"👉方向1：继续维持关系。优势：舍不得多年情谊；劣势：一直被索取、内耗。👉方向2：慢慢疏远，减少联系。优势：节省情绪精力；劣势：会有愧疚感。✅抉择建议：长期单向索取、持续负面情绪，慢慢淡出；好的友情是双向舒服的。","tag":"人际抉择","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"生活"},
+{"question":"要不要学会拒绝熟人的托关系请求","answer":"👉方向1：硬着头皮帮忙。优势：怕得罪人；劣势：事情办不好还要担责。👉方向2：能力范围之外直接拒绝。优势：不揽超出能力的事；劣势：熟人不高兴。✅抉择建议：不确定能不能办成，提前说明风险，不要打包票；办不成的事直接拒绝。","tag":"人际抉择","tagColor":"#f2b894","diff":"warn","expireTime":"","type":"生活"},
+{"question":"要不要学编程做副业","answer":"👉方向1：学习编程。优势：高薪赛道，接单机会多；劣势：入门周期长，内卷严重。👉方向2：选择低门槛副业方向。优势：快速变现；劣势：单价低，可替代性强。✅抉择建议：本身对代码感兴趣、愿意长期沉淀再学；单纯为快速赚钱，编程不是好选择。","tag":"职业学习","tagColor":"#d8b3ff","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"要不要学UI设计","answer":"👉方向1：学习UI设计。优势：可视化作品，适合作品集求职；劣势：行业内卷，新人岗位变少。👉方向2：选择产品、运营方向。优势：岗位更多，门槛相对友好；劣势：需要大量沟通、文档能力。✅抉择建议：审美强、喜欢作图再学UI；不喜欢画图，不要硬冲设计。","tag":"职业学习","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"要不要学数据分析","answer":"👉方向1：学数据分析。优势：通用性强，很多岗位加分；劣势：只会工具很难找到高薪岗，需要业务理解。👉方向2：深耕原有业务。优势：形成行业壁垒；劣势：缺少数据能力。✅抉择建议：不管什么岗位，基础数据分析能力都值得学；不要幻想学几个工具直接转行高薪。","tag":"职业学习","tagColor":"#d8b3ff","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"要不要报AI提示词课程","answer":"👉方向1：付费学习提示词课程。优势：系统化学习；劣势：大部分内容网上免费，溢价高，很难单独靠这个就业。👉方向2：免费文档、实战练习。优势：零成本；劣势：缺少成体系训练。✅抉择建议：只用来提升本职效率可以自学；高价宣称学完接单就业的课程谨慎。","tag":"职业学习","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"要不要做独立开发者","answer":"👉方向1：做独立开发者。优势：自由，产品自己说了算；劣势：流量、变现难度极大，收入不稳定。👉方向2：先在公司上班积累。优势：稳定收入，学习产品、运营；劣势：时间不自由。✅抉择建议：副业先验证产品和付费用户，有稳定现金流再考虑全职独立开发。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"要不要做自由职业","answer":"👉方向1：转型自由职业。优势：时间自由；劣势：没有社保、收入波动，需要自己找客户。👉方向2：全职上班。优势：社保稳定，有团队；劣势：受公司制度约束。✅抉择建议：有稳定持续客户源、自律极强再转自由职业；不要裸辞直接做自由职业。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"high","expireTime":"","type":"职场人"},
+{"question":"自由职业要不要自己交社保","answer":"👉方向1：持续缴纳社保。优势：医保、养老不断；劣势：每月支出高。👉方向2：暂停社保，省钱。优势：现金流宽松；劣势：医保断缴，影响报销、买房落户资格。✅抉择建议：优先保证医保不断；养老可以根据收入情况规划。","tag":"生活保障","tagColor":"#94b8f2","diff":"high","expireTime":"","type":"生活"},
+{"question":"自由职业怎么定价","answer":"👉方向1：按工时定价。优势：简单清晰；劣势：客户觉得贵，限制收入上限。👉方向2：按项目成果打包定价。优势：收益上限更高；劣势：需求变更容易亏本。✅抉择建议：小项目打包报价，提前写清楚需求范围、变更加价规则；避免无限改稿。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"要不要给客户免费改稿","answer":"👉方向1：免费多次修改。优势：留住客户；劣势：客户无限提需求，工作量失控。👉方向2：约定免费修改次数，超出额外收费。优势：保护自己；劣势：部分客户不接受。✅抉择建议：合同里写明免费修改轮次；新增需求、大范围改动，单独报价。","tag":"职业边界","tagColor":"#f2b894","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"客户拖欠尾款怎么办","answer":"👉方向1：温和持续沟通催款。优势：维持关系；劣势：客户一直拖延。👉方向2：暂停交付后续内容，走维权。优势：施压；劣势：撕破脸。✅抉择建议：前期约定预付款+阶段尾款；拖欠尾款，停止后续服务，保留聊天、交付证据。","tag":"职场风险","tagColor":"#ffb3b3","diff":"high","expireTime":"","type":"职场人"},
+{"question":"要不要接低价试单","answer":"👉方向1：低价试单。优势：拿到案例、作品集；劣势：容易被贴上低价标签，后续很难提价。👉方向2：不做低价单，只接正常报价客户。优势：守住定价；劣势：案例积累慢。✅抉择建议：只做1-2个高质量试单用来沉淀案例；不要长期靠低价接单。","tag":"职业抉择","tagColor":"#d8b3ff","diff":"warn","expireTime":"","type":"职场人"},
+{"question":"职场要不要做个人作品集","answer":"👉方向1：持续维护作品集。优势：跳槽、接单时证明能力；劣势：需要持续花时间整理。👉方向2：简历只写文字经历。优势：省事；劣势：面试官很难直观看到成果。✅抉择建议：产品、设计、内容、开发岗一定要做作品集；行政后勤类岗位优先级低。","tag":"职业学习","tagColor":"#d8b3ff","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"要不要搭建个人博客/主页","answer":"👉方向1：搭建个人主页。优势：沉淀内容，打造个人IP；劣势：持续维护成本高，短期没有收益。👉方向2：只在主流平台发内容。优势：流量现成；劣势：平台规则变动，内容随时受限。✅抉择建议：长期想打造个人品牌，自建主页；短期引流，优先成熟内容平台。","tag":"职业学习","tagColor":"#d8b3ff","diff":"normal","expireTime":"","type":"职场人"},
+{"question":"要不要写技术/行业公众号","answer":"👉方向1：持续写公众号。优势：积累行业影响力；劣势：阅读量起号慢，消耗大量业余时间。👉方向2：在掘金、知乎等平台发布。优势：自带流量；劣势：账号属于平台，不属于自己。✅抉择建议：当成长期沉淀，不要期待短期变现；能坚持输出再开始。","tag":"职业学习","tagColor":"#d8b3ff","diff":"normal","expireTime":"","type":"职场人"},
 
-// Storage Key
-const STORAGE_PROFILE = "sansiji_profile";
-const STORAGE_USER_KB = "sansiji_user_kb";
-const STORAGE_HISTORY = "sansiji_history";
-const STORAGE_CANDIDATE_POOL = "sansiji_candidate_pool";
 
-// 平台公共基准库（升级Schema：version、expireAt、isPolicy）
-const platformKB = [
-    {
-        id:"p001",sourceType:"platform",
-        keywords:["保研边缘","保研候补","边缘保研"],
-        scene:"学生",
-        constraints:["保研排名靠后","有科研竞赛加分"],
-        excludeConstraints:["已经拿到稳定工作offer","打算出国"],
-        confidence:91,
-        sourceLabel:"GitHub保研经验沉淀库",
-        version:"1.0",
-        isPolicy:true,
-        expireAt: 1799884800,
-        high:"稳妥共识：保研边缘不要躺平，同步准备考研是风险最低方案；尽早联系意向导师，持续盯紧学院候补、捡漏通知。",
-        diff:"观点A：全力冲保研，分散精力备考容易两头落空，适合加分充足、差距很小的同学。\n观点B：主线备考考研，保研作为惊喜，适合排名差距较大、加分薄弱的同学。",
-        warn:"各校候补名额、政策每年变动，往年时间线仅作参考，一切以学院官方通知为准。"
-    },
-    {
-        id:"p002",sourceType:"platform",
-        keywords:["考研二战","二战考研","要不要二战"],
-        scene:"学生",
-        constraints:["一战分数差距不大","自律稳定","经济压力可控"],
-        excludeConstraints:["单纯不甘心","连续多次失利","目标赛道重实操经验"],
-        confidence:88,
-        sourceLabel:"GitHub考研经验合集",
-        version:"1.0",
-        isPolicy:false,
-        expireAt: null,
-        high:"稳妥共识：二战适合清楚上次失败根源、自律稳定、经济压力不大的人；仅凭情绪不甘心二战，沉没成本极高。",
-        diff:"观点A：一战分差很小、专业长期前景好，值得二战冲上岸。\n观点B：及时止损，调剂、就业、换赛道，避免持续时间消耗。",
-        warn:"院校报录比、考试大纲每年变化，往年好考不代表今年难度不变。"
-    },
-    {
-        id:"p003",sourceType:"platform",
-        keywords:["小组作业","队友划水","摆烂队友"],
-        scene:"学生",
-        constraints:["课程作业、课程项目"],
-        excludeConstraints:["毕业论文"],
-        confidence:86,
-        sourceLabel:"高校学生经验库",
-        version:"1.0",
-        isPolicy:false,
-        expireAt: null,
-        high:"稳妥共识：提前书面分工、全程留存聊天记录、单独保存自己产出；沟通无效再找老师，优先避免正面冲突。",
-        diff:"观点A：一起摆烂，不让划水同学轻松拿分。\n观点B：独立完成核心模块，保证自己成绩，减少情绪内耗。",
-        warn:"不同老师对小组纠纷处理尺度差异很大，提前确认评分规则。"
-    },
-    {
-        id:"p004",sourceType:"platform",
-        keywords:["实习","小公司实习","打杂实习"],
-        scene:"职场",
-        constraints:["零实习经历、转行零基础"],
-        excludeConstraints:["已有大厂项目经历","目标头部研发岗"],
-        confidence:87,
-        sourceLabel:"GitHub校招面经库",
-        version:"1.0",
-        isPolicy:false,
-        expireAt: null,
-        high:"稳妥共识：零基础空白背景，正规小公司有效业务实习优于空白；入职前确认：实习证明、独立业务权限，纯打杂流水线不推荐。",
-        diff:"观点A：优先大厂远程小黑工，简历背书更强。\n观点B：优先能产出可落地成果的中小团队，方便写项目经历。",
-        warn:"不同行业HR对中小公司实习认可度差异很大，无统一标准。"
-    },
-    {
-        id:"p005",sourceType:"platform",
-        keywords:["裸辞","要不要裸辞","gap离职"],
-        scene:"职场",
-        constraints:["存款≥6个月生活费","身心长期损耗"],
-        excludeConstraints:["存款＜3个月","校招窗口期临近","行业下行周期"],
-        confidence:90,
-        sourceLabel:"职场经验汇总仓库",
-        version:"1.0",
-        isPolicy:false,
-        expireAt: null,
-        high:"稳妥共识：存款不足6个月生活费不建议裸辞；优先骑驴找马，拿到面试正向反馈再决策。",
-        diff:"观点A：长期内耗、身心受损优先裸辞，健康优先，适合积蓄充足人群。\n观点B：一边上班一边面试，规避收入断流风险，适合经济压力大的普通人。",
-        warn:"空档期不是必然被拒，但超过半年，需要准备清晰合理的解释话术。"
-    },
-    {
-        id:"p006",sourceType:"platform",
-        keywords:["offer选择","多个offer","选offer"],
-        scene:"职场",
-        constraints:["校招、跳槽对比offer"],
-        excludeConstraints:[],
-        confidence:89,
-        sourceLabel:"GitHub校招避坑手册",
-        version:"1.0",
-        isPolicy:false,
-        expireAt: null,
-        high:"稳妥共识：offer优先级：岗位匹配>直属领导>行业赛道>薪资；不能只看月薪，核算五险一金、年终奖、加班强度。",
-        diff:"观点A：优先高薪，年轻优先积累现金流，后续跳槽转型。\n观点B：优先平台成长，前期低薪换取可迁移能力，长期溢价更高。",
-        warn:"口头承诺的调薪、奖金、晋升不受合同保护，必须落在offer邮件。"
-    },
-    {
-        id:"p007",sourceType:"platform",
-        keywords:["租房","合租","整租","二房东"],
-        scene:"生活决策",
-        constraints:["异地求职租房"],
-        excludeConstraints:[],
-        confidence:85,
-        sourceLabel:"GitHub租房避坑指南",
-        version:"1.0",
-        isPolicy:false,
-        expireAt: null,
-        high:"稳妥共识：签约核验房东房产证身份证；合同写明押金退还、维修责任、水电分摊，拒绝口头承诺。",
-        diff:"观点A：合租省钱，优先熟人合租降低成本。\n观点B：整租隐私更好，减少人际矛盾，预算充足优先整租。",
-        warn:"无授权二房东转租风险极高，随时可能被清退。"
-    },
-    {
-        id:"p008",sourceType:"platform",
-        keywords:["内耗","精神内耗","胡思乱想"],
-        scene:"生活决策",
-        constraints:["青年决策焦虑"],
-        excludeConstraints:["重度抑郁、长期失眠"],
-        confidence:83,
-        sourceLabel:"心理自助开源文档",
-        version:"1.0",
-        isPolicy:false,
-        expireAt: null,
-        high:"稳妥共识：大部分决策内耗来自预判未发生的坏事；把担忧写下来，区分可控和不可控事项，只行动可控部分。",
-        diff:"观点A：接纳情绪，不对抗内耗，等待自愈。\n观点B：填满日程，用行动打断胡思乱想。",
-        warn:"长期失眠、持续低落影响生活，需要寻求专业心理咨询，不能仅依靠自我调节。"
-    },
-    {
-        id:"p009",sourceType:"platform",
-        keywords:["考证","证书","要不要考证"],
-        scene:"生活决策",
-        constraints:["求职加分"],
-        excludeConstraints:["跟风考证"],
-        confidence:82,
-        sourceLabel:"证书避雷清单",
-        version:"1.0",
-        isPolicy:false,
-        expireAt: null,
-        high:"稳妥共识：只考取目标岗位刚需、行业强制要求证书；盲目考取无关证书性价比极低。",
-        diff:"观点A：多一个证书多一条出路，有空就备考。\n观点B：证书只是门槛，实操能力优先，拒绝无效考证。",
-        warn:"大量培训机构包装“高薪证书”属于割韭菜，企业不认可。"
-    },
-    {
-        id:"p010",sourceType:"platform",
-        keywords:["副业","搞副业","兼职副业"],
-        scene:"生活决策",
-        constraints:["主业稳定、精力充足"],
-        excludeConstraints:["主业处于上升关键期","精力透支"],
-        confidence:80,
-        sourceLabel:"副业经验沉淀仓库",
-        version:"1.0",
-        isPolicy:false,
-        expireAt: null,
-        high:"稳妥共识：优先选择可以复用主业技能的副业；主业不稳定、精力不足时，不建议投入大量时间。",
-        diff:"观点A：尽早搭建副业，打造第二收入曲线，增强抗风险能力。\n观点B：深耕主业优先，副业容易分散精力，两边平庸。",
-        warn:"任何先交培训费、押金的副业招聘基本都是骗局。"
+
+ ],
+
+      // 本地存储历史
+      historyList:[],
     }
-];
-
-// 全局状态
-let sceneNow = "学生";
-let userProfile = {
-    base:"学生",
-    sub:"应届生求职",
-    fund:"3个月",
-    track:"互联网/产品"
-};
-let userKB = [];
-let historyList = [];
-let candidatePool = []; // 社区待审核条目池
-
-// 时效置信衰减计算核心函数
-function getEffectiveConfidence(item){
-    let baseConf = item.confidence;
-    if(!item.expireAt) return baseConf;
-    const now = Math.floor(Date.now() / 1000);
-    const exp = Number(item.expireAt);
-    if(now >= exp){
-        return item.isPolicy ? Math.floor(baseConf * 0.4) : Math.floor(baseConf * 0.6);
+  },
+  computed:{
+    starList(){
+      return this.historyList.filter(i=>i.star===true)
     }
-    const window = 90 * 24 * 3600; // 过期前90天开始衰减
-    const startDecay = exp - window;
-    if(now < startDecay) return baseConf;
-    const ratio = (now - startDecay) / window;
-    const decayRate = item.isPolicy ? 0.6 : 0.35;
-    return Math.floor(baseConf * (1 - ratio * decayRate));
-}
+  },
+  mounted(){
+    // 读取本地存储
+    const local = localStorage.getItem("sansiji-history")
+    if(local) this.historyList = JSON.parse(local)
+  },
+  watch:{
+    historyList:{
+      handler(){
+        localStorage.setItem("sansiji-history",JSON.stringify(this.historyList))
+      },
+      deep:true
+    }
+  },
+  methods:{
+   // ========== 【核心修复：发送提问+流式输出，锁正常释放 + 打分知识库检索】 ==========
+async sendQuestion(){
+  const q = this.inputQuestion.trim()
+  if(!q) return
+  this.loading = true
+  // 追加用户消息
+  this.msgList.push({role:"user",content:q,star:false})
 
-// 初始化
-function init(){
-    const pRaw = localStorage.getItem(STORAGE_PROFILE);
-    if(pRaw) userProfile = JSON.parse(pRaw);
-    renderProfileView();
-
-    const ukbRaw = localStorage.getItem(STORAGE_USER_KB);
-    if(ukbRaw) userKB = JSON.parse(ukbRaw);
-
-    const hisRaw = localStorage.getItem(STORAGE_HISTORY);
-    if(hisRaw) historyList = JSON.parse(hisRaw);
-
-    const poolRaw = localStorage.getItem(STORAGE_CANDIDATE_POOL);
-    if(poolRaw) candidatePool = JSON.parse(poolRaw);
-
-    renderHistory();
-    bindTabSwitch();
-}
-function saveCandidatePool(){
-    localStorage.setItem(STORAGE_CANDIDATE_POOL, JSON.stringify(candidatePool));
-}
-function renderProfileView(){
-    document.getElementById("p-base").innerText = userProfile.base;
-    document.getElementById("p-sub").innerText = userProfile.sub;
-    document.getElementById("p-fund").innerText = userProfile.fund;
-    document.getElementById("p-track").innerText = userProfile.track;
-}
-function openProfilePanel(){
-    document.getElementById("pfBase").value = userProfile.base;
-    document.getElementById("pfSub").value = userProfile.sub;
-    document.getElementById("pfFund").value = userProfile.fund;
-    document.getElementById("pfTrack").value = userProfile.track;
-    document.getElementById("profileMask").style.display="flex";
-}
-function closeProfilePanel(){
-    document.getElementById("profileMask").style.display="none";
-}
-function saveProfile(){
-    userProfile.base = document.getElementById("pfBase").value;
-    userProfile.sub = document.getElementById("pfSub").value;
-    userProfile.fund = document.getElementById("pfFund").value;
-    userProfile.track = document.getElementById("pfTrack").value;
-    localStorage.setItem(STORAGE_PROFILE, JSON.stringify(userProfile));
-    renderProfileView();
-    closeProfilePanel();
-}
-function setScene(el, s){
-    sceneNow = s;
-    document.querySelectorAll(".tag-item").forEach(d=>d.classList.remove("active"));
-    el.classList.add("active");
-}
-
-// 知识库tab切换
-function bindTabSwitch(){
-    document.querySelectorAll(".modal-tab-item").forEach(tab=>{
-        tab.onclick = ()=>{
-            document.querySelectorAll(".modal-tab-item").forEach(d=>d.classList.remove("active"));
-            tab.classList.add("active");
-            const tid = tab.dataset.tab;
-            document.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));
-            document.getElementById("tab-"+tid).classList.add("active");
-            if(tid === "platform" || tid === "user") renderKbLists();
-            if(tid === "audit") renderAuditList();
-        }
+  // ========== 新增：打分检索函数（放在sendQuestion内部，不用单独写全局） ==========
+  const searchKnowledgeList = (input, lib) => {
+    const inputLower = input.trim().toLowerCase()
+    const userWords = inputLower.split(/\s+/).filter(Boolean)
+    return lib.map(item => {
+      const libQ = item.question.toLowerCase()
+      let score = 0
+      if (libQ === inputLower) score += 100
+      if (libQ.includes(inputLower)) score += 50
+      if (inputLower.includes(libQ)) score += 30
+      userWords.forEach(word => {
+        if (libQ.includes(word)) score += 10
+      })
+      return {...item, _score: score}
     })
-}
-function openKbPanel(){
-    document.getElementById("kbMask").style.display="flex";
-    renderKbLists();
-}
-function closeKbPanel(){
-    document.getElementById("kbMask").style.display="none";
-    clearKbForm();
-}
-function renderKbLists(){
-    const platBox = document.getElementById("platformKbList");
-    platBox.innerHTML = "";
-    platformKB.forEach(it=>{
-        const effConf = getEffectiveConfidence(it);
-        const expText = it.expireAt ? `过期:${new Date(it.expireAt*1000).toLocaleDateString()}` : "永久有效";
-        const div = document.createElement("div");
-        div.className = "kb-list-item";
-        div.innerHTML = `<div class="txt">[${it.scene}] ${it.keywords.join(",")}｜原置信${it.confidence}→有效${effConf}｜${expText} ${it.isPolicy?"【政策】":""}</div>
-        <button onclick="cloneToUserKb('${it.id}')">克隆到私有库</button>`;
-        platBox.appendChild(div);
-    })
-    const userBox = document.getElementById("userKbList");
-    userBox.innerHTML = "";
-    userKB.forEach((it,idx)=>{
-        const effConf = getEffectiveConfidence(it);
-        const expText = it.expireAt ? `过期:${new Date(it.expireAt*1000).toLocaleDateString()}` : "永久有效";
-        const div = document.createElement("div");
-        div.className = "kb-list-item";
-        div.innerHTML = `<div class="txt">[${it.scene}] ${it.keywords.join(",")}｜原置信${it.confidence}→有效${effConf} ${it.isPolicy?"【政策】":""}</div>
-        <div><button onclick="editUserKb(${idx})">编辑</button><button onclick="delUserKb(${idx})">删除</button></div>`;
-        userBox.appendChild(div);
-    })
-}
-function cloneToUserKb(pid){
-    const src = platformKB.find(x=>x.id === pid);
-    const copy = JSON.parse(JSON.stringify(src));
-    copy.id = "u_"+Date.now();
-    copy.sourceType = "user";
-    userKB.push(copy);
-    saveUserKB();
-    renderKbLists();
-}
-function saveUserKB(){
-    localStorage.setItem(STORAGE_USER_KB, JSON.stringify(userKB));
-}
-function clearKbForm(){
-    document.getElementById("kbKeywords").value="";
-    document.getElementById("kbScene").value="";
-    document.getElementById("kbConstraints").value="";
-    document.getElementById("kbExclude").value="";
-    document.getElementById("kbConf").value="85";
-    document.getElementById("kbSource").value="个人复盘";
-    document.getElementById("kbIsPolicy").checked = false;
-    document.getElementById("kbExpireAt").value="";
-    document.getElementById("kbHigh").value="";
-    document.getElementById("kbDiff").value="";
-    document.getElementById("kbWarn").value="";
-    document.getElementById("editKbIndex").value="-1";
-}
-function editUserKb(idx){
-    const it = userKB[idx];
-    document.getElementById("kbKeywords").value = it.keywords.join(",");
-    document.getElementById("kbScene").value = it.scene;
-    document.getElementById("kbConstraints").value = it.constraints.join(",");
-    document.getElementById("kbExclude").value = it.excludeConstraints.join(",");
-    document.getElementById("kbConf").value = it.confidence;
-    document.getElementById("kbSource").value = it.sourceLabel;
-    document.getElementById("kbIsPolicy").checked = !!it.isPolicy;
-    document.getElementById("kbExpireAt").value = it.expireAt || "";
-    document.getElementById("kbHigh").value = it.high;
-    document.getElementById("kbDiff").value = it.diff;
-    document.getElementById("kbWarn").value = it.warn;
-    document.getElementById("editKbIndex").value = idx;
-}
-function delUserKb(idx){
-    userKB.splice(idx,1);
-    saveUserKB();
-    renderKbLists();
-}
-function saveUserKbItem(){
-    const kw = document.getElementById("kbKeywords").value.trim().split(",").map(x=>x.trim()).filter(Boolean);
-    const scene = document.getElementById("kbScene").value.trim();
-    const cons = document.getElementById("kbConstraints").value.trim().split(",").map(x=>x.trim()).filter(Boolean);
-    const exc = document.getElementById("kbExclude").value.trim().split(",").map(x=>x.trim()).filter(Boolean);
-    const conf = Number(document.getElementById("kbConf").value);
-    const srcLab = document.getElementById("kbSource").value.trim();
-    const isPolicy = document.getElementById("kbIsPolicy").checked;
-    const expireAt = document.getElementById("kbExpireAt").value.trim() || null;
-    const high = document.getElementById("kbHigh").value.trim();
-    const diff = document.getElementById("kbDiff").value.trim();
-    const warn = document.getElementById("kbWarn").value.trim();
-    if(!kw.length || !high){alert("关键词、稳妥共识不能为空");return;}
-    const item = {
-        id:"u_"+Date.now(),
-        sourceType:"user",
-        keywords:kw,scene,constraints:cons,excludeConstraints:exc,
-        confidence:conf,sourceLabel:srcLab,isPolicy,expireAt,version:"1.0",
-        high,diff,warn
-    };
-    const eIdx = Number(document.getElementById("editKbIndex").value);
-    if(eIdx >=0){
-        item.id = userKB[eIdx].id;
-        userKB[eIdx] = item;
-    }else{
-        userKB.push(item);
-    }
-    saveUserKB();
-    renderKbLists();
-    clearKbForm();
-}
+    .filter(item => item._score > 0)
+    .sort((a,b) => b._score - a._score)
+  }
+  // 执行检索
+  const matchList = searchKnowledgeList(q, this.publicLib)
+  const hit = matchList.length > 0 ? matchList[0] : null
+  let fullAnswer = hit ? hit.answer : "暂无匹配知识库，调用AI进行决策分析..."
 
-// 历史复盘
-function renderHistory(){
-    const wrap = document.getElementById("historyWrap");
-    wrap.innerHTML = "";
-    historyList.forEach((rec,idx)=>{
-        const div = document.createElement("div");
-        div.className = "history-item "+(rec.sourceType==="kb"?"kb-tag":"llm-tag");
-        div.title = rec.question;
-        div.innerText = rec.question;
-        div.onclick = ()=>renderHistoryRec(rec);
-        wrap.appendChild(div);
-    })
-}
-function addHistory(rec){
-    historyList.unshift(rec);
-    if(historyList.length>30) historyList.pop();
-    localStorage.setItem(STORAGE_HISTORY, JSON.stringify(historyList));
-    renderHistory();
-}
-function clearHistory(){
-    historyList = [];
-    localStorage.setItem(STORAGE_HISTORY, JSON.stringify(historyList));
-    renderHistory();
-}
-function renderHistoryRec(rec){
-    const chat = document.getElementById("chat");
-    chat.innerHTML += `<div style="margin:10px 0;"><b>复盘｜提问：</b>${rec.question}</div>`;
-    renderAnswerCard(chat, rec);
-    chat.scrollTop = chat.scrollHeight;
-}
+  this.msgList.push({role:"ai",content:"",star:false})
+  const aiMsg = this.msgList[this.msgList.length-1]
 
-// 加权检索逻辑（使用时效衰减后的置信）
-function searchBestItem(qText, profile = userProfile){
-    const q = qText.toLowerCase();
-    const pool = [...platformKB,...userKB];
-    const hitList = [];
-    for(const it of pool){
-        let score = 0;
-        const kwHit = it.keywords.some(k=>q.includes(k.toLowerCase()));
-        if(kwHit) score += 60;
-        if(it.scene === sceneNow) score += 20;
-        let consHitCnt = 0;
-        const allUserTags = [profile.base, profile.sub, "存款"+profile.fund, profile.track];
-        for(const c of it.constraints){
-            const cl = c.toLowerCase();
-            if(allUserTags.some(t=>t.toLowerCase().includes(cl))) consHitCnt++;
-        }
-        score += Math.min(20, consHitCnt*7);
-        hitList.push({item:it,score,effectiveConf:getEffectiveConfidence(it)});
+  // 模拟流式输出（对接真实stream接口直接替换这里）
+  let idx = 0
+  const streamTimer = setInterval(()=>{
+    if(idx >= fullAnswer.length){
+      clearInterval(streamTimer)
+      this.loading = false // ✅ 流式结束，释放按钮锁
+      // 写入本地决策库
+      this.historyList.push({
+        question:q,
+        high:hit?.diff==="high",
+        diff:hit?.diff||"diff",
+        warn:hit?.diff==="warn",
+        tag:hit?.tag||"自定义",
+        tagColor:hit?.tagColor||"#f2b894",
+        type:hit?.type||"自定义",
+        star:false,
+        time:new Date().toLocaleString()
+      })
+      return
     }
-    hitList.sort((a,b)=>b.score - a.score);
-    const top = hitList[0];
-    if(!top || top.score < 40) return null;
-    top.item.confidence = top.effectiveConf;
-    return top.item;
-}
+    aiMsg.content += fullAnswer[idx]
+    idx++
+    this.$refs.chatWrap.scrollTop = this.$refs.chatWrap.scrollHeight
+  },40)
+},
 
-// 渲染标准回答卡片
-function renderAnswerCard(container, record){
-    const it = record;
-    let consHtml = "";
-    if(it.constraints && it.constraints.length>0){
-        consHtml = `<div class="constraint-tip">✅ 适用条件：${it.constraints.join("；")}</div>`;
+    // 管理员密码校验【后端接口】
+    async checkAdminPwd(){
+      // 这里替换成你的后端POST接口
+      const res = await fetch("/api/admin/login",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({pwd:this.adminPwdInput})
+      }).catch(e=>{alert("后端接口请求失败，本地调试模式：密码123456放行");return {ok:true,json:()=>Promise.resolve({ok:true})}})
+      const ret = await res.json()
+      if(ret.ok){
+        this.isAdmin=true
+        this.showAdminPanel=false
+        alert("管理员登录成功，可以审核社区条目")
+      }else{
+        alert("密码错误")
+      }
+    },
+    openAdminPanel(){this.showAdminPanel=true;this.adminPwdInput=""},
+    openAddLib(){this.libItem={question:"",answer:"",tag:"",tagColor:"#f2b894",diff:"high",expireTime:"",type:""};this.showLibEdit=true},
+    saveLibItem(){
+      this.publicLib.push({...this.libItem})
+      this.showLibEdit=false
+      alert("入库成功")
+    },
+    loadHistory(item){
+      this.inputQuestion = item.question
+    },
+    toggleStar(item){item.star = !item.star},
+    toggleMsgStar(msg){msg.star = !msg.star},
+    openCompare(msg){
+      this.compareRes.a = "画像A：保守稳妥方案，优先规避风险"
+      this.compareRes.b = "画像B：激进成长方案，优先机会收益"
+      this.showCompare=true
+    },
+    exportPdf(msg){
+      const el = document.createElement('div')
+      el.innerHTML = `<h2>三思集决策报告</h2><p>问题：${msg.content}</p><p>结论：${msg.content}</p><p>导出时间：${new Date().toLocaleString()}</p>`
+      html2pdf().set({
+        margin:10,
+        header:{text:'三思集 · 决策报告',height:"16px"},
+        footer:{text:'仅供决策参考，不构成专业建议',height:"16px"}
+      }).from(el).save("三思集-决策报告.pdf")
+    },
+    exportJson(){
+      const blob = new Blob([JSON.stringify(this.historyList,null,2)],{type:"application/json"})
+      const a = document.createElement("a")
+      a.href = URL.createObjectURL(blob)
+      a.download = "三思集知识库.json"
+      a.click()
+    },
+    exportMd(){
+      let md = "# 三思集决策记录\n"
+      this.historyList.forEach(i=>{md += `## ${i.question}\n标签：${i.tag}\n---\n`})
+      const blob = new Blob([md],{type:"text/markdown"})
+      const a = document.createElement("a")
+      a.href = URL.createObjectURL(blob)
+      a.download = "三思集知识库.md"
+      a.click()
+    },
+    importJson(){
+      const inp = document.createElement("input")
+      inp.type="file"
+      inp.accept=".json"
+      inp.onchange=async e=>{
+        const f = e.target.files[0]
+        const text = await f.text()
+        const arr = JSON.parse(text)
+        this.historyList = [...this.historyList,...arr]
+      }
+      inp.click()
     }
-    let excHtml = "";
-    if(it.excludeConstraints && it.excludeConstraints.length>0){
-        excHtml = `<div class="exclude-tip">⚠️ 不适合：${it.excludeConstraints.join("；")}</div>`;
-    }
-    let verHtml = it.version ? `<span class="version-badge">v${it.version}</span>` : "";
-    let expireHtml = "";
-    if(it.expireAt){
-        const eff = getEffectiveConfidence(it);
-        expireHtml = `<span class="expire-badge">时效衰减｜有效置信${eff}</span>`;
-    }
-    const box = document.createElement("div");
-    box.className = "answer-box";
-    box.innerHTML = `
-        <div class="meta-row">
-            <span class="conf-badge">置信度：${it.confidence}</span>
-            <span class="source-badge">来源：${it.sourceLabel}</span>
-            ${verHtml}${expireHtml}
-        </div>
-        ${consHtml}${excHtml}
-        <div class="guide">💡 阅读指引：优先看稳妥共识，分歧结合自身情况权衡，存疑项务必二次核实</div>
-        <div class="high"><b>✅ 稳妥共识</b><p>${it.high}</p></div>
-        <div class="diff"><b>⚖️ 多方分歧</b><p>${it.diff}</p></div>
-        <div class="warn"><b>⚠️ 风险存疑</b><p>${it.warn}</p></div>
-        <div class="oper-row">
-            <button onclick="saveThisToKb(this)">保存至私有知识库</button>
-        </div>
-        <div class="tag-auto">主场景：${it.scene}</div>
-        <div class="slogan">三思集｜人生决策第二意见引擎</div>
-        <div class="disclaimer">免责：全部内容为经验参考，不构成法律、职业、医疗专业咨询</div>
-    `;
-    const saveBtn = box.querySelector("button");
-    saveBtn.dataset.payload = JSON.stringify(it);
-    container.appendChild(box);
-}
-function saveThisToKb(btn){
-    const payload = JSON.parse(btn.dataset.payload);
-    const newItem = {
-        id:"u_"+Date.now(),
-        sourceType:"user",
-        keywords:payload.keywords,
-        scene:payload.scene,
-        constraints:payload.constraints||[],
-        excludeConstraints:payload.excludeConstraints||[],
-        confidence:payload.confidence||80,
-        sourceLabel:"LLM生成沉淀",
-        isPolicy:false,
-        expireAt:null,
-        version:"1.0",
-        high:payload.high,
-        diff:payload.diff,
-        warn:payload.warn
-    };
-    userKB.push(newItem);
-    saveUserKB();
-    alert("✅ 已存入你的私有知识库");
-}
-
-// LLM流式解析三段块
-function parseThreeBlock(text){
-    let high="",diff="",warn="";
-    if(text.includes("稳妥共识") && text.includes("多方分歧") && text.includes("风险存疑")){
-        const s1 = text.split("多方分歧")[0].replace(/.*稳妥共识[:：]/,"").trim();
-        const mid = text.split("多方分歧")[1].split("风险存疑");
-        const s2 = mid[0].trim();
-        const s3 = mid[1] ? mid[1].trim() : "";
-        high=s1;diff=s2;warn=s3;
-    }else{
-        high = text;
-        diff = "不同人基于自身条件会有完全不同选择，你可以根据画像约束权衡。";
-        warn = "大模型输出存在幻觉风险，重要决策建议多方交叉核验。";
-    }
-    return {high,diff,warn};
-}
-
-async function send(){
-    const chat = document.getElementById("chat");
-    const qInput = document.getElementById("q");
-    const q = qInput.value.trim();
-    const sendBtn = document.getElementById("sendBtn");
-    if(!q) return;
-    sendBtn.disabled = true;
-    chat.innerHTML += `<div style="margin:10px 0;"><b>我：</b>${q}</div>`;
-    chat.scrollTop = chat.scrollHeight;
-
-    const kbHit = searchBestItem(q);
-    if(kbHit){
-        const rec = {
-            question:q,
-            ...kbHit,
-            sourceType:"kb"
-        };
-        renderAnswerCard(chat, rec);
-        addHistory(rec);
-        qInput.value = "";
-        sendBtn.disabled = false;
-        return;
-    }
-
-    if(!API_KEY || !API_URL){
-        chat.innerHTML += `<div style="color:#D06464;margin:10px 0;">未配置LLM接口，无法调用流式模型，请填入API信息。</div>`;
-        qInput.value = "";
-        sendBtn.disabled = false;
-        return;
-    }
-
-    chat.innerHTML += `<div class="loading" id="streamLoading">三思集推演中，流式输出...</div>`;
-    const systemPrompt = `你是三思集决策引擎，面向20-30岁学生/职场青年做人生选择题分层决策。
-用户画像：${JSON.stringify(userProfile)}；当前场景：${sceneNow}
-强制输出格式，严格三段：
-【稳妥共识】：给出经验上最稳妥、风险最低的共识结论
-【多方分歧】：列出两种主流对立观点、适合的人群
-【风险存疑】：这件事里面不确定、有坑、需要额外核实的风险
-风格克制，不鸡汤，区分经验和事实，不要编造政策。`;
-    try{
-        const resp = await fetch(API_URL,{
-            method:"POST",
-            headers:{"Content-Type":"application/json","Authorization":"Bearer "+API_KEY},
-            body:JSON.stringify({
-                model:MODEL_NAME,
-                messages:[{role:"system",content:systemPrompt},{role:"user",content:q}],
-                temperature:0.6,stream:true
-            })
-        });
-        document.getElementById("streamLoading").remove();
-        if(!resp.ok) throw new Error("http fail");
-        const reader = resp.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let buffer = "";
-        let fullText = "";
-        const streamId = "stream_"+Date.now();
-        chat.innerHTML += `
-        <div class="answer-box" id="${streamId}">
-            <div class="meta-row"><span class="conf-badge">置信度：75</span><span class="source-badge">来源：LLM推演</span></div>
-            <div class="constraint-tip">✅ 适用条件：匹配你的画像【${userProfile.sub}，存款${userProfile.fund}，赛道${userProfile.track}】</div>
-            <div class="guide">💡 阅读指引：优先看稳妥共识，分歧结合自身情况权衡，存疑项务必二次核实</div>
-            <div class="high"><b>✅ 稳妥共识</b><p id="shigh"></p></div>
-            <div class="diff"><b>⚖️ 多方分歧</b><p id="sdiff"></p></div>
-            <div class="warn"><b>⚠️ 风险存疑</b><p id="swarn"></p></div>
-            <div class="oper-row"><button onclick="saveThisToKb(this)">保存至私有知识库</button></div>
-            <div class="tag-auto">主场景：${sceneNow}</div>
-            <div class="slogan">三思集｜人生决策第二意见引擎</div>
-            <div class="disclaimer">免责：全部内容为经验参考，不构成法律、职业、医疗专业咨询</div>
-        </div>`;
-        while(true){
-            const {done,value} = await reader.read();
-            if(done) break;
-            buffer += decoder.decode(value,{stream:true});
-            const lines = buffer.split("\n");
-            buffer = lines.pop();
-            for(let line of lines){
-                line = line.trim();
-                if(!line || !line.startsWith("data: ")) continue;
-                const d = line.slice(6);
-                if(d === "[DONE]") continue;
-                try{
-                    const j = JSON.parse(d);
-                    const delta = j.choices?.[0]?.delta?.content || "";
-                    fullText += delta;
-                    const blk = parseThreeBlock(fullText);
-                    document.getElementById("shigh").innerText = blk.high;
-                    document.getElementById("sdiff").innerText = blk.diff;
-                    document.getElementById("swarn").innerText = blk.warn;
-                    chat.scrollTop = chat.scrollHeight;
-                }catch(e){}
-            }
-        }
-        const finalBlk = parseThreeBlock(fullText);
-        const rec = {
-            question:q,
-            keywords:[q],
-            scene:sceneNow,
-            constraints:[`画像:${userProfile.sub}`],
-            excludeConstraints:[],
-            confidence:75,
-            sourceLabel:"LLM推演",
-            isPolicy:false,
-            expireAt:null,
-            version:"1.0",
-            high:finalBlk.high,
-            diff:finalBlk.diff,
-            warn:finalBlk.warn,
-            sourceType:"llm"
-        };
-        document.querySelector(`#${streamId} button`).dataset.payload = JSON.stringify(rec);
-        addHistory(rec);
-    }catch(err){
-        document.getElementById("streamLoading")?.remove();
-        chat.innerHTML += `<div style="color:#D06464;margin:10px 0;">流式接口调用失败，请检查API地址、密钥是否正确，服务商是否支持SSE。</div>`;
-    }
-    qInput.value = "";
-    sendBtn.disabled = false;
-}
-
-// ========== 【新增模块：决策对比面板】 ==========
-function openComparePanel(){
-    document.getElementById("compareMask").style.display="flex";
-    document.getElementById("compareResult").innerHTML = "";
-}
-function closeComparePanel(){
-    document.getElementById("compareMask").style.display="none";
-}
-function runCompare(){
-    const q = document.getElementById("compareQ").value.trim();
-    if(!q){alert("请输入对比问题");return;}
-    const profA = {
-        base:document.getElementById("cmpA-base").value,
-        sub:document.getElementById("cmpA-sub").value,
-        fund:document.getElementById("cmpA-fund").value,
-        track:document.getElementById("cmpA-track").value
-    };
-    const profB = {
-        base:document.getElementById("cmpB-base").value,
-        sub:document.getElementById("cmpB-sub").value,
-        fund:document.getElementById("cmpB-fund").value,
-        track:document.getElementById("cmpB-track").value
-    };
-    const itemA = searchBestItem(q, profA);
-    const itemB = searchBestItem(q, profB);
-    const renderCol = (it,prof,name)=>{
-        if(!it) return `<p>无匹配知识库条目，需要调用LLM推演</p>`;
-        return `
-        <div class="meta-row">置信：${it.confidence}｜来源：${it.sourceLabel}</div>
-        <div class="constraint-tip">画像：${prof.sub}｜存款${prof.fund}｜赛道${prof.track}</div>
-        <div class="high"><b>✅ 稳妥共识</b>${it.high}</div>
-        <div class="diff"><b>⚖️ 分歧</b>${it.diff}</div>
-        <div class="warn"><b>⚠️ 风险</b>${it.warn}</div>
-        `
-    };
-    document.getElementById("compareResult").innerHTML = `
-    <div class="compare-wrap">
-        <div class="compare-col">
-            <div class="compare-title">画像A</div>
-            ${renderCol(itemA,profA,"A")}
-        </div>
-        <div class="compare-col">
-            <div class="compare-title">画像B</div>
-            ${renderCol(itemB,profB,"B")}
-        </div>
-    </div>`;
-}
-
-// ========== 【新增模块：导入导出 JSON / MD】 ==========
-function openImportExportPanel(){
-    document.getElementById("ieMask").style.display="flex";
-    document.getElementById("exportPreview").value = "";
-}
-function closeImportExportPanel(){
-    document.getElementById("ieMask").style.display="none";
-}
-function doExport(){
-    const type = document.getElementById("exportType").value;
-    let out = "";
-    if(type === "json"){
-        const pack = {
-            exportAt: new Date().toISOString(),
-            userKB: userKB
-        };
-        out = JSON.stringify(pack,null,2);
-    }else{
-        let md = `# 三思集知识库备份\n导出时间：${new Date().toLocaleString()}\n\n`;
-        userKB.forEach(it=>{
-            md += `## ${it.keywords.join(" / ")}\n`;
-            md += `- 场景：${it.scene}\n`;
-            md += `- 置信：${it.confidence}｜来源：${it.sourceLabel}\n`;
-            md += `- 适用：${it.constraints.join("；")}\n`;
-            md += `- 排除：${it.excludeConstraints.join("；")}\n`;
-            md += `### ✅ 稳妥共识\n${it.high}\n\n### ⚖️ 分歧观点\n${it.diff}\n\n### ⚠️ 风险存疑\n${it.warn}\n\n---\n\n`;
-        })
-        out = md;
-    }
-    document.getElementById("exportPreview").value = out;
-    const blob = new Blob([out],{type:"text/plain"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `三思集备份_${type}_${Date.now()}.${type==="json"?"json":"md"}`;
-    a.click();
-}
-function doImport(){
-    const txt = document.getElementById("importText").value.trim();
-    try{
-        const pack = JSON.parse(txt);
-        if(!pack.userKB || !Array.isArray(pack.userKB)) throw new Error("格式不对");
-        pack.userKB.forEach(it=>{
-            it.id = "u_"+Date.now()+"_"+Math.random().toString(36).slice(2);
-            it.sourceType = "user";
-            userKB.push(it);
-        })
-        saveUserKB();
-        alert(`✅ 成功导入${pack.userKB.length}条，追加进私有库`);
-        renderKbLists();
-    }catch(e){
-        alert("JSON解析失败，请确认是三思集导出的备份文件");
-    }
-}
-
-// ========== 【新增模块：社区贡献审核流】 ==========
-function openAuditPanel(){
-    document.getElementById("auditMask").style.display="flex";
-    renderAuditList();
-}
-function closeAuditPanel(){
-    document.getElementById("auditMask").style.display="none";
-}
-function submitCandidate(){
-    const kw = document.getElementById("subKeywords").value.trim().split(",").map(x=>x.trim()).filter(Boolean);
-    const scene = document.getElementById("subScene").value;
-    const cons = document.getElementById("subConstraints").value.trim().split(",").map(x=>x.trim()).filter(Boolean);
-    const exc = document.getElementById("subExclude").value.trim().split(",").map(x=>x.trim()).filter(Boolean);
-    const conf = Number(document.getElementById("subConf").value);
-    const isPolicy = document.getElementById("subIsPolicy").checked;
-    const expire = document.getElementById("subExpire").value.trim() || null;
-    const high = document.getElementById("subHigh").value.trim();
-    const diff = document.getElementById("subDiff").value.trim();
-    const warn = document.getElementById("subWarn").value.trim();
-    if(!kw.length || !high){alert("关键词、稳妥共识不能为空");return;}
-    candidatePool.push({
-        cid:"c_"+Date.now(),
-        keywords:kw,scene,constraints:cons,excludeConstraints:exc,
-        confidence:conf,isPolicy,expireAt:expire,version:"1.0",
-        sourceLabel:"社区用户提交",high,diff,warn
-    });
-    saveCandidatePool();
-    alert("✅ 提交成功，进入待审核池等待管理员审核");
-}
-function renderAuditList(){
-    const box = document.getElementById("auditList");
-    box.innerHTML = "";
-    if(candidatePool.length === 0){
-        box.innerHTML = "<p>暂无待审核条目</p>";
-        return;
-    }
-    candidatePool.forEach((item,idx)=>{
-        const div = document.createElement("div");
-        div.className = "kb-list-item";
-        div.innerHTML = `<div class="txt">[${item.scene}] ${item.keywords.join(",")}｜预估置信${item.confidence} ${item.isPolicy?"【政策】":""}</div>
-        <div>
-            <button onclick="auditPass(${idx})">通过并入平台库</button>
-            <button onclick="auditReject(${idx})">驳回</button>
-        </div>`;
-        box.appendChild(div);
-    })
-}
-function auditPass(idx){
-    const c = candidatePool[idx];
-    c.id = "p_"+Date.now();
-    c.sourceType = "platform";
-    delete c.cid;
-    platformKB.push(c);
-    candidatePool.splice(idx,1);
-    saveCandidatePool();
-    renderAuditList();
-    renderKbLists();
-    alert("✅ 已通过，加入平台公共库");
-}
-function auditReject(idx){
-    candidatePool.splice(idx,1);
-    saveCandidatePool();
-    renderAuditList();
-    alert("已驳回移除");
-}
-
-init();
+  }
+}).mount("#app")
 </script>
 </body>
 </html>
