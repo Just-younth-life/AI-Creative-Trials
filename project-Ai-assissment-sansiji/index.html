@@ -3,143 +3,1193 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>三思集 - 你的每一种困惑都值得认真斟酌</title>
+<title>三思集｜人生决策第二意见引擎</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:system-ui,-apple-system,"Microsoft Yahei";background:#FFFAF5;color:#3A3A3A;}
-.container{display:grid;grid-template-columns:240px 1fr;height:100vh;}
-.left{background:#fff;border-right:1px solid #eee;padding:24px;}
-.left h3{color:#F2A97F;margin-bottom:12px;font-size:18px;}
-.left p.desc{font-size:13px;color:#888;margin-bottom:20px;}
+body{font-family:system-ui,-apple-system,"Microsoft YaHei";background:#FFFAF5;color:#3A3A3A;}
+.container{display:grid;grid-template-columns:280px 1fr;height:100vh;overflow:hidden;}
+
+/* 左侧边栏 */
+.left{background:#fff;border-right:1px solid #eee;padding:18px;display:flex;flex-direction:column;gap:12px;overflow:hidden;}
+.left-top{flex-shrink:0;}
+.left h3{color:#F2A97F;font-size:18px;margin-bottom:6px;}
+.left .desc{font-size:12px;color:#888;margin-bottom:10px;}
+.left-ctrl{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.left-ctrl button{padding:5px 7px;font-size:12px;margin:0;}
+.profile-card{background:#FFF3EB;border-radius:8px;padding:10px;font-size:12px;margin-bottom:10px;}
+.profile-card .row{display:flex;justify-content:space-between;margin:4px 0;}
+.profile-card button{font-size:11px;padding:3px 6px;margin-top:4px;}
+
+.history-title{font-size:13px;font-weight:500;color:#666;margin:6px 0 4px;}
+.history-wrap{flex:1;overflow:auto;border-top:1px solid #eee;padding-top:8px;}
+.history-item{padding:7px 5px;font-size:13px;border-radius:6px;cursor:pointer;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid transparent;}
+.history-item:hover{background:#FFF3EB;}
+.history-item.kb-tag{color:#926F57;}
+.history-item.llm-tag{color:#596B8C;}
+
+/* 主聊天区 */
 .main{display:flex;flex-direction:column;}
-.chat{flex:1;padding:24px;overflow:auto;}
-.input-area{padding:16px 24px;border-top:1px solid #eee;background:#fff;}
-textarea{width:100%;height:80px;padding:12px;border-radius:8px;border:1px solid #ddd;resize:none;background:#fff;font-size:14px;}
-button{padding:9px 22px;background:#F2A97F;color:#fff;border:none;border-radius:6px;margin-top:10px;cursor:pointer;font-size:14px;transition:0.2s;}
-button:hover{opacity:0.9;}
-button:disabled{opacity:0.6;cursor:not-allowed;}
-.bottom-tag{padding:12px 24px;background:#FFF3EB;border-top:1px solid #eee;display:flex;gap:12px;align-items:center;}
-.tag-item{padding:5px 14px;border-radius:16px;border:1px solid #ccc;font-size:13px;cursor:pointer;transition:0.2s;}
+.chat{flex:1;padding:22px;overflow:auto;}
+.input-area{padding:14px 22px;border-top:1px solid #eee;background:#fff;}
+textarea{width:100%;height:80px;padding:11px;border:1px solid #ddd;border-radius:8px;resize:none;font-size:14px;}
+button{padding:8px 18px;background:#F2A97F;color:#fff;border:none;border-radius:7px;cursor:pointer;transition:0.15s;}
+button:hover{opacity:0.92;}
+button:disabled{opacity:0.55;cursor:not-allowed;}
+.bottom-tag{padding:10px 22px;background:#FFF3EB;border-top:1px solid #eee;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.tag-item{padding:4px 12px;border:1px solid #ccc;border-radius:14px;font-size:13px;cursor:pointer;}
 .tag-item.active{background:#F2A97F;color:#fff;border-color:#F2A97F;}
+
+/* 回答卡片 */
 .answer-box{background:#fff;padding:18px;border-radius:12px;margin:14px 0;border:1px solid #f0f0f0;}
-.guide{background:#EFF6FF;padding:12px;border-radius:8px;margin-bottom:14px;font-size:14px;}
-.high{border-left:4px solid #A8D8C7;margin:10px 0;padding:10px;border-radius:6px;}
-.diff{border-left:4px solid #F7C287;margin:10px 0;padding:10px;border-radius:6px;}
-.warn{border-left:4px solid #E89494;margin:10px 0;padding:10px;border-radius:6px;}
+.meta-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:center;}
+.conf-badge{background:#E8F4F8;color:#2B6A87;padding:3px 7px;border-radius:12px;font-size:12px;}
+.source-badge{background:#F6F0E8;color:#846246;padding:3px 7px;border-radius:12px;font-size:12px;}
+.version-badge{background:#E7E9ED;color:#444;padding:3px 7px;border-radius:12px;font-size:12px;}
+.expire-badge{background:#FEE;padding:3px 7px;border-radius:12px;font-size:12px;color:#992222;}
+.constraint-tip{background:#FFF8E6;border:1px solid #FFE7B3;padding:8px;border-radius:8px;font-size:13px;margin:8px 0;color:#906500;}
+.exclude-tip{background:#FDEDED;border:1px solid #F8CACA;padding:8px;border-radius:8px;font-size:13px;margin:8px 0;color:#A63434;}
+.guide{background:#EFF6FF;padding:10px;border-radius:8px;margin:10px 0;font-size:13px;}
+.high{border-left:4px solid #A8D8C7;padding:9px 10px;border-radius:6px;margin:10px 0;}
+.diff{border-left:4px solid #F7C287;padding:9px 10px;border-radius:6px;margin:10px 0;}
+.warn{border-left:4px solid #E89A9A;padding:9px 10px;border-radius:6px;margin:10px 0;}
+.oper-row{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+.oper-row button{padding:5px 8px;font-size:12px;margin:0;}
 .tag-auto{font-size:12px;color:#888;margin-top:8px;}
-.slogan-footer{font-size:12px;color:#888;margin-top:12px;padding-top:12px;border-top:1px solid #f5f5f5;}
+.slogan{font-size:12px;color:#888;margin-top:10px;padding-top:8px;border-top:1px solid #f2f2f2;}
 .loading{color:#F2A97F;font-size:14px;margin:10px 0;}
+.disclaimer{font-size:11px;color:#999;margin-top:8px;}
+
+/* 对比面板专用 */
+.compare-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;}
+.compare-col{border:1px solid #F2D9C8;border-radius:12px;padding:14px;background:#fff;}
+.compare-title{font-weight:bold;color:#F2A97F;margin-bottom:8px;}
+
+/* 弹窗：知识库管理、画像编辑、对比、审核、导入导出 */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;align-items:center;justify-content:center;z-index:999;}
+.modal{width:720px;background:#fff;border-radius:12px;padding:20px;max-height:82vh;overflow:auto;}
+.modal h4{color:#F2A97F;margin-bottom:12px;}
+.modal-tab{display:flex;border-bottom:1px solid #eee;margin-bottom:12px;flex-wrap:wrap;}
+.modal-tab-item{padding:7px 12px;font-size:14px;cursor:pointer;border-bottom:2px solid transparent;}
+.modal-tab-item.active{border-color:#F2A97F;color:#F2A97F;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+.form-row{margin-bottom:9px;}
+.form-row label{display:block;font-size:13px;margin-bottom:3px;}
+.form-row input,.form-row textarea,.form-row select{width:100%;border:1px solid #ddd;border-radius:6px;padding:7px;font-size:14px;}
+.form-row textarea{min-height:65px;resize:vertical;}
+.form-row .inline{display:flex;gap:8px;align-items:center;}
+.kb-list-item{padding:7px;border:1px solid #eee;border-radius:6px;margin:5px 0;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.kb-list-item .txt{font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.kb-list-item button{padding:3px 6px;margin:0;font-size:12px;}
+.modal-footer{margin-top:12px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;}
+textarea.import-area{min-height:180px;}
 </style>
 </head>
 <body>
 <div class="container">
     <div class="left">
-        <h3>我的决策库</h3>
-        <p class="desc">可溯源 · 可复盘 · 可迭代</p>
+        <div class="left-top">
+            <h3>三思集</h3>
+            <p class="desc">可复盘思辨决策引擎</p>
+            <div class="profile-card" id="profileView">
+                <div class="row"><span>身份大类：</span><span id="p-base">学生</span></div>
+                <div class="row"><span>细分标签：</span><span id="p-sub">应届生求职</span></div>
+                <div class="row"><span>应急存款月数：</span><span id="p-fund">3个月</span></div>
+                <div class="row"><span>目标赛道：</span><span id="p-track">互联网/产品</span></div>
+                <button onclick="openProfilePanel()">修改画像</button>
+            </div>
+            <div class="left-ctrl">
+                <button onclick="openKbPanel()">知识库管理</button>
+                <button onclick="openComparePanel()">决策对比</button>
+                <button onclick="openImportExportPanel()">导入导出</button>
+                <button onclick="openAuditPanel()">社区审核</button>
+                <button onclick="clearHistory()">清空复盘</button>
+            </div>
+            <div class="history-title">📜 复盘历史</div>
+        </div>
+        <div class="history-wrap" id="historyWrap"></div>
     </div>
+
     <div class="main">
         <div class="chat" id="chat">
-            <div style="text-align:center;margin-top:60px;opacity:0.8;">
+            <div style="text-align:center;margin-top:70px;opacity:0.8;">
                 <h2 style="color:#F2A97F;margin-bottom:8px;">三思集</h2>
-                <p>你的每一种困惑都值得认真斟酌</p>
-                <p style="font-size:13px;color:#888;margin-top:4px;">多角度验证，让每一次纠结，都有稳妥答案</p>
+                <p>输入你的纠结选择，获取分层风险决策意见</p>
+                <p style="font-size:13px;color:#888;margin-top:6px;">共识 · 分歧 · 风险存疑，可沉淀、可复盘、可对照</p>
             </div>
         </div>
         <div class="input-area">
-            <textarea id="q" placeholder="输入你的问题，系统自动适配你的认知水平与使用场景"></textarea>
+            <textarea id="q" placeholder="例如：存款3个月，要不要裸辞？保研边缘要不要二战？"></textarea>
             <button id="sendBtn" onclick="send()">发送提问</button>
         </div>
         <div class="bottom-tag">
-            <span style="font-size:14px;">当前场景：</span>
-            <div class="tag-item active" onclick="setTag(this,'学生')">学生</div>
-            <div class="tag-item" onclick="setTag(this,'职场')">职场</div>
-            <div class="tag-item" onclick="setTag(this,'生活决策')">生活决策</div>
+            <span style="font-size:14px;">当前主场景：</span>
+            <div class="tag-item active" onclick="setScene(this,'学生')">学生</div>
+            <div class="tag-item" onclick="setScene(this,'职场')">职场</div>
+            <div class="tag-item" onclick="setScene(this,'生活决策')">生活决策</div>
         </div>
     </div>
 </div>
+
+<!-- 画像编辑弹窗 -->
+<div class="modal-mask" id="profileMask">
+    <div class="modal">
+        <h4>用户画像配置（会影响检索与LLM输出）</h4>
+        <div class="form-row">
+            <label>身份大类</label>
+            <select id="pfBase">
+                <option value="学生">学生</option>
+                <option value="职场">职场</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <label>细分标签</label>
+            <select id="pfSub">
+                <option>保研党</option>
+                <option>考研党</option>
+                <option>应届生求职</option>
+                <option>留学申请</option>
+                <option>校招新人</option>
+                <option>1-3年跳槽</option>
+                <option>3-5年成长</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <label>应急存款可支撑月数</label>
+            <select id="pfFund">
+                <option>＜3个月</option>
+                <option>3~6个月</option>
+                <option>＞6个月</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <label>目标赛道</label>
+            <input id="pfTrack" placeholder="互联网/产品、国企、考公、传统行业">
+        </div>
+        <div class="modal-footer">
+            <button onclick="saveProfile()">保存画像</button>
+            <button onclick="closeProfilePanel()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 知识库管理弹窗 -->
+<div class="modal-mask" id="kbMask">
+    <div class="modal">
+        <h4>结构化决策知识库</h4>
+        <div class="modal-tab">
+            <div class="modal-tab-item active" data-tab="platform">平台公共库</div>
+            <div class="modal-tab-item" data-tab="user">我的私有库</div>
+        </div>
+        <div class="tab-content active" id="tab-platform">
+            <div id="platformKbList"></div>
+            <p style="margin-top:10px;font-size:12px;color:#777;">平台库只读，可克隆到私有库修改；带版本、时效标记，政策条目自动降置信</p>
+        </div>
+        <div class="tab-content" id="tab-user">
+            <div id="userKbList"></div>
+            <div style="margin-top:14px;border-top:1px solid #eee;padding-top:12px;">
+                <div class="form-row">
+                    <label>关键词（逗号分隔）</label>
+                    <input id="kbKeywords">
+                </div>
+                <div class="form-row">
+                    <label>场景</label>
+                    <select id="kbScene">
+                        <option>学生</option>
+                        <option>职场</option>
+                        <option>生活决策</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>适用约束（逗号分隔，例：存款>6个月，应届生）</label>
+                    <input id="kbConstraints">
+                </div>
+                <div class="form-row">
+                    <label>不适用人群（逗号分隔）</label>
+                    <input id="kbExclude">
+                </div>
+                <div class="form-row">
+                    <label>置信度 0~100</label>
+                    <input id="kbConf" value="85">
+                </div>
+                <div class="form-row">
+                    <label>来源标注</label>
+                    <input id="kbSource" value="个人复盘">
+                </div>
+                <div class="form-row inline">
+                    <label><input type="checkbox" id="kbIsPolicy">政策类条目</label>
+                </div>
+                <div class="form-row">
+                    <label>过期时间（时间戳，留空永久有效）</label>
+                    <input id="kbExpireAt" placeholder="1799884800">
+                </div>
+                <div class="form-row">
+                    <label>✅ 高可信稳妥共识</label>
+                    <textarea id="kbHigh"></textarea>
+                </div>
+                <div class="form-row">
+                    <label>⚖️ 多方分歧观点</label>
+                    <textarea id="kbDiff"></textarea>
+                </div>
+                <div class="form-row">
+                    <label>⚠️ 存疑风险提示</label>
+                    <textarea id="kbWarn"></textarea>
+                </div>
+                <input type="hidden" id="editKbIndex" value="-1">
+            </div>
+            <div class="modal-footer">
+                <button onclick="saveUserKbItem()">保存私有条目</button>
+                <button onclick="closeKbPanel()">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 决策对比面板 -->
+<div class="modal-mask" id="compareMask">
+    <div class="modal">
+        <h4>决策对照面板｜同一问题，两套画像对比</h4>
+        <div class="form-row">
+            <label>待对比问题</label>
+            <input id="compareQ" placeholder="要不要裸辞 / 要不要二战考研">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+                <div class="form-row"><label>画像A</label>
+                    <select id="cmpA-base">
+                        <option>学生</option><option>职场</option>
+                    </select>
+                    <select id="cmpA-sub">
+                        <option>保研党</option><option>考研党</option><option>应届生求职</option><option>1-3年跳槽</option>
+                    </select>
+                    <select id="cmpA-fund">
+                        <option>＜3个月</option><option>3~6个月</option><option>＞6个月</option>
+                    </select>
+                    <input id="cmpA-track" placeholder="赛道">
+                </div>
+            </div>
+            <div>
+                <div class="form-row"><label>画像B</label>
+                    <select id="cmpB-base">
+                        <option>学生</option><option>职场</option>
+                    </select>
+                    <select id="cmpB-sub">
+                        <option>保研党</option><option>考研党</option><option>应届生求职</option><option>1-3年跳槽</option>
+                    </select>
+                    <select id="cmpB-fund">
+                        <option>＜3个月</option><option>3~6个月</option><option>＞6个月</option>
+                    </select>
+                    <input id="cmpB-track" placeholder="赛道">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="runCompare()">生成对照结论</button>
+            <button onclick="closeComparePanel()">关闭</button>
+        </div>
+        <div id="compareResult"></div>
+    </div>
+</div>
+
+<!-- 导入导出面板 -->
+<div class="modal-mask" id="ieMask">
+    <div class="modal">
+        <h4>知识库备份｜JSON / Markdown</h4>
+        <div class="modal-tab">
+            <div class="modal-tab-item active" data-tab="export">导出备份</div>
+            <div class="modal-tab-item" data-tab="import">批量导入JSON</div>
+        </div>
+        <div class="tab-content active" id="tab-export">
+            <div class="form-row">
+                <label>导出格式</label>
+                <select id="exportType">
+                    <option value="json">JSON（全库备份，可导入恢复）</option>
+                    <option value="md">Markdown（Obsidian笔记）</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button onclick="doExport()">执行导出并下载</button>
+            </div>
+            <textarea id="exportPreview" class="import-area" readonly placeholder="预览"></textarea>
+        </div>
+        <div class="tab-content" id="tab-import">
+            <div class="form-row">
+                <label>粘贴JSON备份文本（只导入私有库，平台公共库不会被覆盖）</label>
+                <textarea id="importText" class="import-area"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button onclick="doImport()">导入追加到私有库</button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeImportExportPanel()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 社区审核面板 -->
+<div class="modal-mask" id="auditMask">
+    <div class="modal">
+        <h4>社区贡献审核流｜用户提交条目池</h4>
+        <div class="modal-tab">
+            <div class="modal-tab-item active" data-tab="submit">提交新条目</div>
+            <div class="modal-tab-item" data-tab="audit">管理员审核池</div>
+        </div>
+        <div class="tab-content active" id="tab-submit">
+            <p style="font-size:12px;color:#777;margin-bottom:10px;">提交后进入待审池，管理员审核通过才会进入平台公共库</p>
+            <div class="form-row">
+                <label>关键词（逗号分隔）</label>
+                <input id="subKeywords">
+            </div>
+            <div class="form-row">
+                <label>场景</label>
+                <select id="subScene">
+                    <option>学生</option><option>职场</option><option>生活决策</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>适用约束</label>
+                <input id="subConstraints">
+            </div>
+            <div class="form-row">
+                <label>不适用人群</label>
+                <input id="subExclude">
+            </div>
+            <div class="form-row">
+                <label>置信度预估</label>
+                <input id="subConf" value="85">
+            </div>
+            <div class="form-row inline">
+                <label><input type="checkbox" id="subIsPolicy">政策类</label>
+            </div>
+            <div class="form-row">
+                <label>过期时间戳</label>
+                <input id="subExpire">
+            </div>
+            <div class="form-row">
+                <label>稳妥共识</label>
+                <textarea id="subHigh"></textarea>
+            </div>
+            <div class="form-row">
+                <label>分歧观点</label>
+                <textarea id="subDiff"></textarea>
+            </div>
+            <div class="form-row">
+                <label>风险存疑</label>
+                <textarea id="subWarn"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button onclick="submitCandidate()">提交候选条目</button>
+            </div>
+        </div>
+        <div class="tab-content" id="tab-audit">
+            <p style="font-size:12px;color:#777;margin-bottom:10px;">管理员操作：通过→并入平台公共库；驳回→移除</p>
+            <div id="auditList"></div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeAuditPanel()">关闭</button>
+        </div>
+    </div>
+</div>
+
 <script>
-let nowTag = "学生";
-// 公开仓库禁用密钥，本地使用再自行填入
+// ========= 配置区 =========
 const API_KEY = "";
 const API_URL = "";
-const SYSTEM_PROMPT = "你是三思集多智能体协同决策系统，主打「温暖稳妥、可溯源、适配认知、零门槛、有温度」的核心服务理念，严格执行以下强制规则：\
-1、严格区分客观事实与主观推测，可核验内容标注溯源来源，无法核验内容明确标注存疑，绝对禁止编造资料、链接、论据与数据；\
-2、自动识别用户身份、使用场景与认知层级，精准匹配对应内容深浅、专业度与通俗话术，实现千人千面自适应输出；\
-3、所有回答必须固定分为【高可信稳妥共识】【多角度分歧争议】【仅供参考存疑内容】三段，分段清晰，不要合并；\
-4、针对思辨能力薄弱的普通用户，自动生成通俗阅读指引，明确最优参考内容、适用场景与使用风险，降低甄别门槛；\
-5、识别简短、模糊、信息缺失的碎片化提问，全自动补全场景与背景信息；\
-6、整体输出风格温柔克制、通俗易懂，拒绝冰冷机械话术。\
-当前用户场景：";
+const MODEL_NAME = "gpt-3.5-turbo";
+// ==========================
 
-function setTag(dom,tag){
-    document.querySelectorAll('.tag-item').forEach(function(x){
-        x.classList.remove('active');
-    });
-    dom.classList.add('active');
-    nowTag = tag;
+// Storage Key
+const STORAGE_PROFILE = "sansiji_profile";
+const STORAGE_USER_KB = "sansiji_user_kb";
+const STORAGE_HISTORY = "sansiji_history";
+const STORAGE_CANDIDATE_POOL = "sansiji_candidate_pool";
+
+// 平台公共基准库（升级Schema：version、expireAt、isPolicy）
+const platformKB = [
+    {
+        id:"p001",sourceType:"platform",
+        keywords:["保研边缘","保研候补","边缘保研"],
+        scene:"学生",
+        constraints:["保研排名靠后","有科研竞赛加分"],
+        excludeConstraints:["已经拿到稳定工作offer","打算出国"],
+        confidence:91,
+        sourceLabel:"GitHub保研经验沉淀库",
+        version:"1.0",
+        isPolicy:true,
+        expireAt: 1799884800,
+        high:"稳妥共识：保研边缘不要躺平，同步准备考研是风险最低方案；尽早联系意向导师，持续盯紧学院候补、捡漏通知。",
+        diff:"观点A：全力冲保研，分散精力备考容易两头落空，适合加分充足、差距很小的同学。\n观点B：主线备考考研，保研作为惊喜，适合排名差距较大、加分薄弱的同学。",
+        warn:"各校候补名额、政策每年变动，往年时间线仅作参考，一切以学院官方通知为准。"
+    },
+    {
+        id:"p002",sourceType:"platform",
+        keywords:["考研二战","二战考研","要不要二战"],
+        scene:"学生",
+        constraints:["一战分数差距不大","自律稳定","经济压力可控"],
+        excludeConstraints:["单纯不甘心","连续多次失利","目标赛道重实操经验"],
+        confidence:88,
+        sourceLabel:"GitHub考研经验合集",
+        version:"1.0",
+        isPolicy:false,
+        expireAt: null,
+        high:"稳妥共识：二战适合清楚上次失败根源、自律稳定、经济压力不大的人；仅凭情绪不甘心二战，沉没成本极高。",
+        diff:"观点A：一战分差很小、专业长期前景好，值得二战冲上岸。\n观点B：及时止损，调剂、就业、换赛道，避免持续时间消耗。",
+        warn:"院校报录比、考试大纲每年变化，往年好考不代表今年难度不变。"
+    },
+    {
+        id:"p003",sourceType:"platform",
+        keywords:["小组作业","队友划水","摆烂队友"],
+        scene:"学生",
+        constraints:["课程作业、课程项目"],
+        excludeConstraints:["毕业论文"],
+        confidence:86,
+        sourceLabel:"高校学生经验库",
+        version:"1.0",
+        isPolicy:false,
+        expireAt: null,
+        high:"稳妥共识：提前书面分工、全程留存聊天记录、单独保存自己产出；沟通无效再找老师，优先避免正面冲突。",
+        diff:"观点A：一起摆烂，不让划水同学轻松拿分。\n观点B：独立完成核心模块，保证自己成绩，减少情绪内耗。",
+        warn:"不同老师对小组纠纷处理尺度差异很大，提前确认评分规则。"
+    },
+    {
+        id:"p004",sourceType:"platform",
+        keywords:["实习","小公司实习","打杂实习"],
+        scene:"职场",
+        constraints:["零实习经历、转行零基础"],
+        excludeConstraints:["已有大厂项目经历","目标头部研发岗"],
+        confidence:87,
+        sourceLabel:"GitHub校招面经库",
+        version:"1.0",
+        isPolicy:false,
+        expireAt: null,
+        high:"稳妥共识：零基础空白背景，正规小公司有效业务实习优于空白；入职前确认：实习证明、独立业务权限，纯打杂流水线不推荐。",
+        diff:"观点A：优先大厂远程小黑工，简历背书更强。\n观点B：优先能产出可落地成果的中小团队，方便写项目经历。",
+        warn:"不同行业HR对中小公司实习认可度差异很大，无统一标准。"
+    },
+    {
+        id:"p005",sourceType:"platform",
+        keywords:["裸辞","要不要裸辞","gap离职"],
+        scene:"职场",
+        constraints:["存款≥6个月生活费","身心长期损耗"],
+        excludeConstraints:["存款＜3个月","校招窗口期临近","行业下行周期"],
+        confidence:90,
+        sourceLabel:"职场经验汇总仓库",
+        version:"1.0",
+        isPolicy:false,
+        expireAt: null,
+        high:"稳妥共识：存款不足6个月生活费不建议裸辞；优先骑驴找马，拿到面试正向反馈再决策。",
+        diff:"观点A：长期内耗、身心受损优先裸辞，健康优先，适合积蓄充足人群。\n观点B：一边上班一边面试，规避收入断流风险，适合经济压力大的普通人。",
+        warn:"空档期不是必然被拒，但超过半年，需要准备清晰合理的解释话术。"
+    },
+    {
+        id:"p006",sourceType:"platform",
+        keywords:["offer选择","多个offer","选offer"],
+        scene:"职场",
+        constraints:["校招、跳槽对比offer"],
+        excludeConstraints:[],
+        confidence:89,
+        sourceLabel:"GitHub校招避坑手册",
+        version:"1.0",
+        isPolicy:false,
+        expireAt: null,
+        high:"稳妥共识：offer优先级：岗位匹配>直属领导>行业赛道>薪资；不能只看月薪，核算五险一金、年终奖、加班强度。",
+        diff:"观点A：优先高薪，年轻优先积累现金流，后续跳槽转型。\n观点B：优先平台成长，前期低薪换取可迁移能力，长期溢价更高。",
+        warn:"口头承诺的调薪、奖金、晋升不受合同保护，必须落在offer邮件。"
+    },
+    {
+        id:"p007",sourceType:"platform",
+        keywords:["租房","合租","整租","二房东"],
+        scene:"生活决策",
+        constraints:["异地求职租房"],
+        excludeConstraints:[],
+        confidence:85,
+        sourceLabel:"GitHub租房避坑指南",
+        version:"1.0",
+        isPolicy:false,
+        expireAt: null,
+        high:"稳妥共识：签约核验房东房产证身份证；合同写明押金退还、维修责任、水电分摊，拒绝口头承诺。",
+        diff:"观点A：合租省钱，优先熟人合租降低成本。\n观点B：整租隐私更好，减少人际矛盾，预算充足优先整租。",
+        warn:"无授权二房东转租风险极高，随时可能被清退。"
+    },
+    {
+        id:"p008",sourceType:"platform",
+        keywords:["内耗","精神内耗","胡思乱想"],
+        scene:"生活决策",
+        constraints:["青年决策焦虑"],
+        excludeConstraints:["重度抑郁、长期失眠"],
+        confidence:83,
+        sourceLabel:"心理自助开源文档",
+        version:"1.0",
+        isPolicy:false,
+        expireAt: null,
+        high:"稳妥共识：大部分决策内耗来自预判未发生的坏事；把担忧写下来，区分可控和不可控事项，只行动可控部分。",
+        diff:"观点A：接纳情绪，不对抗内耗，等待自愈。\n观点B：填满日程，用行动打断胡思乱想。",
+        warn:"长期失眠、持续低落影响生活，需要寻求专业心理咨询，不能仅依靠自我调节。"
+    },
+    {
+        id:"p009",sourceType:"platform",
+        keywords:["考证","证书","要不要考证"],
+        scene:"生活决策",
+        constraints:["求职加分"],
+        excludeConstraints:["跟风考证"],
+        confidence:82,
+        sourceLabel:"证书避雷清单",
+        version:"1.0",
+        isPolicy:false,
+        expireAt: null,
+        high:"稳妥共识：只考取目标岗位刚需、行业强制要求证书；盲目考取无关证书性价比极低。",
+        diff:"观点A：多一个证书多一条出路，有空就备考。\n观点B：证书只是门槛，实操能力优先，拒绝无效考证。",
+        warn:"大量培训机构包装“高薪证书”属于割韭菜，企业不认可。"
+    },
+    {
+        id:"p010",sourceType:"platform",
+        keywords:["副业","搞副业","兼职副业"],
+        scene:"生活决策",
+        constraints:["主业稳定、精力充足"],
+        excludeConstraints:["主业处于上升关键期","精力透支"],
+        confidence:80,
+        sourceLabel:"副业经验沉淀仓库",
+        version:"1.0",
+        isPolicy:false,
+        expireAt: null,
+        high:"稳妥共识：优先选择可以复用主业技能的副业；主业不稳定、精力不足时，不建议投入大量时间。",
+        diff:"观点A：尽早搭建副业，打造第二收入曲线，增强抗风险能力。\n观点B：深耕主业优先，副业容易分散精力，两边平庸。",
+        warn:"任何先交培训费、押金的副业招聘基本都是骗局。"
+    }
+];
+
+// 全局状态
+let sceneNow = "学生";
+let userProfile = {
+    base:"学生",
+    sub:"应届生求职",
+    fund:"3个月",
+    track:"互联网/产品"
+};
+let userKB = [];
+let historyList = [];
+let candidatePool = []; // 社区待审核条目池
+
+// 时效置信衰减计算核心函数
+function getEffectiveConfidence(item){
+    let baseConf = item.confidence;
+    if(!item.expireAt) return baseConf;
+    const now = Math.floor(Date.now() / 1000);
+    const exp = Number(item.expireAt);
+    if(now >= exp){
+        return item.isPolicy ? Math.floor(baseConf * 0.4) : Math.floor(baseConf * 0.6);
+    }
+    const window = 90 * 24 * 3600; // 过期前90天开始衰减
+    const startDecay = exp - window;
+    if(now < startDecay) return baseConf;
+    const ratio = (now - startDecay) / window;
+    const decayRate = item.isPolicy ? 0.6 : 0.35;
+    return Math.floor(baseConf * (1 - ratio * decayRate));
+}
+
+// 初始化
+function init(){
+    const pRaw = localStorage.getItem(STORAGE_PROFILE);
+    if(pRaw) userProfile = JSON.parse(pRaw);
+    renderProfileView();
+
+    const ukbRaw = localStorage.getItem(STORAGE_USER_KB);
+    if(ukbRaw) userKB = JSON.parse(ukbRaw);
+
+    const hisRaw = localStorage.getItem(STORAGE_HISTORY);
+    if(hisRaw) historyList = JSON.parse(hisRaw);
+
+    const poolRaw = localStorage.getItem(STORAGE_CANDIDATE_POOL);
+    if(poolRaw) candidatePool = JSON.parse(poolRaw);
+
+    renderHistory();
+    bindTabSwitch();
+}
+function saveCandidatePool(){
+    localStorage.setItem(STORAGE_CANDIDATE_POOL, JSON.stringify(candidatePool));
+}
+function renderProfileView(){
+    document.getElementById("p-base").innerText = userProfile.base;
+    document.getElementById("p-sub").innerText = userProfile.sub;
+    document.getElementById("p-fund").innerText = userProfile.fund;
+    document.getElementById("p-track").innerText = userProfile.track;
+}
+function openProfilePanel(){
+    document.getElementById("pfBase").value = userProfile.base;
+    document.getElementById("pfSub").value = userProfile.sub;
+    document.getElementById("pfFund").value = userProfile.fund;
+    document.getElementById("pfTrack").value = userProfile.track;
+    document.getElementById("profileMask").style.display="flex";
+}
+function closeProfilePanel(){
+    document.getElementById("profileMask").style.display="none";
+}
+function saveProfile(){
+    userProfile.base = document.getElementById("pfBase").value;
+    userProfile.sub = document.getElementById("pfSub").value;
+    userProfile.fund = document.getElementById("pfFund").value;
+    userProfile.track = document.getElementById("pfTrack").value;
+    localStorage.setItem(STORAGE_PROFILE, JSON.stringify(userProfile));
+    renderProfileView();
+    closeProfilePanel();
+}
+function setScene(el, s){
+    sceneNow = s;
+    document.querySelectorAll(".tag-item").forEach(d=>d.classList.remove("active"));
+    el.classList.add("active");
+}
+
+// 知识库tab切换
+function bindTabSwitch(){
+    document.querySelectorAll(".modal-tab-item").forEach(tab=>{
+        tab.onclick = ()=>{
+            document.querySelectorAll(".modal-tab-item").forEach(d=>d.classList.remove("active"));
+            tab.classList.add("active");
+            const tid = tab.dataset.tab;
+            document.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));
+            document.getElementById("tab-"+tid).classList.add("active");
+            if(tid === "platform" || tid === "user") renderKbLists();
+            if(tid === "audit") renderAuditList();
+        }
+    })
+}
+function openKbPanel(){
+    document.getElementById("kbMask").style.display="flex";
+    renderKbLists();
+}
+function closeKbPanel(){
+    document.getElementById("kbMask").style.display="none";
+    clearKbForm();
+}
+function renderKbLists(){
+    const platBox = document.getElementById("platformKbList");
+    platBox.innerHTML = "";
+    platformKB.forEach(it=>{
+        const effConf = getEffectiveConfidence(it);
+        const expText = it.expireAt ? `过期:${new Date(it.expireAt*1000).toLocaleDateString()}` : "永久有效";
+        const div = document.createElement("div");
+        div.className = "kb-list-item";
+        div.innerHTML = `<div class="txt">[${it.scene}] ${it.keywords.join(",")}｜原置信${it.confidence}→有效${effConf}｜${expText} ${it.isPolicy?"【政策】":""}</div>
+        <button onclick="cloneToUserKb('${it.id}')">克隆到私有库</button>`;
+        platBox.appendChild(div);
+    })
+    const userBox = document.getElementById("userKbList");
+    userBox.innerHTML = "";
+    userKB.forEach((it,idx)=>{
+        const effConf = getEffectiveConfidence(it);
+        const expText = it.expireAt ? `过期:${new Date(it.expireAt*1000).toLocaleDateString()}` : "永久有效";
+        const div = document.createElement("div");
+        div.className = "kb-list-item";
+        div.innerHTML = `<div class="txt">[${it.scene}] ${it.keywords.join(",")}｜原置信${it.confidence}→有效${effConf} ${it.isPolicy?"【政策】":""}</div>
+        <div><button onclick="editUserKb(${idx})">编辑</button><button onclick="delUserKb(${idx})">删除</button></div>`;
+        userBox.appendChild(div);
+    })
+}
+function cloneToUserKb(pid){
+    const src = platformKB.find(x=>x.id === pid);
+    const copy = JSON.parse(JSON.stringify(src));
+    copy.id = "u_"+Date.now();
+    copy.sourceType = "user";
+    userKB.push(copy);
+    saveUserKB();
+    renderKbLists();
+}
+function saveUserKB(){
+    localStorage.setItem(STORAGE_USER_KB, JSON.stringify(userKB));
+}
+function clearKbForm(){
+    document.getElementById("kbKeywords").value="";
+    document.getElementById("kbScene").value="";
+    document.getElementById("kbConstraints").value="";
+    document.getElementById("kbExclude").value="";
+    document.getElementById("kbConf").value="85";
+    document.getElementById("kbSource").value="个人复盘";
+    document.getElementById("kbIsPolicy").checked = false;
+    document.getElementById("kbExpireAt").value="";
+    document.getElementById("kbHigh").value="";
+    document.getElementById("kbDiff").value="";
+    document.getElementById("kbWarn").value="";
+    document.getElementById("editKbIndex").value="-1";
+}
+function editUserKb(idx){
+    const it = userKB[idx];
+    document.getElementById("kbKeywords").value = it.keywords.join(",");
+    document.getElementById("kbScene").value = it.scene;
+    document.getElementById("kbConstraints").value = it.constraints.join(",");
+    document.getElementById("kbExclude").value = it.excludeConstraints.join(",");
+    document.getElementById("kbConf").value = it.confidence;
+    document.getElementById("kbSource").value = it.sourceLabel;
+    document.getElementById("kbIsPolicy").checked = !!it.isPolicy;
+    document.getElementById("kbExpireAt").value = it.expireAt || "";
+    document.getElementById("kbHigh").value = it.high;
+    document.getElementById("kbDiff").value = it.diff;
+    document.getElementById("kbWarn").value = it.warn;
+    document.getElementById("editKbIndex").value = idx;
+}
+function delUserKb(idx){
+    userKB.splice(idx,1);
+    saveUserKB();
+    renderKbLists();
+}
+function saveUserKbItem(){
+    const kw = document.getElementById("kbKeywords").value.trim().split(",").map(x=>x.trim()).filter(Boolean);
+    const scene = document.getElementById("kbScene").value.trim();
+    const cons = document.getElementById("kbConstraints").value.trim().split(",").map(x=>x.trim()).filter(Boolean);
+    const exc = document.getElementById("kbExclude").value.trim().split(",").map(x=>x.trim()).filter(Boolean);
+    const conf = Number(document.getElementById("kbConf").value);
+    const srcLab = document.getElementById("kbSource").value.trim();
+    const isPolicy = document.getElementById("kbIsPolicy").checked;
+    const expireAt = document.getElementById("kbExpireAt").value.trim() || null;
+    const high = document.getElementById("kbHigh").value.trim();
+    const diff = document.getElementById("kbDiff").value.trim();
+    const warn = document.getElementById("kbWarn").value.trim();
+    if(!kw.length || !high){alert("关键词、稳妥共识不能为空");return;}
+    const item = {
+        id:"u_"+Date.now(),
+        sourceType:"user",
+        keywords:kw,scene,constraints:cons,excludeConstraints:exc,
+        confidence:conf,sourceLabel:srcLab,isPolicy,expireAt,version:"1.0",
+        high,diff,warn
+    };
+    const eIdx = Number(document.getElementById("editKbIndex").value);
+    if(eIdx >=0){
+        item.id = userKB[eIdx].id;
+        userKB[eIdx] = item;
+    }else{
+        userKB.push(item);
+    }
+    saveUserKB();
+    renderKbLists();
+    clearKbForm();
+}
+
+// 历史复盘
+function renderHistory(){
+    const wrap = document.getElementById("historyWrap");
+    wrap.innerHTML = "";
+    historyList.forEach((rec,idx)=>{
+        const div = document.createElement("div");
+        div.className = "history-item "+(rec.sourceType==="kb"?"kb-tag":"llm-tag");
+        div.title = rec.question;
+        div.innerText = rec.question;
+        div.onclick = ()=>renderHistoryRec(rec);
+        wrap.appendChild(div);
+    })
+}
+function addHistory(rec){
+    historyList.unshift(rec);
+    if(historyList.length>30) historyList.pop();
+    localStorage.setItem(STORAGE_HISTORY, JSON.stringify(historyList));
+    renderHistory();
+}
+function clearHistory(){
+    historyList = [];
+    localStorage.setItem(STORAGE_HISTORY, JSON.stringify(historyList));
+    renderHistory();
+}
+function renderHistoryRec(rec){
+    const chat = document.getElementById("chat");
+    chat.innerHTML += `<div style="margin:10px 0;"><b>复盘｜提问：</b>${rec.question}</div>`;
+    renderAnswerCard(chat, rec);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+// 加权检索逻辑（使用时效衰减后的置信）
+function searchBestItem(qText, profile = userProfile){
+    const q = qText.toLowerCase();
+    const pool = [...platformKB,...userKB];
+    const hitList = [];
+    for(const it of pool){
+        let score = 0;
+        const kwHit = it.keywords.some(k=>q.includes(k.toLowerCase()));
+        if(kwHit) score += 60;
+        if(it.scene === sceneNow) score += 20;
+        let consHitCnt = 0;
+        const allUserTags = [profile.base, profile.sub, "存款"+profile.fund, profile.track];
+        for(const c of it.constraints){
+            const cl = c.toLowerCase();
+            if(allUserTags.some(t=>t.toLowerCase().includes(cl))) consHitCnt++;
+        }
+        score += Math.min(20, consHitCnt*7);
+        hitList.push({item:it,score,effectiveConf:getEffectiveConfidence(it)});
+    }
+    hitList.sort((a,b)=>b.score - a.score);
+    const top = hitList[0];
+    if(!top || top.score < 40) return null;
+    top.item.confidence = top.effectiveConf;
+    return top.item;
+}
+
+// 渲染标准回答卡片
+function renderAnswerCard(container, record){
+    const it = record;
+    let consHtml = "";
+    if(it.constraints && it.constraints.length>0){
+        consHtml = `<div class="constraint-tip">✅ 适用条件：${it.constraints.join("；")}</div>`;
+    }
+    let excHtml = "";
+    if(it.excludeConstraints && it.excludeConstraints.length>0){
+        excHtml = `<div class="exclude-tip">⚠️ 不适合：${it.excludeConstraints.join("；")}</div>`;
+    }
+    let verHtml = it.version ? `<span class="version-badge">v${it.version}</span>` : "";
+    let expireHtml = "";
+    if(it.expireAt){
+        const eff = getEffectiveConfidence(it);
+        expireHtml = `<span class="expire-badge">时效衰减｜有效置信${eff}</span>`;
+    }
+    const box = document.createElement("div");
+    box.className = "answer-box";
+    box.innerHTML = `
+        <div class="meta-row">
+            <span class="conf-badge">置信度：${it.confidence}</span>
+            <span class="source-badge">来源：${it.sourceLabel}</span>
+            ${verHtml}${expireHtml}
+        </div>
+        ${consHtml}${excHtml}
+        <div class="guide">💡 阅读指引：优先看稳妥共识，分歧结合自身情况权衡，存疑项务必二次核实</div>
+        <div class="high"><b>✅ 稳妥共识</b><p>${it.high}</p></div>
+        <div class="diff"><b>⚖️ 多方分歧</b><p>${it.diff}</p></div>
+        <div class="warn"><b>⚠️ 风险存疑</b><p>${it.warn}</p></div>
+        <div class="oper-row">
+            <button onclick="saveThisToKb(this)">保存至私有知识库</button>
+        </div>
+        <div class="tag-auto">主场景：${it.scene}</div>
+        <div class="slogan">三思集｜人生决策第二意见引擎</div>
+        <div class="disclaimer">免责：全部内容为经验参考，不构成法律、职业、医疗专业咨询</div>
+    `;
+    const saveBtn = box.querySelector("button");
+    saveBtn.dataset.payload = JSON.stringify(it);
+    container.appendChild(box);
+}
+function saveThisToKb(btn){
+    const payload = JSON.parse(btn.dataset.payload);
+    const newItem = {
+        id:"u_"+Date.now(),
+        sourceType:"user",
+        keywords:payload.keywords,
+        scene:payload.scene,
+        constraints:payload.constraints||[],
+        excludeConstraints:payload.excludeConstraints||[],
+        confidence:payload.confidence||80,
+        sourceLabel:"LLM生成沉淀",
+        isPolicy:false,
+        expireAt:null,
+        version:"1.0",
+        high:payload.high,
+        diff:payload.diff,
+        warn:payload.warn
+    };
+    userKB.push(newItem);
+    saveUserKB();
+    alert("✅ 已存入你的私有知识库");
+}
+
+// LLM流式解析三段块
+function parseThreeBlock(text){
+    let high="",diff="",warn="";
+    if(text.includes("稳妥共识") && text.includes("多方分歧") && text.includes("风险存疑")){
+        const s1 = text.split("多方分歧")[0].replace(/.*稳妥共识[:：]/,"").trim();
+        const mid = text.split("多方分歧")[1].split("风险存疑");
+        const s2 = mid[0].trim();
+        const s3 = mid[1] ? mid[1].trim() : "";
+        high=s1;diff=s2;warn=s3;
+    }else{
+        high = text;
+        diff = "不同人基于自身条件会有完全不同选择，你可以根据画像约束权衡。";
+        warn = "大模型输出存在幻觉风险，重要决策建议多方交叉核验。";
+    }
+    return {high,diff,warn};
 }
 
 async function send(){
-    let chat = document.getElementById('chat');
-    // 公开页面无密钥，直接提示
-    if(!API_KEY || !API_URL){
-        chat.innerHTML = chat.innerHTML + '<div style="color:#E89494;">当前为在线演示版，接口已关闭，本地部署填入API密钥后才可提问</div>';
+    const chat = document.getElementById("chat");
+    const qInput = document.getElementById("q");
+    const q = qInput.value.trim();
+    const sendBtn = document.getElementById("sendBtn");
+    if(!q) return;
+    sendBtn.disabled = true;
+    chat.innerHTML += `<div style="margin:10px 0;"><b>我：</b>${q}</div>`;
+    chat.scrollTop = chat.scrollHeight;
+
+    const kbHit = searchBestItem(q);
+    if(kbHit){
+        const rec = {
+            question:q,
+            ...kbHit,
+            sourceType:"kb"
+        };
+        renderAnswerCard(chat, rec);
+        addHistory(rec);
+        qInput.value = "";
+        sendBtn.disabled = false;
         return;
     }
 
-    let q = document.getElementById('q').value.trim();
-    const sendBtn = document.getElementById('sendBtn');
-    if(!q)return;
-    sendBtn.disabled = true;
-    chat.innerHTML = chat.innerHTML + '<div style="margin:10px 0;"><b>我：</b>' + q + '</div>';
-    chat.innerHTML = chat.innerHTML + '<div class="loading" id="loading">三思集多智能体核验中，请稍候...</div>';
-    chat.scrollTop = chat.scrollHeight;
-
-    try{
-        const res = await fetch(API_URL,{
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json",
-                "Authorization":"Bearer " + API_KEY
-            },
-            body:JSON.stringify({
-                messages:[
-                    {role:"system",content:SYSTEM_PROMPT + nowTag},
-                    {role:"user",content:q}
-                ],
-                model:"gpt-3.5-turbo",
-                temperature:0.6
-            })
-        })
-        const data = await res.json();
-        document.getElementById('loading').remove();
-        const fullText = data.choices[0].message.content;
-        let high="",diff="",warn="";
-        if(fullText.indexOf("高可信稳妥共识") > -1 && fullText.indexOf("多角度分歧争议") > -1 && fullText.indexOf("仅供参考存疑内容") > -1){
-            high = fullText.split("多角度分歧争议")[0].replace("高可信稳妥共识：","").trim();
-            diff = fullText.split("多角度分歧争议")[1].split("仅供参考存疑内容")[0].trim();
-            warn = fullText.split("仅供参考存疑内容")[1].trim();
-        }else{
-            high = fullText;
-            diff = "不同视角下适配方案存在差异，可结合自身场景取舍";
-            warn = "建议结合权威资料二次核验";
-        }
-        chat.innerHTML = chat.innerHTML +
-        '<div class="answer-box">' +
-            '<div class="guide">💡 阅读指引：系统已根据【' + nowTag + '】自动适配内容深度，优先参考高可信稳妥结论</div>' +
-            '<div class="high"><b>✅ 高可信稳妥共识结论</b><p>' + high + '</p></div>' +
-            '<div class="diff"><b>⚖️ 多视角观点分歧（通俗解读）</b><p>' + diff + '</p></div>' +
-            '<div class="warn"><b>⚠️ 仅供参考存疑内容</b><p>' + warn + '</p></div>' +
-            '<div class="tag-auto">自动归档标签：' + nowTag + '｜多智能体核验｜可溯源复盘</div>' +
-            '<div class="slogan-footer">三思集 · 你的每一种困惑都值得认真斟酌</div>' +
-        '</div>';
-    }catch(err){
-        document.getElementById('loading').remove();
-        chat.innerHTML = chat.innerHTML + '<div style="color:#E89494;">接口请求失败，请检查API密钥与网络</div>';
+    if(!API_KEY || !API_URL){
+        chat.innerHTML += `<div style="color:#D06464;margin:10px 0;">未配置LLM接口，无法调用流式模型，请填入API信息。</div>`;
+        qInput.value = "";
+        sendBtn.disabled = false;
+        return;
     }
-    document.getElementById('q').value = '';
+
+    chat.innerHTML += `<div class="loading" id="streamLoading">三思集推演中，流式输出...</div>`;
+    const systemPrompt = `你是三思集决策引擎，面向20-30岁学生/职场青年做人生选择题分层决策。
+用户画像：${JSON.stringify(userProfile)}；当前场景：${sceneNow}
+强制输出格式，严格三段：
+【稳妥共识】：给出经验上最稳妥、风险最低的共识结论
+【多方分歧】：列出两种主流对立观点、适合的人群
+【风险存疑】：这件事里面不确定、有坑、需要额外核实的风险
+风格克制，不鸡汤，区分经验和事实，不要编造政策。`;
+    try{
+        const resp = await fetch(API_URL,{
+            method:"POST",
+            headers:{"Content-Type":"application/json","Authorization":"Bearer "+API_KEY},
+            body:JSON.stringify({
+                model:MODEL_NAME,
+                messages:[{role:"system",content:systemPrompt},{role:"user",content:q}],
+                temperature:0.6,stream:true
+            })
+        });
+        document.getElementById("streamLoading").remove();
+        if(!resp.ok) throw new Error("http fail");
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
+        let fullText = "";
+        const streamId = "stream_"+Date.now();
+        chat.innerHTML += `
+        <div class="answer-box" id="${streamId}">
+            <div class="meta-row"><span class="conf-badge">置信度：75</span><span class="source-badge">来源：LLM推演</span></div>
+            <div class="constraint-tip">✅ 适用条件：匹配你的画像【${userProfile.sub}，存款${userProfile.fund}，赛道${userProfile.track}】</div>
+            <div class="guide">💡 阅读指引：优先看稳妥共识，分歧结合自身情况权衡，存疑项务必二次核实</div>
+            <div class="high"><b>✅ 稳妥共识</b><p id="shigh"></p></div>
+            <div class="diff"><b>⚖️ 多方分歧</b><p id="sdiff"></p></div>
+            <div class="warn"><b>⚠️ 风险存疑</b><p id="swarn"></p></div>
+            <div class="oper-row"><button onclick="saveThisToKb(this)">保存至私有知识库</button></div>
+            <div class="tag-auto">主场景：${sceneNow}</div>
+            <div class="slogan">三思集｜人生决策第二意见引擎</div>
+            <div class="disclaimer">免责：全部内容为经验参考，不构成法律、职业、医疗专业咨询</div>
+        </div>`;
+        while(true){
+            const {done,value} = await reader.read();
+            if(done) break;
+            buffer += decoder.decode(value,{stream:true});
+            const lines = buffer.split("\n");
+            buffer = lines.pop();
+            for(let line of lines){
+                line = line.trim();
+                if(!line || !line.startsWith("data: ")) continue;
+                const d = line.slice(6);
+                if(d === "[DONE]") continue;
+                try{
+                    const j = JSON.parse(d);
+                    const delta = j.choices?.[0]?.delta?.content || "";
+                    fullText += delta;
+                    const blk = parseThreeBlock(fullText);
+                    document.getElementById("shigh").innerText = blk.high;
+                    document.getElementById("sdiff").innerText = blk.diff;
+                    document.getElementById("swarn").innerText = blk.warn;
+                    chat.scrollTop = chat.scrollHeight;
+                }catch(e){}
+            }
+        }
+        const finalBlk = parseThreeBlock(fullText);
+        const rec = {
+            question:q,
+            keywords:[q],
+            scene:sceneNow,
+            constraints:[`画像:${userProfile.sub}`],
+            excludeConstraints:[],
+            confidence:75,
+            sourceLabel:"LLM推演",
+            isPolicy:false,
+            expireAt:null,
+            version:"1.0",
+            high:finalBlk.high,
+            diff:finalBlk.diff,
+            warn:finalBlk.warn,
+            sourceType:"llm"
+        };
+        document.querySelector(`#${streamId} button`).dataset.payload = JSON.stringify(rec);
+        addHistory(rec);
+    }catch(err){
+        document.getElementById("streamLoading")?.remove();
+        chat.innerHTML += `<div style="color:#D06464;margin:10px 0;">流式接口调用失败，请检查API地址、密钥是否正确，服务商是否支持SSE。</div>`;
+    }
+    qInput.value = "";
     sendBtn.disabled = false;
-    chat.scrollTop = chat.scrollHeight;
 }
+
+// ========== 【新增模块：决策对比面板】 ==========
+function openComparePanel(){
+    document.getElementById("compareMask").style.display="flex";
+    document.getElementById("compareResult").innerHTML = "";
+}
+function closeComparePanel(){
+    document.getElementById("compareMask").style.display="none";
+}
+function runCompare(){
+    const q = document.getElementById("compareQ").value.trim();
+    if(!q){alert("请输入对比问题");return;}
+    const profA = {
+        base:document.getElementById("cmpA-base").value,
+        sub:document.getElementById("cmpA-sub").value,
+        fund:document.getElementById("cmpA-fund").value,
+        track:document.getElementById("cmpA-track").value
+    };
+    const profB = {
+        base:document.getElementById("cmpB-base").value,
+        sub:document.getElementById("cmpB-sub").value,
+        fund:document.getElementById("cmpB-fund").value,
+        track:document.getElementById("cmpB-track").value
+    };
+    const itemA = searchBestItem(q, profA);
+    const itemB = searchBestItem(q, profB);
+    const renderCol = (it,prof,name)=>{
+        if(!it) return `<p>无匹配知识库条目，需要调用LLM推演</p>`;
+        return `
+        <div class="meta-row">置信：${it.confidence}｜来源：${it.sourceLabel}</div>
+        <div class="constraint-tip">画像：${prof.sub}｜存款${prof.fund}｜赛道${prof.track}</div>
+        <div class="high"><b>✅ 稳妥共识</b>${it.high}</div>
+        <div class="diff"><b>⚖️ 分歧</b>${it.diff}</div>
+        <div class="warn"><b>⚠️ 风险</b>${it.warn}</div>
+        `
+    };
+    document.getElementById("compareResult").innerHTML = `
+    <div class="compare-wrap">
+        <div class="compare-col">
+            <div class="compare-title">画像A</div>
+            ${renderCol(itemA,profA,"A")}
+        </div>
+        <div class="compare-col">
+            <div class="compare-title">画像B</div>
+            ${renderCol(itemB,profB,"B")}
+        </div>
+    </div>`;
+}
+
+// ========== 【新增模块：导入导出 JSON / MD】 ==========
+function openImportExportPanel(){
+    document.getElementById("ieMask").style.display="flex";
+    document.getElementById("exportPreview").value = "";
+}
+function closeImportExportPanel(){
+    document.getElementById("ieMask").style.display="none";
+}
+function doExport(){
+    const type = document.getElementById("exportType").value;
+    let out = "";
+    if(type === "json"){
+        const pack = {
+            exportAt: new Date().toISOString(),
+            userKB: userKB
+        };
+        out = JSON.stringify(pack,null,2);
+    }else{
+        let md = `# 三思集知识库备份\n导出时间：${new Date().toLocaleString()}\n\n`;
+        userKB.forEach(it=>{
+            md += `## ${it.keywords.join(" / ")}\n`;
+            md += `- 场景：${it.scene}\n`;
+            md += `- 置信：${it.confidence}｜来源：${it.sourceLabel}\n`;
+            md += `- 适用：${it.constraints.join("；")}\n`;
+            md += `- 排除：${it.excludeConstraints.join("；")}\n`;
+            md += `### ✅ 稳妥共识\n${it.high}\n\n### ⚖️ 分歧观点\n${it.diff}\n\n### ⚠️ 风险存疑\n${it.warn}\n\n---\n\n`;
+        })
+        out = md;
+    }
+    document.getElementById("exportPreview").value = out;
+    const blob = new Blob([out],{type:"text/plain"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `三思集备份_${type}_${Date.now()}.${type==="json"?"json":"md"}`;
+    a.click();
+}
+function doImport(){
+    const txt = document.getElementById("importText").value.trim();
+    try{
+        const pack = JSON.parse(txt);
+        if(!pack.userKB || !Array.isArray(pack.userKB)) throw new Error("格式不对");
+        pack.userKB.forEach(it=>{
+            it.id = "u_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+            it.sourceType = "user";
+            userKB.push(it);
+        })
+        saveUserKB();
+        alert(`✅ 成功导入${pack.userKB.length}条，追加进私有库`);
+        renderKbLists();
+    }catch(e){
+        alert("JSON解析失败，请确认是三思集导出的备份文件");
+    }
+}
+
+// ========== 【新增模块：社区贡献审核流】 ==========
+function openAuditPanel(){
+    document.getElementById("auditMask").style.display="flex";
+    renderAuditList();
+}
+function closeAuditPanel(){
+    document.getElementById("auditMask").style.display="none";
+}
+function submitCandidate(){
+    const kw = document.getElementById("subKeywords").value.trim().split(",").map(x=>x.trim()).filter(Boolean);
+    const scene = document.getElementById("subScene").value;
+    const cons = document.getElementById("subConstraints").value.trim().split(",").map(x=>x.trim()).filter(Boolean);
+    const exc = document.getElementById("subExclude").value.trim().split(",").map(x=>x.trim()).filter(Boolean);
+    const conf = Number(document.getElementById("subConf").value);
+    const isPolicy = document.getElementById("subIsPolicy").checked;
+    const expire = document.getElementById("subExpire").value.trim() || null;
+    const high = document.getElementById("subHigh").value.trim();
+    const diff = document.getElementById("subDiff").value.trim();
+    const warn = document.getElementById("subWarn").value.trim();
+    if(!kw.length || !high){alert("关键词、稳妥共识不能为空");return;}
+    candidatePool.push({
+        cid:"c_"+Date.now(),
+        keywords:kw,scene,constraints:cons,excludeConstraints:exc,
+        confidence:conf,isPolicy,expireAt:expire,version:"1.0",
+        sourceLabel:"社区用户提交",high,diff,warn
+    });
+    saveCandidatePool();
+    alert("✅ 提交成功，进入待审核池等待管理员审核");
+}
+function renderAuditList(){
+    const box = document.getElementById("auditList");
+    box.innerHTML = "";
+    if(candidatePool.length === 0){
+        box.innerHTML = "<p>暂无待审核条目</p>";
+        return;
+    }
+    candidatePool.forEach((item,idx)=>{
+        const div = document.createElement("div");
+        div.className = "kb-list-item";
+        div.innerHTML = `<div class="txt">[${item.scene}] ${item.keywords.join(",")}｜预估置信${item.confidence} ${item.isPolicy?"【政策】":""}</div>
+        <div>
+            <button onclick="auditPass(${idx})">通过并入平台库</button>
+            <button onclick="auditReject(${idx})">驳回</button>
+        </div>`;
+        box.appendChild(div);
+    })
+}
+function auditPass(idx){
+    const c = candidatePool[idx];
+    c.id = "p_"+Date.now();
+    c.sourceType = "platform";
+    delete c.cid;
+    platformKB.push(c);
+    candidatePool.splice(idx,1);
+    saveCandidatePool();
+    renderAuditList();
+    renderKbLists();
+    alert("✅ 已通过，加入平台公共库");
+}
+function auditReject(idx){
+    candidatePool.splice(idx,1);
+    saveCandidatePool();
+    renderAuditList();
+    alert("已驳回移除");
+}
+
+init();
+</script>
 </body>
 </html>
