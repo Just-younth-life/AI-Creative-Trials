@@ -9,7 +9,7 @@
 ## 项目直达网页
 三思集|职场 & 学生决策 Agent 平台：https://Just-younth-life.github.io/AI-Creative-Trials/project-Ai-assissment-sansiji/
 
-松间知宁|｜居家养老 Agent 平台：https://Just-younth-life.github.io/AI-Creative-Trials/project-sensor-songjianzhining/
+松间知宁|居家养老 Agent 平台：https://Just-younth-life.github.io/AI-Creative-Trials/project-sensor-songjianzhining/
 
 宽序|AI社交日程管理平台:https://Just-younth-life.github.io/AI-Creative-Trials/project-kuanxu/
 
