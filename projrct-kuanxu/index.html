@@ -58,24 +58,18 @@ body{
 .calendar-day.drag-over{background:rgba(99,102,241,0.18)}
 /* 弹窗遮罩 */
 .modal-mask{background:rgba(0,0,0,0.45);}
-/* 地图样式 三画风 */
+/* 地图样式 三画风【支持本地图片】 */
 .map-wrap{
   position:relative;
   min-height:460px;
   overflow:hidden;
   border-radius:12px;
   user-select:none;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
-.map-cyber{
-  background: linear-gradient(135deg,#080818,#1b0b30,#0f172a);
-}
-.map-fairy{
-  background: linear-gradient(135deg,#e6f7ff,#dcfce7,#fef3c7);
-}
-.map-island{
-  background: linear-gradient(180deg,#87cefa,#40c9e8,#22b8d9);
-}
-/* 动漫岛屿 云朵动画 */
+/* 云朵动画 */
 .cloud{
   position:absolute;
   background:#ffffffdd;
@@ -114,22 +108,24 @@ body{
   font-size:12px;text-align:center;
   padding:4px;
   z-index:2;
+  backdrop-filter: blur(2px);
 }
 .map-node:active{
   cursor:grabbing;
 }
 .map-node.unlock{
   border:2px solid #22c55e;
-  background:rgba(34,197,94,0.18);
+  background:rgba(34,197,94,0.25);
   box-shadow:0 0 12px #22c55e66;
 }
 .map-node.lock{
-  border:2px solid #666;
-  background:rgba(80,80,80,0.25);
+  border:2px solid rgba(255,255,255,0.6);
+  background:rgba(0,0,0,0.4);
+  color:#fff;
 }
 .map-line{
   position:absolute;
-  background:#6366f188;
+  background:#ffffffaa;
   height:3px;
   transform-origin:left center;
   z-index:0;
@@ -248,7 +244,7 @@ body{
           <span>当前身份：<span id="mapIdentity">未选择（先完成凌霄问答）</span></span>
           <span class="ml-4">Lv. <span id="mapLevel">1</span>｜EXP：<span id="mapExp">0</span>/<span id="mapTargetExp">100</span></span>
         </div>
-        <div id="mapContainer" class="map-wrap map-island">
+        <div id="mapContainer" class="map-wrap">
           <div class="cloud" style="width:80px;height:32px;top:12%;animation-delay:0s"></div>
           <div class="cloud" style="width:110px;height:42px;top:24%;animation-delay:-6s"></div>
           <div class="cloud" style="width:64px;height:26px;top:8%;animation-delay:-12s"></div>
@@ -522,20 +518,28 @@ function renderRank(){
     pageWrap.innerHTML += `<button class="rank-page-btn px-2 py-1 rounded border border-base ${i===state.rankPage?'bg-indigo-500 text-white':''}" data-p="${i}">${i}</button>`
   }
 }
-// 渲染人生地图
+// 渲染人生地图【重点：读取本地图片】
 function renderLifeMap(){
   const container = $('#mapContainer')
-  container.className = 'map-wrap'
-  if(state.mapStyle === 'cyber'){
-    container.classList.add('map-cyber')
-    $$('.cloud,.wave').forEach(el=>el.style.display="none")
-  }else if(state.mapStyle === 'fairy'){
-    container.classList.add('map-fairy')
-    $$('.cloud,.wave').forEach(el=>el.style.display="none")
-  }else if(state.mapStyle === 'island'){
-    container.classList.add('map-island')
-    $$('.cloud,.wave').forEach(el=>el.style.display="block")
+  // 绑定本地图片路径
+  const mapImgSrc = {
+    cyber: "assets/cyber.jpg",
+    fairy: "assets/fairy.jpg",
+    island: "assets/island.jpg"
   }
+  container.style.backgroundImage = `url(${mapImgSrc[state.mapStyle]})`
+
+  // 控制云朵海浪只在 island 模式显示
+  const cloudEls = $$('.cloud')
+  const waveEl = $('.wave')
+  if(state.mapStyle === 'island'){
+    cloudEls.forEach(el=>el.style.display="block")
+    waveEl.style.display="block"
+  }else{
+    cloudEls.forEach(el=>el.style.display="none")
+    waveEl.style.display="none"
+  }
+
   $('#mapIdentity').innerText = state.identity || "未选择（先完成凌霄问答）"
   $('#mapLevel').innerText = state.level
   $('#mapExp').innerText = state.exp
