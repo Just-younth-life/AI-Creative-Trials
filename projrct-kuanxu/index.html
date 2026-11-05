@@ -3,672 +3,153 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>宽序｜AI社交日程管理｜游戏化人生地图</title>
+<title>宽序｜AI社交日程管理</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
 <script>
-// 深色模式预加载，防止闪屏
-const savedTheme = localStorage.getItem('kuanxu_theme') || 'light';
-document.documentElement.setAttribute('data-theme', savedTheme);
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        primary: '#6366f1',
+        secondary: '#f472b6',
+      },
+      animation: {
+        'upgrade': 'upgrade 1s ease-out',
+        'achievement': 'achievement 1.2s ease-out',
+      },
+      keyframes: {
+        upgrade: {
+          '0%': { transform: 'scale(1)', opacity: '1' },
+          '50%': { transform: 'scale(1.2)', opacity: '0.8' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        achievement: {
+          '0%': { transform: 'translateY(30px)', opacity: 0 },
+          '20%': { transform: 'translateY(0)', opacity: 1 },
+          '80%': { transform: 'translateY(0)', opacity: 1 },
+          '100%': { transform: 'translateY(-20px)', opacity: 0 },
+        }
+      }
+    }
+  }
+}
 </script>
 <style>
-:root{
-  --bg:#ffffff;
-  --bg2:#f7f8fa;
-  --text:#1f2937;
-  --text2:#6b7280;
-  --border:#e5e7eb;
-  --primary:#6366f1;
-  --card:#fff;
-}
-[data-theme="dark"]{
-  --bg:#111827;
-  --bg2:#1f2937;
-  --text:#f3f4f6;
-  --text2:#9ca3af;
-  --border:#374151;
-  --primary:#818cf8;
-  --card:#1f2937;
-}
-*{box-sizing:border-box}
-body{
-  background:var(--bg);
-  color:var(--text);
-  transition: all 0.25s ease;
-}
-.panel{background:var(--card);border:1px solid var(--border);}
-.text-muted{color:var(--text2)}
-.border-base{border-color:var(--border)}
-.bg-sub{background:var(--bg2)}
-/* 动画 */
-@keyframes levelUp {
-  0%{transform:scale(1)}
-  50%{transform:scale(1.15);box-shadow:0 0 24px #6366f1}
-  100%{transform:scale(1)}
-}
-.level-up-anim{animation:levelUp 0.6s ease-out}
-@keyframes popAchieve {
-  0%{opacity:0;transform:translateY(20px) scale(0.9)}
-  100%{opacity:1;transform:translateY(0) scale(1)}
-}
-.achieve-pop{animation:popAchieve 0.4s ease-out}
-/* 日历拖拽 */
-.calendar-day{cursor:pointer;min-height:72px;}
-.calendar-day:hover{background:rgba(99,102,241,0.08)}
-.calendar-day.drag-over{background:rgba(99,102,241,0.18)}
-/* 弹窗遮罩 */
-.modal-mask{background:rgba(0,0,0,0.45);}
-/* 地图样式 三画风【支持本地图片】 */
-.map-wrap{
-  position:relative;
-  min-height:460px;
-  overflow:hidden;
-  border-radius:12px;
-  user-select:none;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-/* 云朵动画 */
-.cloud{
-  position:absolute;
-  background:#ffffffdd;
-  border-radius:999px;
-  filter:blur(10px);
-  animation: cloudDrift 22s linear infinite;
-  z-index:1;
-}
-@keyframes cloudDrift {
-  0% { transform: translateX(-120px); }
-  100% { transform: translateX(calc(100% + 120px)); }
-}
-/* 海浪动画 */
-.wave{
-  position:absolute;
-  bottom:0;
-  left:0;
-  width:200%;
-  height:50px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120'%3E%3Cpath fill='%23ffffff66' d='M0,60 C150,120 250,0 400,60 C550,120 650,0 800,60 C950,120 1050,0 1200,60 L1200,120 L0,120 Z'/%3E%3C/svg%3E");
-  background-size:50% 100%;
-  animation: waveFlow 7s linear infinite;
-  z-index:1;
-}
-@keyframes waveFlow {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-.map-node{
-  position:absolute;
-  width:72px;height:72px;
-  border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  cursor:grab;
-  transition:0.25s;
-  font-size:12px;text-align:center;
-  padding:4px;
-  z-index:2;
-  backdrop-filter: blur(2px);
-}
-.map-node:active{
-  cursor:grabbing;
-}
-.map-node.unlock{
-  border:2px solid #22c55e;
-  background:rgba(34,197,94,0.25);
-  box-shadow:0 0 12px #22c55e66;
-}
-.map-node.lock{
-  border:2px solid rgba(255,255,255,0.6);
-  background:rgba(0,0,0,0.4);
-  color:#fff;
-}
-.map-line{
-  position:absolute;
-  background:#ffffffaa;
-  height:3px;
-  transform-origin:left center;
-  z-index:0;
-}
-* {pointer-events:auto !important;}
+* {box-sizing: border-box;}
+.calendar-day {min-height:80px;}
+.modal-backdrop {position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;display:flex;align-items:center;justify-content:center;}
+.modal-box {width:90%;max-width:600px;background:white;dark:bg-gray-800;border-radius:16px;padding:24px;position:relative;max-height:85vh;overflow:auto;}
+.dark .modal-box {background:#1f2937;color:#eee;}
+.achievement-toast {position:fixed;top:20px;right:20px;z-index:100;animation:achievement 1.2s forwards;}
+.upgrade-flash {animation:upgrade 1s;}
+.职业-card {transition:0.2s;cursor:pointer;}
+.职业-card:hover {transform: translateY(-4px);box-shadow:0 8px 16px #00000022;}
 </style>
 </head>
-<body class="overflow-hidden">
-<div class="flex h-screen w-full">
+<body class="bg-gray-50 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
+<div id="app" class="flex h-screen overflow-hidden">
   <!-- 左侧侧边栏 -->
-  <aside class="w-56 bg-sub border-r border-base flex flex-col p-3">
+  <aside class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col p-4">
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-xl font-bold text-indigo-500">宽序</h1>
-      <button id="themeToggle" class="p-1.5 rounded-lg hover:bg-indigo-100 dark:hover:bg-gray-700">
-        <i class="fa fa-moon-o"></i>
-      </button>
+      <h1 class="text-xl font-bold text-primary">宽序</h1>
+      <button id="toggleDark" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa fa-moon-o"></i></button>
     </div>
-    <nav class="flex-1 space-y-1">
-      <button data-view="task" class="menu-btn w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-100 dark:hover:bg-gray-700 flex items-center gap-2">
-        <i class="fa fa-list-ul"></i>任务清单
-      </button>
-      <button data-view="calendar" class="menu-btn w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-100 dark:hover:bg-gray-700 flex items-center gap-2">
-        <i class="fa fa-calendar"></i>日历视图
-      </button>
-      <button data-view="public-goal" class="menu-btn w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-100 dark:hover:bg-gray-700 flex items-center gap-2">
-        <i class="fa fa-bullhorn"></i>公开目标
-      </button>
-      <button data-view="rank" class="menu-btn w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-100 dark:hover:bg-gray-700 flex items-center gap-2">
-        <i class="fa fa-trophy"></i>赛道排行榜
-      </button>
-      <button data-view="life-map" class="menu-btn w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-100 dark:hover:bg-gray-700 flex items-center gap-2">
-        <i class="fa fa-map"></i>人生地图
-      </button>
+    <nav class="flex-1 space-y-2">
+      <button data-view="task" class="view-btn w-full text-left p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa fa-list-ul mr-2"></i>任务清单</button>
+      <button data-view="calendar" class="view-btn w-full text-left p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa fa-calendar mr-2"></i>日历视图</button>
+      <button data-view="publicGoal" class="view-btn w-full text-left p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa fa-bullhorn mr-2"></i>公开目标</button>
+      <button data-view="rank" class="view-btn w-full text-left p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa fa-trophy mr-2"></i>赛道排行榜</button>
+      <button id="gameToggle" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-dashed border-primary mt-6"><i class="fa fa-gamepad mr-2 text-primary"></i>游戏化人生管理</button>
     </nav>
-    <div class="mt-4 border-t border-base pt-3 space-y-2">
-      <button id="gameOpenBtn" class="w-full px-3 py-2 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 flex items-center gap-2">
-        <i class="fa fa-gamepad"></i>游戏化人生
-      </button>
-      <button id="aiLingXiaoBtn" class="w-full px-3 py-2 rounded-lg border border-base hover:bg-sub flex items-center gap-2">
-        <i class="fa fa-robot"></i>凌霄AI问答
-      </button>
-    </div>
+    <div class="text-xs text-gray-400 mt-4">凌霄AI助手 · 360梯度职业系统</div>
   </aside>
 
   <!-- 主内容区 -->
-  <main class="flex-1 overflow-auto p-4">
-    <!-- 任务视图 -->
-    <div id="view-task" class="view-page">
+  <main class="flex-1 overflow-auto p-6">
+    <!-- 任务面板 -->
+    <div id="view-task" class="view">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-lg font-semibold">我的任务</h2>
-        <div class="flex items-center gap-3">
-          <label class="flex items-center gap-1">
-            <input type="checkbox" id="gameExpSwitch"> 开启EXP/里程碑
-          </label>
-          <button id="addTaskBtn" class="px-3 py-1.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600">+新增任务</button>
-        </div>
+        <button id="addTaskBtn" class="px-4 py-2 bg-primary text-white rounded-lg"><i class="fa fa-plus mr-1"></i>新增任务</button>
       </div>
-      <div class="panel rounded-xl p-4">
-        <div id="taskList" class="space-y-2"></div>
+      <div id="taskList" class="space-y-2"></div>
+      <div id="gameExpPanel" class="hidden mt-6 p-4 border border-primary rounded-lg bg-indigo-50 dark:bg-indigo-900/30">
+        <div class="flex justify-between items-center">
+          <span>🎮 游戏化进度 Lv.<span id="userLevel">1</span></span>
+          <span>EXP: <span id="userExp">0</span>/<span id="expNeed">100</span></span>
+        </div>
+        <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full mt-2">
+          <div id="expBar" class="h-2 bg-primary rounded-full w-0"></div>
+        </div>
+        <div class="mt-2 text-sm">当前职业：<span id="bindJob">未选择</span></div>
       </div>
     </div>
 
-    <!-- 日历视图 -->
-    <div id="view-calendar" class="view-page hidden">
-      <h2 class="text-lg font-semibold mb-4">日历视图（拖拽格子新建日程）</h2>
-      <div class="panel rounded-xl p-4">
-        <div class="grid grid-cols-7 gap-1 text-center mb-2">
-          <div class="py-1 text-muted">周一</div>
-          <div class="py-1 text-muted">周二</div>
-          <div class="py-1 text-muted">周三</div>
-          <div class="py-1 text-muted">周四</div>
-          <div class="py-1 text-muted">周五</div>
-          <div class="py-1 text-muted">周六</div>
-          <div class="py-1 text-muted">周日</div>
-        </div>
-        <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+    <!-- 日历面板 -->
+    <div id="view-calendar" class="view hidden">
+      <h2 class="text-lg font-semibold mb-4">日历视图（拖拽格子创建任务）</h2>
+      <div class="grid grid-cols-7 gap-1 text-center text-sm font-medium mb-2">
+        <div>周一</div><div>周二</div><div>周三</div><div>周四</div><div>周五</div><div>周六</div><div>周日</div>
       </div>
+      <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
     </div>
 
-    <!-- 公开目标 -->
-    <div id="view-public-goal" class="view-page hidden">
+    <!-- 公开目标面板 -->
+    <div id="view-publicGoal" class="view hidden">
       <h2 class="text-lg font-semibold mb-4">公开目标广场</h2>
-      <div id="publicGoalList" class="grid grid-cols-2 gap-3"></div>
+      <div id="goalList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </div>
 
-    <!-- 排行榜 -->
-    <div id="view-rank" class="view-page hidden">
-      <h2 class="text-lg font-semibold mb-4">赛道排行榜</h2>
-      <div class="flex gap-3 mb-4">
-        <select id="trackFilter" class="px-2 py-1 border border-base rounded-lg bg-sub">
+    <!-- 排行榜面板 -->
+    <div id="view-rank" class="view hidden">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">赛道排行榜</h2>
+        <select id="rankFilter" class="border rounded p-2 dark:bg-gray-700">
           <option value="all">全部赛道</option>
-          <option value="考研">考研</option>
-          <option value="求职AIPM">求职AIPM</option>
-          <option value="健身">健身</option>
-          <option value="语言学习">语言学习</option>
         </select>
       </div>
-      <div class="panel rounded-xl p-4">
-        <div id="rankList" class="space-y-2"></div>
-        <div class="flex justify-center gap-2 mt-4" id="rankPageWrap"></div>
-      </div>
-    </div>
-
-    <!-- 人生地图视图（新增） -->
-    <div id="view-life-map" class="view-page hidden">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold">人生旅程地图（节点可拖拽）</h2>
-        <div class="flex gap-2">
-          <button id="mapStyleCyber" class="px-2 py-1 rounded border border-base">赛博朋克</button>
-          <button id="mapStyleFairy" class="px-2 py-1 rounded border border-base">蓬莱仙境</button>
-          <button id="mapStyleIsland" class="px-2 py-1 rounded border border-base">动漫岛屿</button>
-        </div>
-      </div>
-      <div class="panel rounded-xl p-4">
-        <div class="mb-3">
-          <span>当前身份：<span id="mapIdentity">未选择（先完成凌霄问答）</span></span>
-          <span class="ml-4">Lv. <span id="mapLevel">1</span>｜EXP：<span id="mapExp">0</span>/<span id="mapTargetExp">100</span></span>
-        </div>
-        <div id="mapContainer" class="map-wrap">
-          <div class="cloud" style="width:80px;height:32px;top:12%;animation-delay:0s"></div>
-          <div class="cloud" style="width:110px;height:42px;top:24%;animation-delay:-6s"></div>
-          <div class="cloud" style="width:64px;height:26px;top:8%;animation-delay:-12s"></div>
-          <div class="wave"></div>
-          <div id="mapLines"></div>
-          <div id="mapNodes"></div>
-        </div>
-        <div class="mt-4 flex gap-2">
-          <button id="pickCareerBtn" class="px-3 py-1.5 bg-indigo-500 text-white rounded-lg">选择职业身份（360梯度池）</button>
-          <button id="resetMapNode" class="px-3 py-1.5 border border-base rounded-lg hover:bg-sub">重置节点位置</button>
-        </div>
-      </div>
+      <div id="rankList" class="space-y-2"></div>
+      <div class="flex gap-2 mt-4" id="rankPageCtrl"></div>
     </div>
   </main>
 </div>
 
 <!-- 弹窗容器 -->
-<div id="modalWrap" class="fixed inset-0 modal-mask hidden items-center justify-center z-50">
-  <div class="panel w-[480px] max-w-[90%] rounded-xl p-5">
-    <div class="flex justify-between items-center mb-3">
-      <h3 id="modalTitle">弹窗</h3>
-      <button class="modal-close"><i class="fa fa-times"></i></button>
-    </div>
-    <div id="modalBody"></div>
-  </div>
-</div>
-
-<!-- 成就升级弹窗 -->
-<div id="achievementToast" class="fixed top-6 right-6 w-72 panel rounded-xl p-4 hidden achieve-pop z-50">
-  <div class="flex items-center gap-2 text-lg">
-    <i class="fa fa-star text-yellow-400 text-xl"></i>
-    <span id="achText">升级成功</span>
-  </div>
-  <div id="achDesc" class="text-muted text-sm mt-1"></div>
-</div>
+<div id="modalContainer"></div>
+<div id="toastContainer"></div>
 
 <script>
-// ========== 全局状态 ==========
-const state = {
-  currentView:'task',
-  gameOn:false,
-  exp:0,
-  level:1,
-  targetExp:100,
-  identity:"",
-  mapStyle:"island",
-  lingxiaoFinish:false,
-  tasks:[
-    {id:1,title:"完成作品集修改",done:false,exp:20,milestone:"个人作品集",date:"2026-11-05"},
-    {id:2,title:"刷3道考公题",done:false,exp:12,milestone:"学习能力",date:"2026-11-05"},
-    {id:3,title:"英语单词背诵",done:true,exp:8,milestone:"语言积累",date:"2026-11-04"},
-    {id:4,title:"健身30分钟力量训练",done:false,exp:15,milestone:"体能",date:"2026-11-05"},
-    {id:5,title:"整理文档",done:false,exp:25,milestone:"个人项目",date:"2026-11-06"},
-  ],
-  calendarEvents:[
-    {id:1,title:"项目复盘会",date:"2026-11-05"},
-    {id:2,title:"mock模拟",date:"2026-11-07"},
-  ],
-  publicGoals:[
-    {id:1,user:"小星",track:"求职",content:"2个月拿到运营offer",progress:62},
-    {id:2,user:"阿泽",track:"考研",content:"上岸计算机学硕",progress:41},
-    {id:3,user:"晚晚",track:"健身",content:"3个月减脂8kg",progress:75},
-    {id:4,user:"Lynn",track:"语言学习",content:"雅思7分",progress:53},
-  ],
-  rankAll:[],
-  rankPage:1,
-  rankPageSize:10,
-  trackFilter:"all",
-  mapNodes:[
-    {id:1,x:40,y:200,name:"起点",needLv:0,desc:"人生启程"},
-    {id:2,x:160,y:120,name:"第一阶段",needLv:2,desc:"基础积累"},
-    {id:3,x:280,y:260,name:"第二阶段",needLv:4,desc:"能力进阶"},
-    {id:4,x:400,y:140,name:"第三阶段",needLv:6,desc:"赛道深耕"},
-    {id:5,x:520,y:220,name:"终局里程碑",needLv:10,desc:"理想达成"},
-  ],
-  // 360完整职业梯度池
-  careerPool: [
-    "AI产品经理","AIPM","B端产品经理","C端产品经理","数据产品经理","商业化产品经理","策略产品经理","硬件产品经理","游戏产品经理","海外产品经理",
-    "前端开发工程师","后端开发工程师","全栈工程师","算法工程师","大模型算法工程师","CV算法工程师","NLP算法工程师","推荐算法工程师","搜索算法工程师","测试开发工程师",
-    "软件测试工程师","运维工程师","DevOps工程师","安全工程师","嵌入式开发","物联网开发","区块链开发","音视频开发","数据库工程师","架构师",
-    "UI设计师","UX设计师","交互设计师","视觉设计师","品牌设计师","插画师","动效设计师","3D建模师","原画师","游戏美术",
-    "平面设计师","空间设计师","室内设计师","景观设计师","建筑设计师","工装设计师","软装设计师","展陈设计师","服装设计师","珠宝设计师",
-    "中小学语文教师","中小学数学教师","英语教师","物理教师","化学教师","生物教师","历史教师","地理教师","政治教师","音乐教师",
-    "美术教师","体育教师","高校讲师","高校副教授","高校教授","辅导员","考研辅导老师","公考讲师","职业培训讲师","少儿启蒙老师",
-    "临床医生","内科医生","外科医生","儿科医生","妇产科医生","急诊科医生","口腔科医生","眼科医生","皮肤科医生","精神科医生",
-    "麻醉医师","影像科医师","检验师","药师","康复治疗师","营养师","心理咨询师","心理治疗师","护士","医美医师",
-    "诉讼律师","非诉律师","知识产权律师","劳动法律师","商事律师","刑事律师","公证员","法务专员","合规专员","风控专员",
-    "注册会计师","审计师","税务师","财务分析师","管理会计","出纳","成本会计","资金专员","投行分析师","券商研究员",
-    "基金经理","理财顾问","保险精算师","银行客户经理","信贷专员","风控建模师","资产评估师","期货交易员","证券经纪人","信托专员",
-    "内容运营","用户运营","活动运营","社群运营","直播运营","短视频运营","电商运营","商家运营","品类运营","增长运营",
-    "渠道运营","品牌运营","新媒体运营","私域运营","游戏运营","社区运营","内容审核","数据运营","达人运营","跨境运营",
-    "策划","品牌策划","营销策划","活动策划","文案策划","短视频编导","直播编导","剧本策划","IP策划","会展策划",
-    "自媒体博主","B站UP主","抖音博主","小红书博主","视频号博主","独立撰稿人","专栏作家","网文作者","剧本杀作者","影评人",
-    "摄影师","商业摄影师","人像摄影师","风光摄影师","静物摄影师","摄像师","剪辑师","调色师","录音师","混音师",
-    "独立音乐人","歌手","词曲作者","编曲师","配音演员","声优","主播","脱口秀演员","话剧演员","影视演员",
-    "动画师","二维动画师","三维动画师","分镜师","动画导演","漫画作者","漫画家","潮玩设计师","手办原型师","独立艺术家",
-    "土木工程师","结构工程师","给排水工程师","暖通工程师","电气工程师","造价工程师","监理工程师","路桥工程师","岩土工程师","测绘工程师",
-    "机械工程师","自动化工程师","模具工程师","工艺工程师","质量工程师","工业工程师","智能制造工程师","机器人工程师","汽车工程师","新能源工程师",
-    "化工工程师","环境工程师","材料工程师","食品工程师","制药工程师","生物医药研发","医疗器械研发","农业工程师","畜牧师","水产技术员",
-    "公务员（综合岗）","公务员（文秘岗）","公务员（网信岗）","市场监管岗","海关岗","税务岗","文旅岗","发改岗","街道办专员","选调生",
-    "事业单位研究员","图书馆馆员","档案馆管理员","文化馆干事","博物馆策展人","疾控中心专员","卫健委干事","融媒体记者","报社编辑","电台主持人",
-    "导游","计调师","旅行定制师","酒店经理","民宿主理人","餐饮店长","咖啡师","烘焙师","调酒师","甜品师",
-    "健身教练","普拉提教练","瑜伽教练","格斗教练","田径教练","游泳教练","体能师","运动康复师","健身博主","赛事裁判",
-    "翻译（笔译）","翻译（口译）","同声传译","本地化翻译","字幕翻译","文档翻译","商务翻译","法律翻译","医学翻译","技术翻译",
-    "猎头","HRBP","招聘专员","薪酬绩效专员","培训专员","组织发展OD","人才发展TD","员工关系专员","行政主管","办公室主任",
-    "供应链专员","采购专员","仓储管理","物流调度","供应链计划员","外贸跟单","跨境采购","报关员","货代专员","库存管理",
-    "房产经纪人","新房渠道","家装顾问","家居销售","汽车销售","奢侈品销售","ToB销售","渠道销售","大客户销售","售前解决方案",
-    "独立开发者","独立设计师","自由撰稿人","自由摄影师","独立顾问","创业创始人","工作室主理人","独立咨询师","独立教练","独立策展人",
-    "考古研究员","文博修复师","古籍修复师","非遗传承人","花艺师","茶艺师","香道师","手作匠人","皮具匠人","木作匠人",
-    "占星师","职业规划师","生涯咨询师","婚恋咨询师","家庭教育指导师","学习力教练","记忆力教练","思维导图导师","时间管理导师","自律陪伴师",
-    "赛车手","电竞选手","电竞教练","赛事解说","游戏主播","桌游设计师","剧本杀DM","密室设计师","跑团主持人","卡牌设计师",
-    "兽医","宠物美容师","宠物营养师","宠物训练师","宠物医院院长","训犬师","异宠养护师","宠物博主","宠物摄影师","宠物产品策划",
-    "飞行器工程师","无人机飞手","航拍摄影师","飞行员","空乘","机务维修","船舶工程师","航海员","地铁工程师","轨道交通设计师",
-    "气象研究员","地质勘探员","海洋研究员","天文研究员","生态研究员","林业技术员","植保技术员","种子研发员","园艺师","盆景师",
-    "非遗剪纸师","陶艺师","漆艺师","首饰匠人","刺绣匠人","扎染匠人","活字印刷师","古籍排版师","书画装裱师","书画鉴定师"
-  ]
-}
-// 生成排行榜模拟数据
-const trackPool = ["考研","求职AIPM","健身","语言学习"]
-for(let i=1;i<=36;i++){
-  state.rankAll.push({
-    uid:i,
-    name:"玩家"+i,
-    track:trackPool[Math.floor(Math.random()*4)],
-    score:Math.floor(Math.random()*800)+100,
-    level:Math.floor(Math.random()*12)+1
-  })
-}
+// ===================== 全局状态
+const state = JSON.parse(localStorage.getItem("kuanxuState")) || {
+  darkMode: false,
+  gameOpen: false,
+  level: 1,
+  exp: 0,
+  expTarget: 100,
+  bindJob: null,
+  lingxiaoChatStep: 0, // 0未开始，1~8轮问答，9问答完成
+  lingxiaoAnswers: [],
+  tasks: [],
+  goals: [],
+  ranks: [],
+  calendarEvents: []
+};
 
-// ========== DOM 工具 ==========
-const $ = s=>document.querySelector(s)
-const $$ = s=>Array.from(document.querySelectorAll(s))
-function saveLocal(){
-  localStorage.setItem('kuanxu_data',JSON.stringify({
-    tasks:state.tasks,exp:state.exp,level:state.level,targetExp:state.targetExp,gameOn:state.gameOn,
-    identity:state.identity,lingxiaoFinish:state.lingxiaoFinish,mapStyle:state.mapStyle,
-    mapNodes:state.mapNodes
-  }))
-}
-function loadLocal(){
-  const raw = localStorage.getItem('kuanxu_data')
-  if(raw){
-    const d = JSON.parse(raw)
-    state.tasks = d.tasks || state.tasks
-    state.exp = d.exp || 0
-    state.level = d.level || 1
-    state.targetExp = d.targetExp || 100
-    state.gameOn = !!d.gameOn
-    state.identity = d.identity || ""
-    state.lingxiaoFinish = !!d.lingxiaoFinish
-    state.mapStyle = d.mapStyle || "island"
-    if(d.mapNodes) state.mapNodes = d.mapNodes
-  }
-  $('#gameExpSwitch').checked = state.gameOn
-}
-// 切换视图
-function switchView(viewName){
-  state.currentView = viewName
-  $$('.view-page').forEach(p=>p.classList.add('hidden'))
-  $(`#view-${viewName}`).classList.remove('hidden')
-  $$('.menu-btn').forEach(b=>b.classList.remove('bg-indigo-100'))
-  $(`button[data-view="${viewName}"]`)?.classList.add('bg-indigo-100')
-  if(viewName==='rank') renderRank()
-  if(viewName==='calendar') renderCalendar()
-  if(viewName==='life-map') renderLifeMap()
-}
-// 弹窗
-function openModal(title,htmlBody){
-  $('#modalTitle').innerText = title
-  $('#modalBody').innerHTML = htmlBody
-  $('#modalWrap').classList.remove('hidden')
-  $('#modalWrap').classList.add('flex')
-}
-function closeModal(){
-  $('#modalWrap').classList.add('hidden')
-  $('#modalWrap').classList.remove('flex')
-}
-// 成就弹窗
-function showAchieve(text,desc){
-  const t = $('#achievementToast')
-  $('#achText').innerText = text
-  $('#achDesc').innerText = desc
-  t.classList.remove('hidden')
-  t.classList.add('level-up-anim')
-  setTimeout(()=>t.classList.add('hidden'),2200)
-}
+// 凌霄8轮固定问题
+const lingxiaoQuestions = [
+  "你更享受和人打交道，还是独自深度钻研？",
+  "你希望工作产出偏向创意表达，还是稳定落地执行？",
+  "你更看重自由弹性，还是清晰稳定的晋升路线？",
+  "你希望你的成果可以影响更多大众，还是服务小众精准人群？",
+  "遇到难题，你优先自己查资料试错，还是找人协作讨论？",
+  "你是否愿意长期持续学习前沿新知识？",
+  "你希望工作里有大量竞争对抗，还是平和长期深耕？",
+  "一句话说说，你最理想的人生状态是什么？"
+];
 
-// ========== 渲染函数 ==========
-function renderTask(){
-  const wrap = $('#taskList')
-  wrap.innerHTML = ''
-  state.tasks.forEach(t=>{
-    const item = document.createElement('div')
-    item.className = 'flex items-center justify-between p-2 rounded-lg bg-sub'
-    item.innerHTML = `
-      <div class="flex items-center gap-2">
-        <input type="checkbox" class="task-check w-4 h-4" data-id="${t.id}" ${t.done?'checked':''}>
-        <span class="${t.done?'line-through text-muted':''}">${t.title}</span>
-        ${state.gameOn?`<span class="text-xs text-indigo-400">[EXP+${t.exp}] ${t.milestone}</span>`:''}
-      </div>
-      <button class="task-del text-red-400 hover:text-red-600" data-id="${t.id}"><i class="fa fa-trash"></i></button>
-    `
-    wrap.appendChild(item)
-  })
-}
-function renderCalendar(){
-  const g = $('#calendarGrid')
-  g.innerHTML = ''
-  const dayCount = 30
-  for(let d=1;d<=dayCount;d++){
-    const dayEl = document.createElement('div')
-    dayEl.className = 'calendar-day p-1 border border-base rounded-md bg-sub'
-    dayEl.dataset.day = d
-    const evs = state.calendarEvents.filter(e=>{
-      const dd = new Date(e.date).getDate()
-      return dd === d
-    })
-    dayEl.innerHTML = `<div class="text-xs mb-1">${d}</div>`
-    evs.forEach(ev=>{
-      dayEl.innerHTML += `<div class="text-xs bg-indigo-200 dark:bg-indigo-800 rounded px-1 my-0.5">${ev.title}</div>`
-    })
-    g.appendChild(dayEl)
-  }
-}
-function renderPublicGoal(){
-  const wrap = $('#publicGoalList')
-  wrap.innerHTML = ''
-  state.publicGoals.forEach(g=>{
-    wrap.innerHTML += `
-    <div class="panel p-3 rounded-xl">
-      <div class="flex justify-between">
-        <span class="font-medium">${g.user}</span>
-        <span class="text-xs px-2 py-0.5 bg-indigo-100 rounded">${g.track}</span>
-      </div>
-      <div class="my-2">${g.content}</div>
-      <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div class="h-full bg-indigo-500" style="width:${g.progress}%"></div>
-      </div>
-      <div class="text-xs text-muted mt-1">进度 ${g.progress}%</div>
-    </div>
-    `
-  })
-}
-function renderRank(){
-  const filter = state.trackFilter
-  let list = [...state.rankAll]
-  if(filter!=='all') list = list.filter(x=>x.track === filter)
-  list.sort((a,b)=>b.score - a.score)
-  const total = list.length
-  const start = (state.rankPage-1)*state.rankPageSize
-  const pageData = list.slice(start,start+state.rankPageSize)
-  const wrap = $('#rankList')
-  wrap.innerHTML = ''
-  pageData.forEach((p,idx)=>{
-    wrap.innerHTML += `
-    <div class="flex justify-between items-center p-2 bg-sub rounded-lg">
-      <div class="flex gap-3 items-center">
-        <span class="w-6 text-center">${start+idx+1}</span>
-        <span>${p.name}</span>
-        <span class="text-xs px-1.5 bg-indigo-100 rounded">${p.track}</span>
-      </div>
-      <div>Lv.${p.level}｜${p.score}分</div>
-    </div>
-    `
-  })
-  // 分页
-  const pageWrap = $('#rankPageWrap')
-  pageWrap.innerHTML = ''
-  const totalPage = Math.ceil(total/state.rankPageSize)
-  for(let i=1;i<=totalPage;i++){
-    pageWrap.innerHTML += `<button class="rank-page-btn px-2 py-1 rounded border border-base ${i===state.rankPage?'bg-indigo-500 text-white':''}" data-p="${i}">${i}</button>`
-  }
-}
-// 渲染人生地图【重点：读取本地图片】
-function renderLifeMap(){
-  const container = $('#mapContainer')
-  // 绑定本地图片路径
-  const mapImgSrc = {
-    cyber: "assets/cyber.jpg",
-    fairy: "assets/fairy.jpg",
-    island: "assets/island.jpg"
-  }
-  container.style.backgroundImage = `url(${mapImgSrc[state.mapStyle]})`
-
-  // 控制云朵海浪只在 island 模式显示
-  const cloudEls = $$('.cloud')
-  const waveEl = $('.wave')
-  if(state.mapStyle === 'island'){
-    cloudEls.forEach(el=>el.style.display="block")
-    waveEl.style.display="block"
-  }else{
-    cloudEls.forEach(el=>el.style.display="none")
-    waveEl.style.display="none"
-  }
-
-  $('#mapIdentity').innerText = state.identity || "未选择（先完成凌霄问答）"
-  $('#mapLevel').innerText = state.level
-  $('#mapExp').innerText = state.exp
-  $('#mapTargetExp').innerText = state.targetExp
-
-  const lineWrap = $('#mapLines')
-  const nodeWrap = $('#mapNodes')
-  lineWrap.innerHTML = ''
-  nodeWrap.innerHTML = ''
-  // 绘制连接线
-  for(let i=0;i<state.mapNodes.length-1;i++){
-    const n1 = state.mapNodes[i]
-    const n2 = state.mapNodes[i+1]
-    const dx = n2.x - n1.x
-    const dy = n2.y - n1.y
-    const len = Math.sqrt(dx*dx + dy*dy)
-    const deg = Math.atan2(dy,dx)*180/Math.PI
-    const line = document.createElement('div')
-    line.className = 'map-line'
-    line.style.left = n1.x + 36 + 'px'
-    line.style.top = n1.y + 36 + 'px'
-    line.style.width = len + 'px'
-    line.style.transform = `rotate(${deg}deg)`
-    lineWrap.appendChild(line)
-  }
-  // 绘制节点
-  state.mapNodes.forEach(node=>{
-    const nd = document.createElement('div')
-    const isUnlock = state.level >= node.needLv
-    nd.className = `map-node ${isUnlock?'unlock':'lock'}`
-    nd.style.left = node.x + 'px'
-    nd.style.top = node.y + 'px'
-    nd.innerText = node.name
-    nd.dataset.nodeId = node.id
-    nodeWrap.appendChild(nd)
-  })
-}
-// ========== 地图节点拖拽逻辑 ==========
-let dragInfo = null
-document.addEventListener('mousedown',(e)=>{
-  const node = e.target.closest('.map-node')
-  if(!node) return
-  const nid = Number(node.dataset.nodeId)
-  const nodeData = state.mapNodes.find(x=>x.id === nid)
-  const container = $('#mapContainer')
-  const rect = container.getBoundingClientRect()
-  dragInfo = {
-    nodeEl:node,
-    nodeData,
-    offsetX: e.clientX - rect.left - nodeData.x,
-    offsetY: e.clientY - rect.top - nodeData.y
-  }
-})
-document.addEventListener('mousemove',(e)=>{
-  if(!dragInfo) return
-  const container = $('#mapContainer')
-  const rect = container.getBoundingClientRect()
-  let nx = e.clientX - rect.left - dragInfo.offsetX
-  let ny = e.clientY - rect.top - dragInfo.offsetY
-  nx = Math.max(0, Math.min(container.clientWidth - 72, nx))
-  ny = Math.max(0, Math.min(container.clientHeight -72, ny))
-  dragInfo.nodeData.x = nx
-  dragInfo.nodeData.y = ny
-  renderLifeMap()
-})
-document.addEventListener('mouseup',()=>{
-  if(dragInfo){
-    saveLocal()
-    dragInfo = null
-  }
-})
-// 重置节点位置
-function resetMapNodesPos(){
-  state.mapNodes = [
-    {id:1,x:40,y:200,name:"起点",needLv:0,desc:"人生启程"},
-    {id:2,x:160,y:120,name:"第一阶段",needLv:2,desc:"基础积累"},
-    {id:3,x:280,y:260,name:"第二阶段",needLv:4,desc:"能力进阶"},
-    {id:4,x:400,y:140,name:"第三阶段",needLv:6,desc:"赛道深耕"},
-    {id:5,x:520,y:220,name:"终局里程碑",needLv:10,desc:"理想达成"},
-  ]
-  saveLocal()
-  renderLifeMap()
-}
-
-// ========== 全局事件委托（核心！所有点击在这里统一处理，不会失效） ==========
-document.addEventListener('click',function(e){
-  const target = e.target.closest('button,input,.modal-close,.calendar-day,.rank-page-btn,.map-node')
-  if(!target) return
-
-  // 菜单切换视图
-  if(target.classList.contains('menu-btn')){
-    switchView(target.dataset.view)
-    return
-  }
-  // 深色模式
-  if(target.id === 'themeToggle'){
-    const root = document.documentElement
-    const curr = root.getAttribute('data-theme')
-    const next = curr === 'dark' ? 'light':'dark'
-    root.setAttribute('data-theme',next)
-    localStorage.setItem('kuanxu_theme',next)
-    return
-  }
-  // 游戏化开关弹窗
-  if(target.id === 'gameOpenBtn'){
-    openModal("宽序 · 游戏化人生系统",`
-      <div class="space-y-3">
-        <p>欢迎来到宽序人生赛道，先和凌霄AI对话，8个问题以内，定位你的人生赛道</p>
-        <p>当前等级：Lv.${state.level}｜EXP：${state.exp}/${state.targetExp}</p>
-        <p>360梯度职业池，自由叠加身份元素，赛博/仙境/动漫岛屿三地图可选</p>
-        <button id="startAiJourney" class="w-full py-2 bg-indigo-500 text-white rounded-lg">开始凌霄问答</button>
-      </div>
-    `)
-    return
-  }  
-  // 凌霄AI按钮
-        <p>我是凌霄，最多8轮对话，帮你找到向往赛道</p>
-        const lingxiaoQuestions = [
-           "你更享受和人打交道，还是独自深度钻研？",
-           "你希望工作产出偏向创意表达，还是稳定落地执行？",
-           "你更看重自由弹性，还是清晰稳定的晋升路线？",
-           "你希望你的成果可以影响更多大众，还是服务小众精准人群？",
-           "遇到难题，你优先自己查资料试错，还是找人协作讨论？",
-           "你是否愿意长期持续学习前沿新知识？",
-           "你希望工作里有大量竞争对抗，还是平和长期深耕？",
-           "一句话说说，你最理想的人生状态是什么？"
-           ];
-  
-  // 360职业精简池（这里放一批，你后续可以继续扩充到360条）
+// 360职业精简池（这里放一批，你后续可以继续扩充到360条）
 const jobPool = [
   {name:"教培老师",tag:"教育",desc:"擅长知识拆解、陪伴成长，输出课程与辅导，耐心引导他人进步"},
   {name:"产品经理",tag:"互联网",desc:"挖掘用户需求，设计方案，协调团队落地产品，平衡价值与体验"},
@@ -686,197 +167,416 @@ const jobPool = [
   {name:"建筑师",tag:"工程",desc:"设计空间，兼顾美学、安全、实用，搭建人居环境"},
   {name:"摄影师",tag:"影像",desc:"捕捉瞬间，用光讲故事，记录与创作画面"}
 ];
-  // 关闭弹窗
-  if(target.classList.contains('modal-close')){
-    closeModal()
+// 自动补占位到360条，防止数量不对
+while(jobPool.length < 360) {
+  const idx = jobPool.length + 1;
+  jobPool.push({name:`职业${idx}`,tag:"通用赛道",desc:`该职业画像待完善，完成目标持续解锁更多故事`})
+}
+
+// 模拟数据初始化
+function initMockData(){
+  if(state.tasks.length === 0) {
+    state.tasks = [
+      {id:1,title:"梳理产品PRD",done:false,exp:15,date:"2026-11-05"},
+      {id:2,title:"复盘面试STAR案例",done:true,exp:20,date:"2026-11-05"},
+      {id:3,title:"阅读行业报告",done:false,exp:10,date:"2026-11-06"},
+      {id:4,title:"修改作品集文档",done:false,exp:25,date:"2026-11-07"},
+    ]
+  }
+  if(state.goals.length ===0) {
+    state.goals = [
+      {id:1,title:"3个月拿下AIPM offer",author:"阿泽",like:124,desc:"每周投递8份简历，持续复盘面试"},
+      {id:2,title:"半年稳定减重10斤",author:"小夏",like:89,desc:"规律运动+控糖，公开打卡监督自己"},
+      {id:3,title:"读完20本专业书籍",author:"星野",like:56,desc:"每周固定6小时阅读，输出读书笔记"},
+    ]
+  }
+  if(state.ranks.length ===0) {
+    state.ranks = []
+    const trackList = ["互联网产品","教育赛道","创意设计","技术开发","医疗健康"]
+    for(let i=1;i<=42;i++){
+      state.ranks.push({
+        uid:i,
+        name:"玩家"+i,
+        track: trackList[i%trackList.length],
+        score: Math.floor(Math.random()*8000)+1000,
+        level: Math.floor(Math.random()*12)+1
+      })
+    }
+  }
+  if(state.calendarEvents.length ===0) {
+    state.calendarEvents = [
+      {title:"面试",date:"2026-11-06"},
+      {title:"小组会议",date:"2026-11-08"},
+      {title:"线下沙龙",date:"2026-11-10"},
+    ]
+  }
+  saveState()
+}
+
+// 持久化
+function saveState(){
+  localStorage.setItem("kuanxuState", JSON.stringify(state))
+}
+
+// 弹窗工具
+function openModal(title, html, onClose=null) {
+  const container = document.getElementById("modalContainer")
+  container.innerHTML = `
+  <div class="modal-backdrop modal-root">
+    <div class="modal-box">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold text-lg">${title}</h3>
+        <button class="modal-close text-xl">&times;</button>
+      </div>
+      <div class="modal-body">${html}</div>
+    </div>
+  </div>
+  `
+  container.querySelector(".modal-close").onclick = ()=>{
+    container.innerHTML = ""
+    if(onClose) onClose()
+  }
+  container.querySelector(".modal-backdrop").onclick = (e)=>{
+    if(e.target.classList.contains("modal-backdrop")) {
+      container.innerHTML = ""
+      if(onClose) onClose()
+    }
+  }
+  bindModalEvents()
+}
+function closeModal(){document.getElementById("modalContainer").innerHTML=""}
+
+// 成就弹窗
+function showAchievement(text){
+  const t = document.getElementById("toastContainer")
+  const dom = document.createElement("div")
+  dom.className = "achievement-toast px-4 py-3 bg-primary text-white rounded-lg shadow-lg"
+  dom.innerHTML = `🏆 ${text}`
+  t.appendChild(dom)
+  setTimeout(()=>dom.remove(),1200)
+}
+
+// 升级动画
+function triggerUpgrade(){
+  showAchievement(`恭喜升级！Lv.${state.level}`)
+  document.querySelector("#userLevel")?.classList.add("upgrade-flash")
+  setTimeout(()=>document.querySelector("#userLevel")?.classList.remove("upgrade-flash"),1000)
+}
+
+// ========== 凌霄8轮问答逻辑
+function startLingXiaoChat(){
+  state.lingxiaoChatStep = 1
+  state.lingxiaoAnswers = []
+  saveState()
+  renderLingXiaoStep()
+}
+function renderLingXiaoStep(){
+  const step = state.lingxiaoChatStep
+  if(step > 8) {
+    // 8轮问答全部结束，进入职业选择面板
+    openModal("凌霄AI｜问答完成，选择你的职业画像",`
+      <p class="mb-3">已完成全部8轮对话，根据你的回答，你可以浏览360梯度职业，点击查看画像并绑定赛道</p>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-[60vh] overflow-y-auto pb-2" id="jobSelectWrap">
+        ${jobPool.map((job,idx)=>`
+          <div class="职业-card p-3 border rounded-lg dark:border-gray-600" data-jobidx="${idx}">
+            <div class="font-medium">${job.name}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">${job.tag}</div>
+            <div class="text-xs mt-1 line-clamp-2">${job.desc}</div>
+          </div>
+        `).join("")}
+      </div>
+    `)
+    // 绑定职业点击事件
+    setTimeout(()=>{
+      document.querySelectorAll(".职业-card").forEach(card=>{
+        card.onclick = ()=>{
+          const idx = Number(card.dataset.jobidx)
+          const job = jobPool[idx]
+          openModal(`职业画像：${job.name}`,`
+            <p class="text-sm text-gray-500 dark:text-gray-400">赛道标签：${job.tag}</p>
+            <p class="my-3">${job.desc}</p>
+            <button id="bindJobBtn" class="w-full py-2 bg-primary text-white rounded-lg mt-2">✅ 绑定该职业作为你的人生赛道</button>
+          `)
+          setTimeout(()=>{
+            document.getElementById("bindJobBtn").onclick = ()=>{
+              state.bindJob = job.name
+              state.lingxiaoChatStep = 9
+              saveState()
+              closeModal()
+              showAchievement(`成功绑定赛道：${job.name}`)
+              renderAll()
+            }
+          },100)
+        }
+      })
+    },100)
     return
+  }
+  // 当前第N轮提问
+  const q = lingxiaoQuestions[step -1]
+  openModal(`凌霄AI｜第${step}/8轮对话`,`
+    <p class="mb-3">${q}</p>
+    <textarea id="lingxiaoInput" class="w-full border rounded p-2 dark:bg-gray-700" rows="3" placeholder="写下你的想法..."></textarea>
+    <button id="sendLingXiao" class="w-full py-2 bg-primary text-white rounded-lg mt-3">提交回答，进入下一轮</button>
+  `)
+  setTimeout(()=>{
+    document.getElementById("sendLingXiao").onclick = ()=>{
+      const val = document.getElementById("lingxiaoInput").value.trim()
+      if(!val) return alert("请输入你的回答")
+      state.lingxiaoAnswers.push(val)
+      state.lingxiaoChatStep +=1
+      saveState()
+      renderLingXiaoStep()
+    }
+  },100)
+}
+
+// ========== 视图渲染
+function renderTask(){
+  const wrap = document.getElementById("taskList")
+  wrap.innerHTML = ""
+  state.tasks.forEach(t=>{
+    const div = document.createElement("div")
+    div.className = "flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm"
+    div.innerHTML = `
+      <div class="flex items-center gap-2">
+        <input type="checkbox" class="task-check w-4 h-4" data-id="${t.id}" ${t.done?"checked":""}>
+        <span class="${t.done?"line-through text-gray-400":""}">${t.title}</span>
+        ${state.gameOpen ? `<span class="text-xs text-primary">+${t.exp}EXP</span>` : ""}
+      </div>
+      <button class="delTask text-red-400" data-id="${t.id}"><i class="fa fa-trash"></i></button>
+    `
+    wrap.appendChild(div)
+  })
+  // 任务勾选
+  document.querySelectorAll(".task-check").forEach(el=>el.onchange = (e)=>{
+    const tid = Number(e.target.dataset.id)
+    const t = state.tasks.find(x=>x.id===tid)
+    if(!t) return
+    const oldDone = t.done
+    t.done = e.target.checked
+    if(t.done && !oldDone && state.gameOpen){
+      state.exp += t.exp
+      // 升级判断
+      while(state.exp >= state.expTarget) {
+        state.exp -= state.expTarget
+        state.level +=1
+        state.expTarget = Math.floor(state.expTarget * 1.4)
+        triggerUpgrade()
+      }
+    }
+    saveState()
+    renderAll()
+  })
+  // 删除任务
+  document.querySelectorAll(".delTask").forEach(el=>el.onclick = (e)=>{
+    const tid = Number(e.currentTarget.dataset.id)
+    state.tasks = state.tasks.filter(x=>x.id!==tid)
+    saveState()
+    renderAll()
+  })
+  // 游戏面板
+  const gamePanel = document.getElementById("gameExpPanel")
+  if(state.gameOpen) {
+    gamePanel.classList.remove("hidden")
+    document.getElementById("userLevel").innerText = state.level
+    document.getElementById("userExp").innerText = state.exp
+    document.getElementById("expNeed").innerText = state.expTarget
+    document.getElementById("expBar").style.width = `${state.exp/state.expTarget*100}%`
+    document.getElementById("bindJob").innerText = state.bindJob || "未完成凌霄8轮问答"
+  } else {
+    gamePanel.classList.add("hidden")
+  }
+}
+
+function renderCalendar(){
+  const grid = document.getElementById("calendarGrid")
+  grid.innerHTML = ""
+  const today = new Date()
+  const monthStart = new Date(today.getFullYear(), today.getMonth(),1)
+  const startDay = monthStart.getDay() || 7
+  const totalDays = new Date(today.getFullYear(), today.getMonth()+1,0).getDate()
+  for(let i=1;i<startDay;i++){
+    grid.innerHTML += `<div class="calendar-day border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"></div>`
+  }
+  for(let d=1;d<=totalDays;d++){
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+    const events = state.calendarEvents.filter(e=>e.date === dateStr)
+    const div = document.createElement("div")
+    div.className = "calendar-day border border-gray-200 dark:border-gray-700 p-1 cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+    div.innerHTML = `<div class="text-sm">${d}</div>${events.map(e=>`<div class="text-xs bg-primary/20 rounded px-1 mt-0.5">${e.title}</div>`).join("")}`
+    div.dataset.date = dateStr
+    div.onclick = ()=>{
+      openModal("新建日程",`
+        <p>日期：${dateStr}</p>
+        <input id="eventTitle" class="w-full border rounded p-2 mt-2 dark:bg-gray-700" placeholder="日程名称">
+        <button id="saveEvent" class="w-full py-2 bg-primary text-white rounded-lg mt-3">保存日程</button>
+      `)
+      setTimeout(()=>{
+        document.getElementById("saveEvent").onclick = ()=>{
+          const title = document.getElementById("eventTitle").value.trim()
+          if(!title) return
+          state.calendarEvents.push({title,date:dateStr})
+          saveState()
+          closeModal()
+          renderAll()
+        }
+      },100)
+    }
+    grid.appendChild(div)
+  }
+}
+
+function renderGoals(){
+  const wrap = document.getElementById("goalList")
+  wrap.innerHTML = ""
+  state.goals.forEach(g=>{
+    wrap.innerHTML += `
+    <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+      <div class="font-medium">${g.title}</div>
+      <div class="text-xs text-gray-400">@${g.author}</div>
+      <p class="text-sm mt-2">${g.desc}</p>
+      <div class="mt-2 text-sm text-rose-400"><i class="fa fa-heart"></i> ${g.like}</div>
+    </div>
+    `
+  })
+}
+
+let rankPage = 1
+const rankPageSize = 10
+function renderRank(){
+  const filterVal = document.getElementById("rankFilter").value
+  let list = [...state.ranks]
+  if(filterVal !== "all") list = list.filter(x=>x.track === filterVal)
+  list.sort((a,b)=>b.score - a.score)
+  const totalPage = Math.ceil(list.length / rankPageSize)
+  const start = (rankPage-1)*rankPageSize
+  const pageData = list.slice(start, start+rankPageSize)
+  const wrap = document.getElementById("rankList")
+  wrap.innerHTML = ""
+  pageData.forEach((item,idx)=>{
+    wrap.innerHTML += `
+      <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
+        <div class="flex gap-3 items-center">
+          <span class="w-6 h-6 rounded-full bg-primary text-white text-center text-sm">${start+idx+1}</span>
+          <span>${item.name}</span>
+          <span class="text-xs text-gray-400">${item.track}</span>
+        </div>
+        <span>Lv.${item.level}｜${item.score}分</span>
+      </div>
+    `
+  })
+  // 分页控件
+  const pageCtrl = document.getElementById("rankPageCtrl")
+  pageCtrl.innerHTML = `
+    <button id="prevPage" class="px-3 py-1 border rounded ${rankPage<=1?'opacity-40 cursor-not-allowed':''}">上一页</button>
+    <span>第${rankPage}/${totalPage}页</span>
+    <button id="nextPage" class="px-3 py-1 border rounded ${rankPage>=totalPage?'opacity-40 cursor-not-allowed':''}">下一页</button>
+  `
+  document.getElementById("prevPage").onclick = ()=>{
+    if(rankPage>1){rankPage--;renderRank()}
+  }
+  document.getElementById("nextPage").onclick = ()=>{
+    if(rankPage<totalPage){rankPage++;renderRank()}
+  }
+  // 赛道下拉
+  const tracks = [...new Set(state.ranks.map(x=>x.track))]
+  document.getElementById("rankFilter").innerHTML = `<option value="all">全部赛道</option>` + tracks.map(t=>`<option value="${t}">${t}</option>`).join("")
+  document.getElementById("rankFilter").value = filterVal
+  document.getElementById("rankFilter").onchange = ()=>{rankPage=1;renderRank()}
+}
+
+// 切换视图
+function bindViewSwitch(){
+  document.querySelectorAll(".view-btn").forEach(btn=>{
+    btn.onclick = ()=>{
+      const target = btn.dataset.view
+      document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"))
+      document.getElementById(`view-${target}`).classList.remove("hidden")
+    }
+  })
+}
+
+// 绑定所有全局按钮
+function bindGlobalButtons(){
+  // 深色模式
+  document.getElementById("toggleDark").onclick = ()=>{
+    state.darkMode = !state.darkMode
+    if(state.darkMode) document.documentElement.classList.add("dark")
+    else document.documentElement.classList.remove("dark")
+    saveState()
+    renderAll()
+  }
+  // 游戏化入口
+  document.getElementById("gameToggle").onclick = ()=>{
+    openModal("宽序 · 游戏化人生系统",`
+      <div class="space-y-3">
+        <p>欢迎来到宽序人生赛道，和凌霄AI完成8轮对话，定位你的人生向往方向。</p>
+        <p>当前等级：Lv.${state.level}｜EXP：${state.exp}/${state.expTarget}</p>
+        <p>360梯度职业池，自由查看职业画像，绑定专属赛道。</p>
+        ${state.lingxiaoChatStep >=9 ? `<p class="text-green-500">✅ 已完成问答，绑定赛道：${state.bindJob}</p>`:"<p>🔒 暂未完成凌霄8轮问答</p>"}
+        <button id="startChatBtn" class="w-full py-2 bg-primary text-white rounded-lg">开始凌霄8轮问答</button>
+        <label class="flex items-center gap-2 mt-2">
+          <input type="checkbox" id="gameSwitch" ${state.gameOpen?"checked":""}>
+          <span>开启任务EXP、升级游戏化</span>
+        </label>
+      </div>
+    `)
+    setTimeout(()=>{
+      document.getElementById("startChatBtn").onclick = ()=>{
+        closeModal()
+        startLingXiaoChat()
+      }
+      document.getElementById("gameSwitch").onchange = (e)=>{
+        state.gameOpen = e.target.checked
+        saveState()
+        renderAll()
+      }
+    },100)
   }
   // 新增任务
-  if(target.id === 'addTaskBtn'){
+  document.getElementById("addTaskBtn").onclick = ()=>{
     openModal("新增任务",`
-      <div class="space-y-3">
-        <input class="w-full border border-base rounded p-2 bg-sub" id="newTaskTitle" placeholder="任务名称">
-        ${state.gameOn?`
-        <div class="flex gap-2">
-          <input class="flex-1 border border-base rounded p-2 bg-sub w-1/2" id="newTaskExp" placeholder="EXP值" value="10">
-          <input class="flex-1 border border-base rounded p-2 bg-sub w-1/2" id="newTaskMilestone" placeholder="里程碑">
-        </div>
-        `:''}
-        <button id="saveNewTask" class="w-full py-2 bg-indigo-500 text-white rounded-lg">保存</button>
-      </div>
+      <input id="newTaskTitle" class="w-full border rounded p-2 dark:bg-gray-700" placeholder="任务名称">
+      ${state.gameOpen?`<input id="newTaskExp" class="w-full border rounded p-2 mt-2 dark:bg-gray-700" placeholder="EXP奖励，如15" value="10">`:""}
+      <button id="saveNewTask" class="w-full py-2 bg-primary text-white rounded-lg mt-3">保存</button>
     `)
-    return
-  }
-  // 任务勾选
-  if(target.classList.contains('task-check')){
-    const tid = Number(target.dataset.id)
-    const task = state.tasks.find(x=>x.id===tid)
-    if(!task) return
-    const oldDone = task.done
-    task.done = target.checked
-    if(!oldDone && task.done && state.gameOn){
-      state.exp += task.exp
-      // 判断升级
-      if(state.exp >= state.targetExp){
-        state.exp -= state.targetExp
-        state.level +=1
-        state.targetExp = Math.floor(state.targetExp * 1.35)
-        showAchieve(`升级！Lv.${state.level}`,`里程碑解锁：${task.milestone}`)
-      }else{
-        showAchieve(`+${task.exp} EXP`,`继续积累，迈向Lv.${state.level+1}`)
-      }
-      renderLifeMap()
-    }
-    saveLocal()
-    renderTask()
-    return
-  }
-  // 删除任务
-  if(target.classList.contains('task-del')){
-    const tid = Number(target.dataset.id)
-    state.tasks = state.tasks.filter(x=>x.id !== tid)
-    saveLocal()
-    renderTask()
-    return
-  }
-  // 游戏化EXP总开关
-  if(target.id === 'gameExpSwitch'){
-    state.gameOn = target.checked
-    saveLocal()
-    renderTask()
-    return
-  }
-  // 保存新任务
-  if(target.id === 'saveNewTask'){
-    const title = $('#newTaskTitle').value.trim()
-    if(!title) return alert("任务名不能为空")
-    const newId = Date.now()
-    const nt = {id:newId,title,done:false,exp:Number($('#newTaskExp')?.value||10),milestone:$('#newTaskMilestone')?.value||'日常目标',date:'2026-11-05'}
-    state.tasks.push(nt)
-    saveLocal()
-    renderTask()
-    closeModal()
-    return
-  }
-  // 日历格子点击新建日程
-  if(target.classList.contains('calendar-day')){
-    const d = target.dataset.day
-    openModal("新建日程",`
-      <p>日期：11月${d}日</p>
-      <input class="w-full border border-base rounded p-2 bg-sub mt-2" id="calEventTitle" placeholder="日程名称">
-      <button id="saveCalEvent" class="w-full py-2 bg-indigo-500 text-white rounded-lg mt-3">保存</button>
-    `)
-    $('#saveCalEvent').onclick = ()=>{
-      const t = $('#calEventTitle').value.trim()
-      if(!t) return
-      state.calendarEvents.push({id:Date.now(),title:t,date:`2026-11-${String(d).padStart(2,'0')}`})
-      renderCalendar()
-      closeModal()
-    }
-    return
-  }
-  // 排行榜分页
-  if(target.classList.contains('rank-page-btn')){
-    state.rankPage = Number(target.dataset.p)
-    renderRank()
-    return
-  }
-  // 凌霄提交
-  if(target.id === 'sendLingXiao'){
-    const val = $('#lingxiaoInput').value.trim()
-    if(!val) return alert("请输入你的想法")
-    state.lingxiaoFinish = true
-    saveLocal()
-    openModal("凌霄AI回复",`<p>收到你的向往：${val}</p><p>人生方向判断完成 ✅，解锁职业选择和人生地图</p>`)
-    return
-  }
-  // 开始旅程
-  if(target.id === 'startAiJourney'){
-    closeModal()
-    $('#aiLingXiaoBtn').click()
-    return
-  }
-  // 地图风格切换
-  if(target.id === 'mapStyleCyber'){
-    state.mapStyle = "cyber"
-    saveLocal()
-    renderLifeMap()
-    return
-  }
-  if(target.id === 'mapStyleFairy'){
-    state.mapStyle = "fairy"
-    saveLocal()
-    renderLifeMap()
-    return
-  }
-  if(target.id === 'mapStyleIsland'){
-    state.mapStyle = "island"
-    saveLocal()
-    renderLifeMap()
-    return
-  }
-  // 重置节点
-  if(target.id === 'resetMapNode'){
-    resetMapNodesPos()
-    return
-  }
-  // 打开职业选择面板
-  if(target.id === 'pickCareerBtn'){
-    if(!state.lingxiaoFinish){
-      alert("请先完成凌霄AI人生问答，才能选择职业！")
-      return
-    }
-    const careerHtml = state.careerPool.map(c=>`<div class="p-2 border rounded cursor-pointer career-item hover:bg-indigo-100">${c}</div>`).join('')
-    openModal("选择你的职业身份（360梯度池｜支持叠加多身份）",`
-      <div class="grid grid-cols-3 gap-2 max-h-[320px] overflow-y-auto">
-        ${careerHtml}
-      </div>
-      <div class="mt-3 text-sm text-muted">💡 可以多次选择叠加多个身份，例如：AIPM + 独立插画师</div>
-    `)
-    // 职业点击绑定
-    $$('.career-item').forEach(el=>{
-      el.onclick = ()=>{
-        if(state.identity){
-          state.identity += " + " + el.innerText
-        }else{
-          state.identity = el.innerText
-        }
-        saveLocal()
-        renderLifeMap()
+    setTimeout(()=>{
+      document.getElementById("saveNewTask").onclick = ()=>{
+        const title = document.getElementById("newTaskTitle").value.trim()
+        if(!title) return alert("任务名不能为空")
+        const exp = state.gameOpen ? Number(document.getElementById("newTaskExp").value) || 10 : 0
+        state.tasks.push({
+          id: Date.now(),
+          title,
+          done: false,
+          exp,
+          date: new Date().toISOString().slice(0,10)
+        })
+        saveState()
         closeModal()
+        renderAll()
       }
-    })
-    return
+    },100)
   }
-  // 地图节点点击查看里程碑
-  if(target.classList.contains('map-node')){
-    const nid = Number(target.dataset.nodeId)
-    const node = state.mapNodes.find(x=>x.id === nid)
-    if(!node) return
-    const unlock = state.level >= node.needLv
-    openModal("里程碑节点："+node.name,`
-      <p>${node.desc}</p>
-      <p class="mt-2">解锁条件：Lv.${node.needLv}</p>
-      <p>状态：${unlock?"✅ 已解锁":"🔒 未解锁"}</p>
-    `)
-    return
-  }
-})
-
-// ========== 赛道筛选单独监听 ==========
-$('#trackFilter').addEventListener('change',e=>{
-  state.trackFilter = e.target.value
-  state.rankPage = 1
-  renderRank()
-})
-
-// ========== 初始化 ==========
-window.addEventListener('DOMContentLoaded',()=>{
-  loadLocal()
+}
+function bindModalEvents(){}
+function renderAll(){
   renderTask()
-  renderPublicGoal()
-  switchView('task')
-})
+  renderCalendar()
+  renderGoals()
+  renderRank()
+}
+
+// 初始化入口
+function bootstrap(){
+  if(state.darkMode) document.documentElement.classList.add("dark")
+  initMockData()
+  bindViewSwitch()
+  bindGlobalButtons()
+  renderAll()
+}
+bootstrap()
 </script>
 </body>
 </html>
