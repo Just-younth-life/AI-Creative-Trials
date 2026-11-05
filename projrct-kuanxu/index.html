@@ -293,18 +293,18 @@ const state = {
   mapStyle:"island",
   lingxiaoFinish:false,
   tasks:[
-    {id:1,title:"完成AIPM作品集修改",done:false,exp:20,milestone:"校招作品集",date:"2026-11-05"},
-    {id:2,title:"刷3道产品面试题",done:false,exp:12,milestone:"求职能力",date:"2026-11-05"},
-    {id:3,title:"英语六级单词背诵",done:true,exp:8,milestone:"语言积累",date:"2026-11-04"},
+    {id:1,title:"完成作品集修改",done:false,exp:20,milestone:"个人作品集",date:"2026-11-05"},
+    {id:2,title:"刷3道考公题",done:false,exp:12,milestone:"学习能力",date:"2026-11-05"},
+    {id:3,title:"英语单词背诵",done:true,exp:8,milestone:"语言积累",date:"2026-11-04"},
     {id:4,title:"健身30分钟力量训练",done:false,exp:15,milestone:"体能",date:"2026-11-05"},
-    {id:5,title:"整理宽序PRD文档",done:false,exp:25,milestone:"产品项目",date:"2026-11-06"},
+    {id:5,title:"整理文档",done:false,exp:25,milestone:"个人项目",date:"2026-11-06"},
   ],
   calendarEvents:[
-    {id:1,title:"产品复盘会",date:"2026-11-05"},
-    {id:2,title:"面试模拟",date:"2026-11-07"},
+    {id:1,title:"项目复盘会",date:"2026-11-05"},
+    {id:2,title:"mock模拟",date:"2026-11-07"},
   ],
   publicGoals:[
-    {id:1,user:"小星",track:"求职AIPM",content:"2个月拿到AI产品offer",progress:62},
+    {id:1,user:"小星",track:"求职",content:"2个月拿到运营offer",progress:62},
     {id:2,user:"阿泽",track:"考研",content:"上岸计算机学硕",progress:41},
     {id:3,user:"晚晚",track:"健身",content:"3个月减脂8kg",progress:75},
     {id:4,user:"Lynn",track:"语言学习",content:"雅思7分",progress:53},
@@ -654,18 +654,46 @@ document.addEventListener('click',function(e){
       </div>
     `)
     return
-  }
+  }  
   // 凌霄AI按钮
   if(target.id === 'aiLingXiaoBtn'){
     openModal("凌霄AI｜人生方向问答",`
       <div class="space-y-3">
         <p>我是凌霄，最多8轮对话，帮你找到向往赛道</p>
-        <textarea id="lingxiaoInput" class="w-full border border-base rounded p-2 bg-sub" rows="3" placeholder="写下你向往的方向..."></textarea>
+        const lingxiaoQuestions = [
+           "你更享受和人打交道，还是独自深度钻研？",
+           "你希望工作产出偏向创意表达，还是稳定落地执行？",
+           "你更看重自由弹性，还是清晰稳定的晋升路线？",
+           "你希望你的成果可以影响更多大众，还是服务小众精准人群？",
+           "遇到难题，你优先自己查资料试错，还是找人协作讨论？",
+           "你是否愿意长期持续学习前沿新知识？",
+           "你希望工作里有大量竞争对抗，还是平和长期深耕？",
+           "一句话说说，你最理想的人生状态是什么？"
+           ];
         <button id="sendLingXiao" class="w-full py-2 bg-indigo-500 text-white rounded-lg">提交回答</button>
       </div>
     `)
     return
   }
+  
+  // 360职业精简池（这里放一批，你后续可以继续扩充到360条）
+const jobPool = [
+  {name:"教培老师",tag:"教育",desc:"擅长知识拆解、陪伴成长，输出课程与辅导，耐心引导他人进步"},
+  {name:"产品经理",tag:"互联网",desc:"挖掘用户需求，设计方案，协调团队落地产品，平衡价值与体验"},
+  {name:"独立设计师",tag:"创意",desc:"视觉、IP、空间创作，自由表达审美，产出打动人心的作品"},
+  {name:"程序员",tag:"技术",desc:"用代码构建系统，解决复杂逻辑，持续迭代技术方案"},
+  {name:"心理咨询师",tag:"健康",desc:"倾听情绪，疏导内耗，陪伴他人走出心理困境"},
+  {name:"运营",tag:"互联网",desc:"连接用户，策划活动，持续放大内容与产品影响力"},
+  {name:"医生",tag:"医疗",desc:"守护生命健康，诊断病症，严谨负责救死扶伤"},
+  {name:"律师",tag:"法务",desc:"熟悉规则，捍卫权益，严谨梳理事实与证据"},
+  {name:"自媒体博主",tag:"内容",desc:"持续输出观点内容，打造个人IP，传递价值"},
+  {name:"科研研究员",tag:"学术",desc:"深耕细分领域，做实验、发论文，探索未知边界"},
+  {name:"烘焙师",tag:"手工",desc:"把控食材与风味，用美食传递温暖，打磨稳定手艺"},
+  {name:"策划",tag:"品牌",desc:"构思故事与方案，统筹活动，打造记忆点"},
+  {name:"翻译",tag:"语言",desc:"跨语言传递信息，打通不同文化之间的沟通"},
+  {name:"建筑师",tag:"工程",desc:"设计空间，兼顾美学、安全、实用，搭建人居环境"},
+  {name:"摄影师",tag:"影像",desc:"捕捉瞬间，用光讲故事，记录与创作画面"}
+];
   // 关闭弹窗
   if(target.classList.contains('modal-close')){
     closeModal()
