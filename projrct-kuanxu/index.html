@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宽序｜AI社交日程管理｜游戏化人生地图</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<script>
+// 深色模式预加载，防止闪屏
+const savedTheme = localStorage.getItem('kuanxu_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+</script>
+<style>
+:root{
+  --bg:#ffffff;
+  --bg2:#f7f8fa;
+  --text:#1f2937;
+  --text2:#6b7280;
+  --border:#e5e7eb;
+  --primary:#6366f1;
+  --card:#fff;
+}
+[data-theme="dark"]{
+  --bg:#111827;
+  --bg2:#1f2937;
+  --text:#f3f4f6;
+  --text2:#9ca3af;
+  --border:#374151;
+  --primary:#818cf8;
+  --card:#1f2937;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg);
+  color:var(--text);
+  transition: all 0.25s ease;
+}
+.panel{background:var(--card);border:1px solid var(--border);}
+.text-muted{color:var(--text2)}
+.border-base{border-color:var(--border)}
+.bg-sub{background:var(--bg2)}
+/* 动画 */
+@keyframes levelUp {
+  0%{transform:scale(1)}
+  50%{transform:scale(1.15);box-shadow:0 0 24px #6366f1}
+  100%{transform:scale(1)}
+}
+.level-up-anim{animation:levelUp 0.6s ease-out}
+@keyframes popAchieve {
+  0%{opacity:0;transform:translateY(20px) scale(0.9)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+.achieve-pop{animation:popAchieve 0.4s ease-out}
+/* 日历拖拽 */
+.calendar-day{cursor:pointer;min-height:72px;}
+.calendar-day:hover{background:rgba(99,102,241,0.08)}
+.calendar-day.drag-over{background:rgba(99,102,241,0.18)}
+/* 弹窗遮罩 */
+.modal-mask{background:rgba(0,0,0,0.45);}
+/* 地图样式 三画风 */
+.map-wrap{
+  position:relative;
+  min-height:460px;
+  overflow:hidden;
+  border-radius:12px;
+  user-select:none;
+}
+.map-cyber{
+  background: linear-gradient(135deg,#080818,#1b0b30,#0f172a);
+}
+.map-fairy{
+  background: linear-gradient(135deg,#e6f7ff,#dcfce7,#fef3c7);
+}
+.map-island{
+  background: linear-gradient(180deg,#87cefa,#40c9e8,#22b8d9);
+}
+/* 动漫岛屿 云朵动画 */
+.cloud{
+  position:absolute;
+  background:#ffffffdd;
+  border-radius:999px;
+  filter:blur(10px);
+  animation: cloudDrift 22s linear infinite;
+  z-index:1;
+}
+@keyframes cloudDrift {
+  0% { transform: translateX(-120px); }
+  100% { transform: translateX(calc(100% + 120px)); }
+}
+/* 海浪动画 */
+.wave{
+  position:absolute;
+  bottom:0;
+  left:0;
+  width:200%;
+  height:50px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120'%3E%3Cpath fill='%23ffffff66' d='M0,60 C150,120 250,0 400,60 C550,120 650,0 800,60 C950,120 1050,0 1200,60 L1200,120 L0,120 Z'/%3E%3C/svg%3E");
+  background-size:50% 100%;
+  animation: waveFlow 7s linear infinite;
+  z-index:1;
+}
+@keyframes waveFlow {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.map-node{
+  position:absolute;
+  width:72px;height:72px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  cursor:grab;
+  transition:0.25s;
+  font-size:12px;text-align:center;
+  padding:4px;
+  z-index:2;
+}
+.map-node:active{
+  cursor:grabbing;
+}
+.map-node.unlock{
+  border:2px solid #22c55e;
+  background:rgba(34,197,94,0.18);
+  box-shadow:0 0 12px #22c55e66;
+}
+.map-node.lock{
+  border:2px solid #666;
+  background:rgba(80,80,80,0.25);
+}
+.map-line{
+  position:absolute;
+  background:#6366f188;
+  height:3px;
+  transform-origin:left center;
+  z-index:0;
+}
+* {pointer-events:auto !important;}
+</style>
+</head>
+<body class="overflow-hidden">
+<div class="flex h-screen w-full">
+  <!-- 左侧侧边栏 -->
+  <aside class="w-56 bg-sub border-r border-base flex flex-col p-3">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-xl font-bold text-indigo-500">宽序</h1>
+      <button id="themeToggle" class="p-1.5 rounded-lg hover:bg-indigo-100 dark:hover:bg-gray-700">
+        <i class="fa fa-moon-o"></i>
+      </button>
+    </div>
+    <nav class="flex-1 space-y-1">
+      <button data-view="task" class="menu-btn w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-100 dark:hover:bg-gray-700 flex items-center gap-2">
+        <i class="fa fa-list-ul"></i>任务清单
+      </button>
+      <button data-view="calendar" class="menu-btn w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-100 dark:hover:bg-gray-700 flex items-center gap-2">
+        <i class="fa fa-calendar"></i>日历视图
+      </button>
+      <button data-view="public-goal" class="menu-btn w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-100 dark:hover:bg-gray-700 flex items-center gap-2">
+        <i class="fa fa-bullhorn"></i>公开目标
+      </button>
+      <button data-view="rank" class="menu-btn w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-100 dark:hover:bg-gray-700 flex items-center gap-2">
+        <i class="fa fa-trophy"></i>赛道排行榜
+      </button>
+      <button data-view="life-map" class="menu-btn w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-100 dark:hover:bg-gray-700 flex items-center gap-2">
+        <i class="fa fa-map"></i>人生地图
+      </button>
+    </nav>
+    <div class="mt-4 border-t border-base pt-3 space-y-2">
+      <button id="gameOpenBtn" class="w-full px-3 py-2 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 flex items-center gap-2">
+        <i class="fa fa-gamepad"></i>游戏化人生
+      </button>
+      <button id="aiLingXiaoBtn" class="w-full px-3 py-2 rounded-lg border border-base hover:bg-sub flex items-center gap-2">
+        <i class="fa fa-robot"></i>凌霄AI问答
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="flex-1 overflow-auto p-4">
+    <!-- 任务视图 -->
+    <div id="view-task" class="view-page">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">我的任务</h2>
+        <div class="flex items-center gap-3">
+          <label class="flex items-center gap-1">
+            <input type="checkbox" id="gameExpSwitch"> 开启EXP/里程碑
+          </label>
+          <button id="addTaskBtn" class="px-3 py-1.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600">+新增任务</button>
+        </div>
+      </div>
+      <div class="panel rounded-xl p-4">
+        <div id="taskList" class="space-y-2"></div>
+      </div>
+    </div>
+
+    <!-- 日历视图 -->
+    <div id="view-calendar" class="view-page hidden">
+      <h2 class="text-lg font-semibold mb-4">日历视图（拖拽格子新建日程）</h2>
+      <div class="panel rounded-xl p-4">
+        <div class="grid grid-cols-7 gap-1 text-center mb-2">
+          <div class="py-1 text-muted">周一</div>
+          <div class="py-1 text-muted">周二</div>
+          <div class="py-1 text-muted">周三</div>
+          <div class="py-1 text-muted">周四</div>
+          <div class="py-1 text-muted">周五</div>
+          <div class="py-1 text-muted">周六</div>
+          <div class="py-1 text-muted">周日</div>
+        </div>
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+      </div>
+    </div>
+
+    <!-- 公开目标 -->
+    <div id="view-public-goal" class="view-page hidden">
+      <h2 class="text-lg font-semibold mb-4">公开目标广场</h2>
+      <div id="publicGoalList" class="grid grid-cols-2 gap-3"></div>
+    </div>
+
+    <!-- 排行榜 -->
+    <div id="view-rank" class="view-page hidden">
+      <h2 class="text-lg font-semibold mb-4">赛道排行榜</h2>
+      <div class="flex gap-3 mb-4">
+        <select id="trackFilter" class="px-2 py-1 border border-base rounded-lg bg-sub">
+          <option value="all">全部赛道</option>
+          <option value="考研">考研</option>
+          <option value="求职AIPM">求职AIPM</option>
+          <option value="健身">健身</option>
+          <option value="语言学习">语言学习</option>
+        </select>
+      </div>
+      <div class="panel rounded-xl p-4">
+        <div id="rankList" class="space-y-2"></div>
+        <div class="flex justify-center gap-2 mt-4" id="rankPageWrap"></div>
+      </div>
+    </div>
+
+    <!-- 人生地图视图（新增） -->
+    <div id="view-life-map" class="view-page hidden">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">人生旅程地图（节点可拖拽）</h2>
+        <div class="flex gap-2">
+          <button id="mapStyleCyber" class="px-2 py-1 rounded border border-base">赛博朋克</button>
+          <button id="mapStyleFairy" class="px-2 py-1 rounded border border-base">蓬莱仙境</button>
+          <button id="mapStyleIsland" class="px-2 py-1 rounded border border-base">动漫岛屿</button>
+        </div>
+      </div>
+      <div class="panel rounded-xl p-4">
+        <div class="mb-3">
+          <span>当前身份：<span id="mapIdentity">未选择（先完成凌霄问答）</span></span>
+          <span class="ml-4">Lv. <span id="mapLevel">1</span>｜EXP：<span id="mapExp">0</span>/<span id="mapTargetExp">100</span></span>
+        </div>
+        <div id="mapContainer" class="map-wrap map-island">
+          <div class="cloud" style="width:80px;height:32px;top:12%;animation-delay:0s"></div>
+          <div class="cloud" style="width:110px;height:42px;top:24%;animation-delay:-6s"></div>
+          <div class="cloud" style="width:64px;height:26px;top:8%;animation-delay:-12s"></div>
+          <div class="wave"></div>
+          <div id="mapLines"></div>
+          <div id="mapNodes"></div>
+        </div>
+        <div class="mt-4 flex gap-2">
+          <button id="pickCareerBtn" class="px-3 py-1.5 bg-indigo-500 text-white rounded-lg">选择职业身份（360梯度池）</button>
+          <button id="resetMapNode" class="px-3 py-1.5 border border-base rounded-lg hover:bg-sub">重置节点位置</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 弹窗容器 -->
+<div id="modalWrap" class="fixed inset-0 modal-mask hidden items-center justify-center z-50">
+  <div class="panel w-[480px] max-w-[90%] rounded-xl p-5">
+    <div class="flex justify-between items-center mb-3">
+      <h3 id="modalTitle">弹窗</h3>
+      <button class="modal-close"><i class="fa fa-times"></i></button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- 成就升级弹窗 -->
+<div id="achievementToast" class="fixed top-6 right-6 w-72 panel rounded-xl p-4 hidden achieve-pop z-50">
+  <div class="flex items-center gap-2 text-lg">
+    <i class="fa fa-star text-yellow-400 text-xl"></i>
+    <span id="achText">升级成功</span>
+  </div>
+  <div id="achDesc" class="text-muted text-sm mt-1"></div>
+</div>
+
+<script>
+// ========== 全局状态 ==========
+const state = {
+  currentView:'task',
+  gameOn:false,
+  exp:0,
+  level:1,
+  targetExp:100,
+  identity:"",
+  mapStyle:"island",
+  lingxiaoFinish:false,
+  tasks:[
+    {id:1,title:"完成AIPM作品集修改",done:false,exp:20,milestone:"校招作品集",date:"2026-11-05"},
+    {id:2,title:"刷3道产品面试题",done:false,exp:12,milestone:"求职能力",date:"2026-11-05"},
+    {id:3,title:"英语六级单词背诵",done:true,exp:8,milestone:"语言积累",date:"2026-11-04"},
+    {id:4,title:"健身30分钟力量训练",done:false,exp:15,milestone:"体能",date:"2026-11-05"},
+    {id:5,title:"整理宽序PRD文档",done:false,exp:25,milestone:"产品项目",date:"2026-11-06"},
+  ],
+  calendarEvents:[
+    {id:1,title:"产品复盘会",date:"2026-11-05"},
+    {id:2,title:"面试模拟",date:"2026-11-07"},
+  ],
+  publicGoals:[
+    {id:1,user:"小星",track:"求职AIPM",content:"2个月拿到AI产品offer",progress:62},
+    {id:2,user:"阿泽",track:"考研",content:"上岸计算机学硕",progress:41},
+    {id:3,user:"晚晚",track:"健身",content:"3个月减脂8kg",progress:75},
+    {id:4,user:"Lynn",track:"语言学习",content:"雅思7分",progress:53},
+  ],
+  rankAll:[],
+  rankPage:1,
+  rankPageSize:10,
+  trackFilter:"all",
+  mapNodes:[
+    {id:1,x:40,y:200,name:"起点",needLv:0,desc:"人生启程"},
+    {id:2,x:160,y:120,name:"第一阶段",needLv:2,desc:"基础积累"},
+    {id:3,x:280,y:260,name:"第二阶段",needLv:4,desc:"能力进阶"},
+    {id:4,x:400,y:140,name:"第三阶段",needLv:6,desc:"赛道深耕"},
+    {id:5,x:520,y:220,name:"终局里程碑",needLv:10,desc:"理想达成"},
+  ],
+  // 360完整职业梯度池
+  careerPool: [
+    "AI产品经理","AIPM","B端产品经理","C端产品经理","数据产品经理","商业化产品经理","策略产品经理","硬件产品经理","游戏产品经理","海外产品经理",
+    "前端开发工程师","后端开发工程师","全栈工程师","算法工程师","大模型算法工程师","CV算法工程师","NLP算法工程师","推荐算法工程师","搜索算法工程师","测试开发工程师",
+    "软件测试工程师","运维工程师","DevOps工程师","安全工程师","嵌入式开发","物联网开发","区块链开发","音视频开发","数据库工程师","架构师",
+    "UI设计师","UX设计师","交互设计师","视觉设计师","品牌设计师","插画师","动效设计师","3D建模师","原画师","游戏美术",
+    "平面设计师","空间设计师","室内设计师","景观设计师","建筑设计师","工装设计师","软装设计师","展陈设计师","服装设计师","珠宝设计师",
+    "中小学语文教师","中小学数学教师","英语教师","物理教师","化学教师","生物教师","历史教师","地理教师","政治教师","音乐教师",
+    "美术教师","体育教师","高校讲师","高校副教授","高校教授","辅导员","考研辅导老师","公考讲师","职业培训讲师","少儿启蒙老师",
+    "临床医生","内科医生","外科医生","儿科医生","妇产科医生","急诊科医生","口腔科医生","眼科医生","皮肤科医生","精神科医生",
+    "麻醉医师","影像科医师","检验师","药师","康复治疗师","营养师","心理咨询师","心理治疗师","护士","医美医师",
+    "诉讼律师","非诉律师","知识产权律师","劳动法律师","商事律师","刑事律师","公证员","法务专员","合规专员","风控专员",
+    "注册会计师","审计师","税务师","财务分析师","管理会计","出纳","成本会计","资金专员","投行分析师","券商研究员",
+    "基金经理","理财顾问","保险精算师","银行客户经理","信贷专员","风控建模师","资产评估师","期货交易员","证券经纪人","信托专员",
+    "内容运营","用户运营","活动运营","社群运营","直播运营","短视频运营","电商运营","商家运营","品类运营","增长运营",
+    "渠道运营","品牌运营","新媒体运营","私域运营","游戏运营","社区运营","内容审核","数据运营","达人运营","跨境运营",
+    "策划","品牌策划","营销策划","活动策划","文案策划","短视频编导","直播编导","剧本策划","IP策划","会展策划",
+    "自媒体博主","B站UP主","抖音博主","小红书博主","视频号博主","独立撰稿人","专栏作家","网文作者","剧本杀作者","影评人",
+    "摄影师","商业摄影师","人像摄影师","风光摄影师","静物摄影师","摄像师","剪辑师","调色师","录音师","混音师",
+    "独立音乐人","歌手","词曲作者","编曲师","配音演员","声优","主播","脱口秀演员","话剧演员","影视演员",
+    "动画师","二维动画师","三维动画师","分镜师","动画导演","漫画作者","漫画家","潮玩设计师","手办原型师","独立艺术家",
+    "土木工程师","结构工程师","给排水工程师","暖通工程师","电气工程师","造价工程师","监理工程师","路桥工程师","岩土工程师","测绘工程师",
+    "机械工程师","自动化工程师","模具工程师","工艺工程师","质量工程师","工业工程师","智能制造工程师","机器人工程师","汽车工程师","新能源工程师",
+    "化工工程师","环境工程师","材料工程师","食品工程师","制药工程师","生物医药研发","医疗器械研发","农业工程师","畜牧师","水产技术员",
+    "公务员（综合岗）","公务员（文秘岗）","公务员（网信岗）","市场监管岗","海关岗","税务岗","文旅岗","发改岗","街道办专员","选调生",
+    "事业单位研究员","图书馆馆员","档案馆管理员","文化馆干事","博物馆策展人","疾控中心专员","卫健委干事","融媒体记者","报社编辑","电台主持人",
+    "导游","计调师","旅行定制师","酒店经理","民宿主理人","餐饮店长","咖啡师","烘焙师","调酒师","甜品师",
+    "健身教练","普拉提教练","瑜伽教练","格斗教练","田径教练","游泳教练","体能师","运动康复师","健身博主","赛事裁判",
+    "翻译（笔译）","翻译（口译）","同声传译","本地化翻译","字幕翻译","文档翻译","商务翻译","法律翻译","医学翻译","技术翻译",
+    "猎头","HRBP","招聘专员","薪酬绩效专员","培训专员","组织发展OD","人才发展TD","员工关系专员","行政主管","办公室主任",
+    "供应链专员","采购专员","仓储管理","物流调度","供应链计划员","外贸跟单","跨境采购","报关员","货代专员","库存管理",
+    "房产经纪人","新房渠道","家装顾问","家居销售","汽车销售","奢侈品销售","ToB销售","渠道销售","大客户销售","售前解决方案",
+    "独立开发者","独立设计师","自由撰稿人","自由摄影师","独立顾问","创业创始人","工作室主理人","独立咨询师","独立教练","独立策展人",
+    "考古研究员","文博修复师","古籍修复师","非遗传承人","花艺师","茶艺师","香道师","手作匠人","皮具匠人","木作匠人",
+    "占星师","职业规划师","生涯咨询师","婚恋咨询师","家庭教育指导师","学习力教练","记忆力教练","思维导图导师","时间管理导师","自律陪伴师",
+    "赛车手","电竞选手","电竞教练","赛事解说","游戏主播","桌游设计师","剧本杀DM","密室设计师","跑团主持人","卡牌设计师",
+    "兽医","宠物美容师","宠物营养师","宠物训练师","宠物医院院长","训犬师","异宠养护师","宠物博主","宠物摄影师","宠物产品策划",
+    "飞行器工程师","无人机飞手","航拍摄影师","飞行员","空乘","机务维修","船舶工程师","航海员","地铁工程师","轨道交通设计师",
+    "气象研究员","地质勘探员","海洋研究员","天文研究员","生态研究员","林业技术员","植保技术员","种子研发员","园艺师","盆景师",
+    "非遗剪纸师","陶艺师","漆艺师","首饰匠人","刺绣匠人","扎染匠人","活字印刷师","古籍排版师","书画装裱师","书画鉴定师"
+  ]
+}
+// 生成排行榜模拟数据
+const trackPool = ["考研","求职AIPM","健身","语言学习"]
+for(let i=1;i<=36;i++){
+  state.rankAll.push({
+    uid:i,
+    name:"玩家"+i,
+    track:trackPool[Math.floor(Math.random()*4)],
+    score:Math.floor(Math.random()*800)+100,
+    level:Math.floor(Math.random()*12)+1
+  })
+}
+
+// ========== DOM 工具 ==========
+const $ = s=>document.querySelector(s)
+const $$ = s=>Array.from(document.querySelectorAll(s))
+function saveLocal(){
+  localStorage.setItem('kuanxu_data',JSON.stringify({
+    tasks:state.tasks,exp:state.exp,level:state.level,targetExp:state.targetExp,gameOn:state.gameOn,
+    identity:state.identity,lingxiaoFinish:state.lingxiaoFinish,mapStyle:state.mapStyle,
+    mapNodes:state.mapNodes
+  }))
+}
+function loadLocal(){
+  const raw = localStorage.getItem('kuanxu_data')
+  if(raw){
+    const d = JSON.parse(raw)
+    state.tasks = d.tasks || state.tasks
+    state.exp = d.exp || 0
+    state.level = d.level || 1
+    state.targetExp = d.targetExp || 100
+    state.gameOn = !!d.gameOn
+    state.identity = d.identity || ""
+    state.lingxiaoFinish = !!d.lingxiaoFinish
+    state.mapStyle = d.mapStyle || "island"
+    if(d.mapNodes) state.mapNodes = d.mapNodes
+  }
+  $('#gameExpSwitch').checked = state.gameOn
+}
+// 切换视图
+function switchView(viewName){
+  state.currentView = viewName
+  $$('.view-page').forEach(p=>p.classList.add('hidden'))
+  $(`#view-${viewName}`).classList.remove('hidden')
+  $$('.menu-btn').forEach(b=>b.classList.remove('bg-indigo-100'))
+  $(`button[data-view="${viewName}"]`)?.classList.add('bg-indigo-100')
+  if(viewName==='rank') renderRank()
+  if(viewName==='calendar') renderCalendar()
+  if(viewName==='life-map') renderLifeMap()
+}
+// 弹窗
+function openModal(title,htmlBody){
+  $('#modalTitle').innerText = title
+  $('#modalBody').innerHTML = htmlBody
+  $('#modalWrap').classList.remove('hidden')
+  $('#modalWrap').classList.add('flex')
+}
+function closeModal(){
+  $('#modalWrap').classList.add('hidden')
+  $('#modalWrap').classList.remove('flex')
+}
+// 成就弹窗
+function showAchieve(text,desc){
+  const t = $('#achievementToast')
+  $('#achText').innerText = text
+  $('#achDesc').innerText = desc
+  t.classList.remove('hidden')
+  t.classList.add('level-up-anim')
+  setTimeout(()=>t.classList.add('hidden'),2200)
+}
+
+// ========== 渲染函数 ==========
+function renderTask(){
+  const wrap = $('#taskList')
+  wrap.innerHTML = ''
+  state.tasks.forEach(t=>{
+    const item = document.createElement('div')
+    item.className = 'flex items-center justify-between p-2 rounded-lg bg-sub'
+    item.innerHTML = `
+      <div class="flex items-center gap-2">
+        <input type="checkbox" class="task-check w-4 h-4" data-id="${t.id}" ${t.done?'checked':''}>
+        <span class="${t.done?'line-through text-muted':''}">${t.title}</span>
+        ${state.gameOn?`<span class="text-xs text-indigo-400">[EXP+${t.exp}] ${t.milestone}</span>`:''}
+      </div>
+      <button class="task-del text-red-400 hover:text-red-600" data-id="${t.id}"><i class="fa fa-trash"></i></button>
+    `
+    wrap.appendChild(item)
+  })
+}
+function renderCalendar(){
+  const g = $('#calendarGrid')
+  g.innerHTML = ''
+  const dayCount = 30
+  for(let d=1;d<=dayCount;d++){
+    const dayEl = document.createElement('div')
+    dayEl.className = 'calendar-day p-1 border border-base rounded-md bg-sub'
+    dayEl.dataset.day = d
+    const evs = state.calendarEvents.filter(e=>{
+      const dd = new Date(e.date).getDate()
+      return dd === d
+    })
+    dayEl.innerHTML = `<div class="text-xs mb-1">${d}</div>`
+    evs.forEach(ev=>{
+      dayEl.innerHTML += `<div class="text-xs bg-indigo-200 dark:bg-indigo-800 rounded px-1 my-0.5">${ev.title}</div>`
+    })
+    g.appendChild(dayEl)
+  }
+}
+function renderPublicGoal(){
+  const wrap = $('#publicGoalList')
+  wrap.innerHTML = ''
+  state.publicGoals.forEach(g=>{
+    wrap.innerHTML += `
+    <div class="panel p-3 rounded-xl">
+      <div class="flex justify-between">
+        <span class="font-medium">${g.user}</span>
+        <span class="text-xs px-2 py-0.5 bg-indigo-100 rounded">${g.track}</span>
+      </div>
+      <div class="my-2">${g.content}</div>
+      <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div class="h-full bg-indigo-500" style="width:${g.progress}%"></div>
+      </div>
+      <div class="text-xs text-muted mt-1">进度 ${g.progress}%</div>
+    </div>
+    `
+  })
+}
+function renderRank(){
+  const filter = state.trackFilter
+  let list = [...state.rankAll]
+  if(filter!=='all') list = list.filter(x=>x.track === filter)
+  list.sort((a,b)=>b.score - a.score)
+  const total = list.length
+  const start = (state.rankPage-1)*state.rankPageSize
+  const pageData = list.slice(start,start+state.rankPageSize)
+  const wrap = $('#rankList')
+  wrap.innerHTML = ''
+  pageData.forEach((p,idx)=>{
+    wrap.innerHTML += `
+    <div class="flex justify-between items-center p-2 bg-sub rounded-lg">
+      <div class="flex gap-3 items-center">
+        <span class="w-6 text-center">${start+idx+1}</span>
+        <span>${p.name}</span>
+        <span class="text-xs px-1.5 bg-indigo-100 rounded">${p.track}</span>
+      </div>
+      <div>Lv.${p.level}｜${p.score}分</div>
+    </div>
+    `
+  })
+  // 分页
+  const pageWrap = $('#rankPageWrap')
+  pageWrap.innerHTML = ''
+  const totalPage = Math.ceil(total/state.rankPageSize)
+  for(let i=1;i<=totalPage;i++){
+    pageWrap.innerHTML += `<button class="rank-page-btn px-2 py-1 rounded border border-base ${i===state.rankPage?'bg-indigo-500 text-white':''}" data-p="${i}">${i}</button>`
+  }
+}
+// 渲染人生地图
+function renderLifeMap(){
+  const container = $('#mapContainer')
+  container.className = 'map-wrap'
+  if(state.mapStyle === 'cyber'){
+    container.classList.add('map-cyber')
+    $$('.cloud,.wave').forEach(el=>el.style.display="none")
+  }else if(state.mapStyle === 'fairy'){
+    container.classList.add('map-fairy')
+    $$('.cloud,.wave').forEach(el=>el.style.display="none")
+  }else if(state.mapStyle === 'island'){
+    container.classList.add('map-island')
+    $$('.cloud,.wave').forEach(el=>el.style.display="block")
+  }
+  $('#mapIdentity').innerText = state.identity || "未选择（先完成凌霄问答）"
+  $('#mapLevel').innerText = state.level
+  $('#mapExp').innerText = state.exp
+  $('#mapTargetExp').innerText = state.targetExp
+
+  const lineWrap = $('#mapLines')
+  const nodeWrap = $('#mapNodes')
+  lineWrap.innerHTML = ''
+  nodeWrap.innerHTML = ''
+  // 绘制连接线
+  for(let i=0;i<state.mapNodes.length-1;i++){
+    const n1 = state.mapNodes[i]
+    const n2 = state.mapNodes[i+1]
+    const dx = n2.x - n1.x
+    const dy = n2.y - n1.y
+    const len = Math.sqrt(dx*dx + dy*dy)
+    const deg = Math.atan2(dy,dx)*180/Math.PI
+    const line = document.createElement('div')
+    line.className = 'map-line'
+    line.style.left = n1.x + 36 + 'px'
+    line.style.top = n1.y + 36 + 'px'
+    line.style.width = len + 'px'
+    line.style.transform = `rotate(${deg}deg)`
+    lineWrap.appendChild(line)
+  }
+  // 绘制节点
+  state.mapNodes.forEach(node=>{
+    const nd = document.createElement('div')
+    const isUnlock = state.level >= node.needLv
+    nd.className = `map-node ${isUnlock?'unlock':'lock'}`
+    nd.style.left = node.x + 'px'
+    nd.style.top = node.y + 'px'
+    nd.innerText = node.name
+    nd.dataset.nodeId = node.id
+    nodeWrap.appendChild(nd)
+  })
+}
+// ========== 地图节点拖拽逻辑 ==========
+let dragInfo = null
+document.addEventListener('mousedown',(e)=>{
+  const node = e.target.closest('.map-node')
+  if(!node) return
+  const nid = Number(node.dataset.nodeId)
+  const nodeData = state.mapNodes.find(x=>x.id === nid)
+  const container = $('#mapContainer')
+  const rect = container.getBoundingClientRect()
+  dragInfo = {
+    nodeEl:node,
+    nodeData,
+    offsetX: e.clientX - rect.left - nodeData.x,
+    offsetY: e.clientY - rect.top - nodeData.y
+  }
+})
+document.addEventListener('mousemove',(e)=>{
+  if(!dragInfo) return
+  const container = $('#mapContainer')
+  const rect = container.getBoundingClientRect()
+  let nx = e.clientX - rect.left - dragInfo.offsetX
+  let ny = e.clientY - rect.top - dragInfo.offsetY
+  nx = Math.max(0, Math.min(container.clientWidth - 72, nx))
+  ny = Math.max(0, Math.min(container.clientHeight -72, ny))
+  dragInfo.nodeData.x = nx
+  dragInfo.nodeData.y = ny
+  renderLifeMap()
+})
+document.addEventListener('mouseup',()=>{
+  if(dragInfo){
+    saveLocal()
+    dragInfo = null
+  }
+})
+// 重置节点位置
+function resetMapNodesPos(){
+  state.mapNodes = [
+    {id:1,x:40,y:200,name:"起点",needLv:0,desc:"人生启程"},
+    {id:2,x:160,y:120,name:"第一阶段",needLv:2,desc:"基础积累"},
+    {id:3,x:280,y:260,name:"第二阶段",needLv:4,desc:"能力进阶"},
+    {id:4,x:400,y:140,name:"第三阶段",needLv:6,desc:"赛道深耕"},
+    {id:5,x:520,y:220,name:"终局里程碑",needLv:10,desc:"理想达成"},
+  ]
+  saveLocal()
+  renderLifeMap()
+}
+
+// ========== 全局事件委托（核心！所有点击在这里统一处理，不会失效） ==========
+document.addEventListener('click',function(e){
+  const target = e.target.closest('button,input,.modal-close,.calendar-day,.rank-page-btn,.map-node')
+  if(!target) return
+
+  // 菜单切换视图
+  if(target.classList.contains('menu-btn')){
+    switchView(target.dataset.view)
+    return
+  }
+  // 深色模式
+  if(target.id === 'themeToggle'){
+    const root = document.documentElement
+    const curr = root.getAttribute('data-theme')
+    const next = curr === 'dark' ? 'light':'dark'
+    root.setAttribute('data-theme',next)
+    localStorage.setItem('kuanxu_theme',next)
+    return
+  }
+  // 游戏化开关弹窗
+  if(target.id === 'gameOpenBtn'){
+    openModal("宽序 · 游戏化人生系统",`
+      <div class="space-y-3">
+        <p>欢迎来到宽序人生赛道，先和凌霄AI对话，8个问题以内，定位你的人生赛道</p>
+        <p>当前等级：Lv.${state.level}｜EXP：${state.exp}/${state.targetExp}</p>
+        <p>360梯度职业池，自由叠加身份元素，赛博/仙境/动漫岛屿三地图可选</p>
+        <button id="startAiJourney" class="w-full py-2 bg-indigo-500 text-white rounded-lg">开始凌霄问答</button>
+      </div>
+    `)
+    return
+  }
+  // 凌霄AI按钮
+  if(target.id === 'aiLingXiaoBtn'){
+    openModal("凌霄AI｜人生方向问答",`
+      <div class="space-y-3">
+        <p>我是凌霄，最多8轮对话，帮你找到向往赛道</p>
+        <textarea id="lingxiaoInput" class="w-full border border-base rounded p-2 bg-sub" rows="3" placeholder="写下你向往的方向..."></textarea>
+        <button id="sendLingXiao" class="w-full py-2 bg-indigo-500 text-white rounded-lg">提交回答</button>
+      </div>
+    `)
+    return
+  }
+  // 关闭弹窗
+  if(target.classList.contains('modal-close')){
+    closeModal()
+    return
+  }
+  // 新增任务
+  if(target.id === 'addTaskBtn'){
+    openModal("新增任务",`
+      <div class="space-y-3">
+        <input class="w-full border border-base rounded p-2 bg-sub" id="newTaskTitle" placeholder="任务名称">
+        ${state.gameOn?`
+        <div class="flex gap-2">
+          <input class="flex-1 border border-base rounded p-2 bg-sub w-1/2" id="newTaskExp" placeholder="EXP值" value="10">
+          <input class="flex-1 border border-base rounded p-2 bg-sub w-1/2" id="newTaskMilestone" placeholder="里程碑">
+        </div>
+        `:''}
+        <button id="saveNewTask" class="w-full py-2 bg-indigo-500 text-white rounded-lg">保存</button>
+      </div>
+    `)
+    return
+  }
+  // 任务勾选
+  if(target.classList.contains('task-check')){
+    const tid = Number(target.dataset.id)
+    const task = state.tasks.find(x=>x.id===tid)
+    if(!task) return
+    const oldDone = task.done
+    task.done = target.checked
+    if(!oldDone && task.done && state.gameOn){
+      state.exp += task.exp
+      // 判断升级
+      if(state.exp >= state.targetExp){
+        state.exp -= state.targetExp
+        state.level +=1
+        state.targetExp = Math.floor(state.targetExp * 1.35)
+        showAchieve(`升级！Lv.${state.level}`,`里程碑解锁：${task.milestone}`)
+      }else{
+        showAchieve(`+${task.exp} EXP`,`继续积累，迈向Lv.${state.level+1}`)
+      }
+      renderLifeMap()
+    }
+    saveLocal()
+    renderTask()
+    return
+  }
+  // 删除任务
+  if(target.classList.contains('task-del')){
+    const tid = Number(target.dataset.id)
+    state.tasks = state.tasks.filter(x=>x.id !== tid)
+    saveLocal()
+    renderTask()
+    return
+  }
+  // 游戏化EXP总开关
+  if(target.id === 'gameExpSwitch'){
+    state.gameOn = target.checked
+    saveLocal()
+    renderTask()
+    return
+  }
+  // 保存新任务
+  if(target.id === 'saveNewTask'){
+    const title = $('#newTaskTitle').value.trim()
+    if(!title) return alert("任务名不能为空")
+    const newId = Date.now()
+    const nt = {id:newId,title,done:false,exp:Number($('#newTaskExp')?.value||10),milestone:$('#newTaskMilestone')?.value||'日常目标',date:'2026-11-05'}
+    state.tasks.push(nt)
+    saveLocal()
+    renderTask()
+    closeModal()
+    return
+  }
+  // 日历格子点击新建日程
+  if(target.classList.contains('calendar-day')){
+    const d = target.dataset.day
+    openModal("新建日程",`
+      <p>日期：11月${d}日</p>
+      <input class="w-full border border-base rounded p-2 bg-sub mt-2" id="calEventTitle" placeholder="日程名称">
+      <button id="saveCalEvent" class="w-full py-2 bg-indigo-500 text-white rounded-lg mt-3">保存</button>
+    `)
+    $('#saveCalEvent').onclick = ()=>{
+      const t = $('#calEventTitle').value.trim()
+      if(!t) return
+      state.calendarEvents.push({id:Date.now(),title:t,date:`2026-11-${String(d).padStart(2,'0')}`})
+      renderCalendar()
+      closeModal()
+    }
+    return
+  }
+  // 排行榜分页
+  if(target.classList.contains('rank-page-btn')){
+    state.rankPage = Number(target.dataset.p)
+    renderRank()
+    return
+  }
+  // 凌霄提交
+  if(target.id === 'sendLingXiao'){
+    const val = $('#lingxiaoInput').value.trim()
+    if(!val) return alert("请输入你的想法")
+    state.lingxiaoFinish = true
+    saveLocal()
+    openModal("凌霄AI回复",`<p>收到你的向往：${val}</p><p>人生方向判断完成 ✅，解锁职业选择和人生地图</p>`)
+    return
+  }
+  // 开始旅程
+  if(target.id === 'startAiJourney'){
+    closeModal()
+    $('#aiLingXiaoBtn').click()
+    return
+  }
+  // 地图风格切换
+  if(target.id === 'mapStyleCyber'){
+    state.mapStyle = "cyber"
+    saveLocal()
+    renderLifeMap()
+    return
+  }
+  if(target.id === 'mapStyleFairy'){
+    state.mapStyle = "fairy"
+    saveLocal()
+    renderLifeMap()
+    return
+  }
+  if(target.id === 'mapStyleIsland'){
+    state.mapStyle = "island"
+    saveLocal()
+    renderLifeMap()
+    return
+  }
+  // 重置节点
+  if(target.id === 'resetMapNode'){
+    resetMapNodesPos()
+    return
+  }
+  // 打开职业选择面板
+  if(target.id === 'pickCareerBtn'){
+    if(!state.lingxiaoFinish){
+      alert("请先完成凌霄AI人生问答，才能选择职业！")
+      return
+    }
+    const careerHtml = state.careerPool.map(c=>`<div class="p-2 border rounded cursor-pointer career-item hover:bg-indigo-100">${c}</div>`).join('')
+    openModal("选择你的职业身份（360梯度池｜支持叠加多身份）",`
+      <div class="grid grid-cols-3 gap-2 max-h-[320px] overflow-y-auto">
+        ${careerHtml}
+      </div>
+      <div class="mt-3 text-sm text-muted">💡 可以多次选择叠加多个身份，例如：AIPM + 独立插画师</div>
+    `)
+    // 职业点击绑定
+    $$('.career-item').forEach(el=>{
+      el.onclick = ()=>{
+        if(state.identity){
+          state.identity += " + " + el.innerText
+        }else{
+          state.identity = el.innerText
+        }
+        saveLocal()
+        renderLifeMap()
+        closeModal()
+      }
+    })
+    return
+  }
+  // 地图节点点击查看里程碑
+  if(target.classList.contains('map-node')){
+    const nid = Number(target.dataset.nodeId)
+    const node = state.mapNodes.find(x=>x.id === nid)
+    if(!node) return
+    const unlock = state.level >= node.needLv
+    openModal("里程碑节点："+node.name,`
+      <p>${node.desc}</p>
+      <p class="mt-2">解锁条件：Lv.${node.needLv}</p>
+      <p>状态：${unlock?"✅ 已解锁":"🔒 未解锁"}</p>
+    `)
+    return
+  }
+})
+
+// ========== 赛道筛选单独监听 ==========
+$('#trackFilter').addEventListener('change',e=>{
+  state.trackFilter = e.target.value
+  state.rankPage = 1
+  renderRank()
+})
+
+// ========== 初始化 ==========
+window.addEventListener('DOMContentLoaded',()=>{
+  loadLocal()
+  renderTask()
+  renderPublicGoal()
+  switchView('task')
+})
+</script>
+</body>
+</html>
