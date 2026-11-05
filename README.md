@@ -11,7 +11,7 @@
 
 松间知宁|居家养老 Agent 平台：https://Just-younth-life.github.io/AI-Creative-Trials/project-sensor-songjianzhining/
 
-宽序|AI社交日程管理平台:https://Just-younth-life.github.io/AI-Creative-Trials/project-kuanxu/
+宽序|AI社交日程管理平台:https://Just-younth-life.github.io/AI-Creative-Trials/projrct-kuanxu/
 
 ## Agent 智能体模块（轻量化多模型调度框架）
 本模块实现灰度策略驱动的AI智能体，支持多家海外大模型厂商接入，面向AI创意产品原型验证。
