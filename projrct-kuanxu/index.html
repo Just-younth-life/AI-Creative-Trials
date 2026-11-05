@@ -656,9 +656,6 @@ document.addEventListener('click',function(e){
     return
   }  
   // 凌霄AI按钮
-  if(target.id === 'aiLingXiaoBtn'){
-    openModal("凌霄AI｜人生方向问答",`
-      <div class="space-y-3">
         <p>我是凌霄，最多8轮对话，帮你找到向往赛道</p>
         const lingxiaoQuestions = [
            "你更享受和人打交道，还是独自深度钻研？",
@@ -670,11 +667,6 @@ document.addEventListener('click',function(e){
            "你希望工作里有大量竞争对抗，还是平和长期深耕？",
            "一句话说说，你最理想的人生状态是什么？"
            ];
-        <button id="sendLingXiao" class="w-full py-2 bg-indigo-500 text-white rounded-lg">提交回答</button>
-      </div>
-    `)
-    return
-  }
   
   // 360职业精简池（这里放一批，你后续可以继续扩充到360条）
 const jobPool = [
