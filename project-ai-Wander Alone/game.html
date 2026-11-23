@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WONGDU: Trail of the Ruins · Demo</title>
+<style>
+  :root{
+    --ink:#26314a; --ink2:#5c6880; --ink3:#97a1b5;
+    --bg:#f5f7fc; --card:#fff; --line:#e6ebf4;
+    --blue:#3b7ddd; --blue-soft:#eaf2ff; --blue-deep:#1f5bb0;
+    --amber:#e59a2b; --green:#22a06b; --red:#e05252; --red-soft:#ffe6e6;
+    --radius:16px;
+    --c0:#F7B9C6; --c1:#9FCBEF; --c2:#F7D488; --c3:#A9DC9C;
+    --c4:#C9B6EE; --c5:#F2B183; --c6:#8FD8C8; --c7:#E9B0D8; --c8:#CFD888;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#bfe0f5;color:var(--ink);min-height:100vh;line-height:1.5}
+  .app{max-width:520px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:24px;overflow:hidden}
+  /* Dreamy dog background + 天空色，统一封面 icon 风格 */
+  .app::before{content:"";position:fixed;inset:0;z-index:-2;background:#a9d8f2 url('assets/dream-dogs-bg.jpg') center top/cover no-repeat;opacity:.55}
+  .app::after{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(233,246,255,.25) 0%,rgba(246,248,252,.86) 42%,rgba(246,248,252,.96) 100%)}
+  /* 首页头部：乐信式小 icon + 文字（icon 只比「汪独」二字略大） */
+  .cover{position:relative;margin:0 0 6px;padding:14px 18px 14px;border-radius:0 0 22px 22px;
+    background:linear-gradient(120deg,#eaf3ff 0%,#f6f8fc 60%,#fff2df 100%);
+    border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .cover .app-icon{width:34px;height:34px;flex:none;border-radius:9px;overflow:hidden;
+    box-shadow:0 2px 7px rgba(31,42,61,.16);border:1px solid rgba(255,255,255,.85)}
+  .cover .app-icon img{width:100%;height:100%;display:block;object-fit:cover}
+  .cover .cover-txt h1{font-size:23px;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--ink)}
+  .cover .cover-txt p{font-size:11px;margin-top:3px;color:var(--ink2)}
+  .cover .cover-badge{margin-left:auto;background:rgba(255,255,255,.9);color:var(--blue-deep);
+    font-size:11px;font-weight:700;padding:5px 10px;border-radius:14px;border:1px solid var(--line);white-space:nowrap}
+  /* 32 关设计逻辑说明 */
+  .design-note{margin:12px 18px 0;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  .design-note .t{font-size:12px;font-weight:700;color:var(--blue-deep);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .design-note p{font-size:11px;color:var(--ink2);line-height:1.65}
+  .design-note .stages{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+  .design-note .stages span{font-size:10px;background:var(--blue-soft);color:var(--blue-deep);padding:3px 7px;border-radius:8px}
+
+  .top{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px}
+  .brand{display:flex;align-items:center;gap:9px;font-size:19px;font-weight:800;letter-spacing:-.02em}
+  .brand .logo{width:38px;height:38px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .brand .logo .w{width:100%;height:100%}
+  .icon-btn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:var(--ink2)}
+
+  .status{margin:4px 18px 12px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .lv-info .lb{font-size:11px;color:var(--ink3)}
+  .lv-info .name{font-size:15px;font-weight:700}
+  .bones{display:flex;align-items:center;gap:3px}
+  .undo-badge{font-size:11px;font-weight:700;color:#2b6cb0;background:#e8f2ff;border:1px solid #c3dcff;padding:2px 9px;border-radius:10px;white-space:nowrap}
+  .undo-badge.restart{color:#8a5c10;background:#fff4e2;border-color:#f2dcb4}
+  .undo-badge.empty{color:#b04a4a;background:#ffeaea;border-color:#ffc9c9}
+  .bone-wrap{position:relative;width:28px;height:28px}
+  .bone{width:28px;height:28px;object-fit:contain;transition:.25s}
+  .bone.lost{opacity:.18;filter:grayscale(1)}
+  .bone.shake{animation:boneShake .4s}
+  @keyframes boneShake{0%,100%{transform:rotate(0)}20%{transform:rotate(-18deg) scale(1.1)}40%{transform:rotate(15deg)}60%{transform:rotate(-10deg)}}
+  .bone-minus{position:absolute;top:-6px;left:50%;color:var(--red);font-weight:800;font-size:15px;pointer-events:none;animation:floatUp .8s forwards}
+  @keyframes floatUp{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-22px)}}
+
+  .board-wrap{padding:0 18px;display:flex;justify-content:center}
+  /* 奶油色立体面板（乐信木质/毛绒质感） */
+  .board{display:grid;gap:3px;padding:10px;border-radius:20px;width:100%;max-width:430px;
+    background:linear-gradient(180deg,#fdf6e8 0%,#f6ecd6 70%,#efe1c2 100%);
+    border:1px solid #e6d5ae;
+    box-shadow:0 12px 28px rgba(30,50,90,.16),inset 0 2px 0 rgba(255,255,255,.85),inset 0 -4px 0 rgba(160,120,60,.12)}
+  .cell{position:relative;aspect-ratio:1;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .08s;user-select:none;overflow:visible;box-shadow:inset 0 0 0 2px rgba(255,255,255,.85),inset 0 -3px 4px rgba(0,0,0,.07)}
+  .cell::before{content:"";position:absolute;inset:0;border-radius:9px;background:linear-gradient(180deg,rgba(255,255,255,.30) 0%,rgba(255,255,255,0) 46%,rgba(0,0,0,.05) 100%);pointer-events:none}
+  .cell:active{transform:scale(.92)}
+  .cell .w{width:80%;height:80%;background-repeat:no-repeat;background-size:200% 300%;animation:pop .25s ease;filter:drop-shadow(0 2px 3px rgba(0,0,0,.18))}
+  .w0{background-position:0% 0%}.w1{background-position:100% 0%}.w2{background-position:0% 50%}
+  .w3{background-position:100% 50%}.w4{background-position:0% 100%}.w5{background-position:100% 100%}
+  /* Paw：白色粗十字，描边清晰 */
+  .cell .xmark{width:62%;height:62%;position:relative;animation:pop .2s ease}
+  .cell .xmark::before,.cell .xmark::after{content:"";position:absolute;left:50%;top:50%;width:100%;height:20%;border-radius:6px;background:#fff;box-shadow:0 0 0 2px rgba(59,125,221,.55);transform:translate(-50%,-50%) rotate(45deg)}
+  .cell .xmark::after{transform:translate(-50%,-50%) rotate(-45deg)}
+  /* 错误红叉：珊瑚红，永久锁定 */
+  .cell.bad .xmark::before,.cell.bad .xmark::after{background:var(--red);box-shadow:0 0 0 2px #fff,0 0 0 4px var(--red)}
+  .cell.bad{box-shadow:inset 0 0 0 2px var(--red),0 0 0 2px var(--red-soft)}
+  .cell.hint-glow{animation:glow 1.1s ease-in-out infinite alternate}
+  /* Radar候选格：金色边框 + 光标提示 */
+  .cell.hint-border{box-shadow:inset 0 0 0 3px rgba(229,154,43,.95),0 0 10px rgba(229,154,43,.55);cursor:pointer}
+  .cell.hint-border::after{content:"";position:absolute;inset:3px;border-radius:6px;border:1px dashed rgba(255,255,255,.85);pointer-events:none}
+  .bone.gain{animation:gainPop .7s ease}
+  @keyframes gainPop{0%{transform:scale(.4) rotate(-30deg);opacity:0}55%{transform:scale(1.35) rotate(6deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+  /* 神谕终端：神墟扫迹主题提示区 */
+  .oracle{margin:12px 18px 0;background:linear-gradient(90deg,#202a3f,#2b3a5c);border:1px solid #3d4d74;border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 3px 10px rgba(20,30,55,.25)}
+  .oracle .sigil{width:26px;height:26px;flex:none;border-radius:7px;background:radial-gradient(circle at 40% 35%,#ffe08a,#b97f0a);display:flex;align-items:center;justify-content:center}
+  .oracle .sigil svg{width:17px;height:17px}
+  .oracle .txt{font-size:12px;color:#cdd8ec;letter-spacing:.02em}
+  .oracle .txt b{color:#ffe08a;font-weight:700}
+  .dead-hint{animation:deadPulse 1.2s infinite;border-color:#e05252 !important;color:#fff !important;background:#e05252 !important}
+  @keyframes deadPulse{0%,100%{box-shadow:0 0 0 0 rgba(224,82,82,.5)}50%{box-shadow:0 0 0 8px rgba(224,82,82,0)}}
+  .oracle.flash{animation:oracleFlash .5s}
+  @keyframes oracleFlash{0%{border-color:#ffe08a;box-shadow:0 0 14px rgba(255,224,138,.5)}100%{border-color:#3d4d74}}
+  .cell.wrong .w{animation:shake .35s}
+  .cell.wave-in{animation:waveIn .38s backwards}
+  .cell.excluded::after{content:"";position:absolute;inset:0;border-radius:9px;background:rgba(38,49,74,.10);pointer-events:none}
+  .cell .eliminated{position:absolute;font-size:clamp(13px,4vw,20px);color:rgba(59,125,221,.5);font-weight:800;pointer-events:none;animation:pop .2s ease}
+  @keyframes waveIn{from{transform:scale(.2) rotate(-12deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+  .crack{position:absolute;font-size:18px;pointer-events:none;animation:floatUp .9s forwards;z-index:5}
+  @keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+  @keyframes glow{from{box-shadow:inset 0 0 0 2px rgba(255,255,255,.85)}to{box-shadow:inset 0 0 0 4px rgba(229,154,43,.9),0 0 14px rgba(229,154,43,.7)}}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+  .legend{margin:12px 18px 0;display:flex;gap:14px;font-size:11px;color:var(--ink2);flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .legend i{width:13px;height:13px;border-radius:4px;display:inline-block}
+  .trace{margin:12px 18px 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px;font-size:12px;color:var(--ink2)}
+  .trace b{color:var(--red)}
+  .trace .trace-detail{font-size:11px;color:var(--ink3);margin-top:3px}
+
+  .rules{margin:12px 18px 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  .rules .t{font-size:12px;font-weight:700;color:var(--blue-deep);margin-bottom:6px}
+  .rules ul{list-style:none;display:grid;gap:4px}
+  .rules li{font-size:11px;color:var(--ink2);padding-left:16px;position:relative}
+  .rules li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--blue);position:absolute;left:2px;top:6px}
+
+  .tools{margin:14px 18px 0;display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+  .tool{background:linear-gradient(180deg,#fffdf6,#f7efdc);border:1px solid #e8dcc2;border-radius:14px;padding:9px 2px;text-align:center;cursor:pointer;transition:.12s;position:relative;box-shadow:0 3px 8px rgba(120,90,40,.08),inset 0 1px 0 rgba(255,255,255,.9)}
+  .tool:active{transform:scale(.95)}
+  .tool.active{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-soft),0 3px 8px rgba(120,90,40,.1)}
+  .tool.disabled{opacity:.4;cursor:not-allowed}
+  .tool .ico{width:32px;height:32px;margin:0 auto}
+  .tool .ico svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 3px rgba(80,60,20,.18))}
+  .tool .nm{font-size:9px;color:var(--ink2);margin-top:4px;font-weight:600;white-space:nowrap}
+  .tool .cnt{position:absolute;top:3px;right:5px;font-size:10px;font-weight:700;color:#fff;background:var(--amber);border-radius:10px;padding:0 5px}
+
+  .controls{margin:14px 18px 0;display:flex;gap:10px}
+  .btn{flex:1;min-height:46px;border:none;border-radius:24px;padding:11px 8px;font-size:13px;font-weight:700;color:#7a6a4f;cursor:pointer;
+    background:linear-gradient(180deg,#fffdf6,#f3e9d2);box-shadow:0 4px 0 #d9c8a0,0 7px 14px rgba(0,0,0,.12);text-shadow:0 1px 0 #fff;
+    display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap}
+  .btn.primary{background:linear-gradient(180deg,#53c96c,#2ea34c);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.22);
+    box-shadow:0 5px 0 #1d7a36,0 8px 16px rgba(46,163,76,.32)}
+  .btn:active{transform:translateY(3px)}
+  .btn.primary:active{box-shadow:0 2px 0 #1d7a36,0 4px 8px rgba(46,163,76,.28)}
+  .btn:active{box-shadow:0 1px 0 #d9c8a0}
+  .btn.disabled{opacity:.42;cursor:not-allowed;filter:grayscale(.5)}
+  .modal-stars{display:flex;justify-content:center;gap:7px;margin:-2px 0 10px}
+  .modal-stars svg{width:30px;height:30px}
+  .modal-stars svg.on{animation:starPop .5s ease both}
+  .modal-stars svg.off{opacity:.3}
+  @keyframes starPop{0%{transform:scale(.35) rotate(-28deg);opacity:0}70%{transform:scale(1.18) rotate(6deg)}100%{transform:scale(1) rotate(0)}}
+  .btn.disabled:active{transform:none}
+
+  .mini-stats{margin:14px 18px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .mini{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+  .mini .n{font-size:18px;font-weight:800;color:var(--blue-deep)}
+  .mini .l{font-size:10px;color:var(--ink3)}
+
+  .overlay{position:fixed;inset:0;background:rgba(20,32,55,.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50;opacity:0;pointer-events:none;transition:.2s}
+  .overlay.show{opacity:1;pointer-events:auto}
+  .modal{background:#fff;border-radius:22px;padding:26px 22px;width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+  .modal .big-icon{font-size:46px}
+  .modal .big-icon svg{display:block;margin:0 auto}
+  .modal h3{font-size:22px;margin:8px 0}
+  .modal p{font-size:13px;color:var(--ink2);margin-bottom:16px;white-space:pre-line}
+  .modal-desc{font-size:13px;color:var(--ink2);margin-bottom:14px;white-space:pre-line}
+  /* 通关结算：三格数据 + 彩色奖励条 */
+  .clear-stats{display:flex;justify-content:center;gap:8px;margin:2px 0 10px}
+  .clear-stats .cs{flex:1;background:#f5f8fc;border:1px solid #e6edf7;border-radius:13px;padding:9px 3px;text-align:center}
+  .clear-stats .cs b{display:block;font-size:20px;line-height:1.05;font-weight:800;letter-spacing:-.01em}
+  .clear-stats .cs span{display:block;font-size:9.5px;color:#93a0b4;font-weight:700;margin-top:2px;letter-spacing:.04em}
+  .clear-stats .cs.time b{color:#2f6fd0}
+  .clear-stats .cs.bone b{color:#c9891a}
+  .clear-stats .cs.ok b{color:#22a06b}
+  .clear-stats .cs.bad b{color:#e05252}
+  .clear-reward{display:inline-block;background:#fff4e2;color:#8a5c10;border:1px solid #f2dcb4;font-size:12px;font-weight:800;padding:6px 13px;border-radius:11px;margin-bottom:8px}
+  .clear-unlock{color:#22a06b;font-size:12px;font-weight:800;letter-spacing:.02em}
+  .modal .row{display:flex;gap:8px;margin-top:8px}
+  .modal .btn{padding:12px}
+
+  .screen{display:none}
+  .screen.on{display:block}
+  .level-grid{margin:14px 18px;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+  .lv{aspect-ratio:1;border-radius:12px;border:1px solid var(--line);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:15px;font-weight:700;color:var(--ink);position:relative}
+  .lv.done{background:var(--green);color:#fff;border-color:var(--green)}
+  .lv.current{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-soft)}
+  .lv.locked{background:#f0f2f6;color:var(--ink3);cursor:not-allowed}
+  .lv .s{font-size:8px;font-weight:500;opacity:.8;margin-top:2px}
+  .daily-card{margin:14px 18px;background:linear-gradient(135deg,#fff4e2,#fff);border:1px solid #f2dcb4;border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer}
+  .daily-card.locked{background:#f0f2f6;border-color:var(--line);cursor:not-allowed}
+  .daily-card .badge{width:52px;height:52px;border-radius:14px;background:#fff;border:1px solid #f2dcb4;display:flex;align-items:center;justify-content:center;font-size:26px}
+  .daily-card .txt b{font-size:15px}
+  .daily-card .txt p{font-size:11px;color:var(--ink2)}
+  .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;opacity:0;transition:.2s;z-index:60;pointer-events:none;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .foot{text-align:center;font-size:10px;color:var(--ink3);margin-top:20px;padding:0 18px}
+
+  /* ===== Adventure Paths系统（Forest of Life / Castle of Light / Dark Gate）===== */
+  .route-title{margin:18px 18px 8px;font-size:14px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .route-title .line{flex:1;height:1px;background:var(--line)}
+  .route-map{position:relative;margin:0 18px;border-radius:18px;overflow:hidden;min-height:300px;border:1px solid var(--line);box-shadow:0 6px 20px rgba(30,50,90,.14)}
+  .route-map .rmap-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.85;transition:.25s}
+  .route-map .rmap-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,26,48,.30) 0%,rgba(16,26,48,.55) 100%)}
+  .route-nodes{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px;padding:18px 14px}
+  .route-nodes.rev{direction:rtl}
+  .route-nodes.rev .node{direction:ltr}
+  .node{position:relative;aspect-ratio:1;max-width:74px;margin:0 auto;width:100%;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.92);border:2px solid #dfe6f2;font-size:15px;font-weight:800;color:var(--ink);cursor:pointer;box-shadow:0 3px 8px rgba(10,20,40,.35);transition:.15s}
+  .node:active{transform:scale(.93)}
+  .node .sub{font-size:8px;font-weight:600;opacity:.75;margin-top:1px}
+  .node.done{background:linear-gradient(180deg,#53c96c,#2ea34c);color:#fff;border-color:#1d7a36}
+  .node.done .sub{color:#eafff0}
+  .node.cur{border-color:#ffe08a;box-shadow:0 0 0 3px rgba(255,224,138,.4),0 0 16px rgba(255,224,138,.6);animation:nodePulse 1.6s infinite}
+  @keyframes nodePulse{0%,100%{box-shadow:0 0 0 3px rgba(255,224,138,.35),0 0 12px rgba(255,224,138,.5)}50%{box-shadow:0 0 0 5px rgba(255,224,138,.5),0 0 20px rgba(255,224,138,.75)}}
+  .node.locked{background:rgba(240,242,246,.88);color:var(--ink3);cursor:not-allowed}
+  .node.locked svg{width:14px;height:14px}
+  /* 路径选择卡（关卡下方模式入口） */
+  .route-cards{margin:10px 18px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .rcard{position:relative;border-radius:14px;overflow:hidden;border:2px solid transparent;cursor:pointer;transition:.15s;aspect-ratio:1/1.06;display:flex;flex-direction:column;justify-content:flex-end}
+  .rcard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:.2s}
+  .rcard .rshade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,20,45,.05) 30%,rgba(10,20,45,.78) 100%)}
+  .rcard .rinfo{position:relative;z-index:2;padding:10px 10px 12px;color:#fff}
+  .rcard .rinfo b{font-size:13px;display:block;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+  .rcard .rinfo span{font-size:9px;opacity:.9;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+  .rcard.active{border-color:#ffe08a;box-shadow:0 0 0 2px rgba(255,224,138,.45),0 6px 16px rgba(0,0,0,.25)}
+  .rcard.locked{cursor:not-allowed}
+  .rcard.locked img{filter:grayscale(1) brightness(.55)}
+  .rcard .rlock{position:absolute;top:8px;right:8px;z-index:3;background:rgba(20,30,55,.8);color:#cdd8ec;font-size:9px;padding:3px 8px;border-radius:10px}
+  .rcard:not(.locked) .rprog{position:absolute;top:8px;left:8px;z-index:3;background:rgba(46,163,76,.92);color:#fff;font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px}
+  @media(max-width:600px){.route-nodes{gap:8px 4px}}
+  /* ===== 响应式：手机 ===== */
+  @media(max-width:420px){
+    body{line-height:1.45}
+    .top{padding:12px 14px 8px}
+    .cover{padding:12px 14px}
+    .cover .app-icon{width:30px;height:30px;border-radius:8px}
+    .cover .cover-txt h1{font-size:20px}
+    .cover .cover-txt p{font-size:10px}
+    .cover .cover-badge{font-size:10px;padding:4px 8px}
+    .status{margin:4px 14px 10px;padding:10px 12px}
+    .bone-wrap,.bone{width:24px;height:24px}
+    .board-wrap{padding:0 12px}
+    .board{padding:7px;border-radius:16px}
+    .rules,.design-note,.trace,.oracle{margin-left:12px;margin-right:12px}
+    .oracle .txt{font-size:11px}
+    .tools{margin:12px 12px 0;gap:5px}
+    .tool{padding:7px 1px;border-radius:11px}
+    .tool .ico{width:26px;height:26px}
+    .tool .nm{font-size:8.5px}
+    .tool .cnt{font-size:9px;top:2px;right:3px}
+    .controls{margin:12px 12px 0;gap:7px}
+    .btn{min-height:42px;font-size:12px;padding:9px 4px}
+    .mini-stats{margin:12px 12px 0}
+    .mini{padding:8px}
+    .mini .n{font-size:15px}
+    .route-map{margin:0 12px;min-height:260px}
+    .route-cards{margin:8px 12px 0}
+    .rcard .rinfo b{font-size:11px}
+    .rcard .rinfo span{font-size:8px}
+    .legend{margin-left:12px;margin-right:12px;font-size:10px;gap:9px}
+    .trace{font-size:11px}
+  }
+  /* ===== 响应式：平板 / 桌面 ===== */
+  @media(min-width:760px){
+    .app{max-width:560px;box-shadow:0 0 60px rgba(20,40,80,.18);border-radius:0 0 26px 26px}
+    .board{max-width:480px}
+    .route-map{max-width:520px;margin-left:auto;margin-right:auto}
+    .route-cards{max-width:520px;margin-left:auto;margin-right:auto}
+    .tools,.controls,.mini-stats,.rules,.design-note,.trace,.oracle,.legend,.daily-card{max-width:520px;margin-left:auto;margin-right:auto}
+    .daily-card{width:100%}
+    .route-title{max-width:520px;margin-left:auto;margin-right:auto}
+    .top,.cover{max-width:560px}
+    .top{margin:0 auto}
+  }
+  @media(min-width:1100px){
+    .app{max-width:600px}
+    .board{max-width:520px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div id="screenHome" class="screen on">
+    <div class="cover">
+      <span class="app-icon"><img src="assets/westie-app-icon.png" alt="WONGDU icon"></span>
+      <div class="cover-txt"><h1>WONGDU</h1><p>Trail of the Ruins · Lead the Westies home</p></div>
+      <span class="cover-badge"><span id="coverStat">Level 1 unlocked</span></span>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;padding:0 18px 4px">
+      <div class="icon-btn" id="btnBgm" title="Background music" style="width:auto;padding:0 12px;gap:5px;font-size:12px">Music: Off</div>
+      <div class="icon-btn" id="btnStats" style="width:auto;padding:0 12px;gap:5px;font-size:12px">Stats</div>
+    </div>
+    <div class="daily-card" id="dailyCard">
+      <div class="badge" id="dailyBadge"></div>
+      <div class="txt"><b>Daily Puzzle · 9×9</b><p id="dailyDesc">Same board worldwide, daily challenge</p></div>
+    </div>
+    <div class="rules" style="margin-top:0">
+      <div class="t">How to Play</div>
+      <ul>
+        <li>Place exactly one Westie in every row and every column.</li>
+        <li>One Westie per colored region. They never touch — not even diagonally.</li>
+        <li><b>Minesweeper-style elimination</b>：After each placement, its row, column, region and neighbors grey out as blocked.</li>
+        <li><b>Limited moves</b>：Tap a placed Westie to pick it up again. Moves scale with difficulty (2 on 4×4, up to 4 on 8×8).</li>
+        <li><b>Limited restarts</b>：↻ Restarts are capped per level (3 on small boards, 1 on large) and refill the next day.</li>
+        <li>A wrong tap costs 1 bone and leaves a permanent red X you can review in the mistake log.</li>
+      </ul>
+    </div>
+    <div class="design-note">
+      <div class="t">Why 32 Levels?</div>
+      <p>Following the original non-linear size curve (4→5→6→7→8→9→10×10) and the rhythm of "variants every 5 levels, hand-tuned milestones", the 32 levels are split into 5 stages: <b>the grid rises smoothly from 4×4 to 8×8</b>， with three dials — region shapes, preset hints and bone supply. I deliberately stopped at 32 instead of 100 so every level can be <b>verified as uniquely solvable with a controllable curve</b> — quality over quantity. The daily puzzle is a fixed 9×9 arena for veterans.</p>
+      <div class="stages"><span>Tutorial 1-6 · 4×4</span><span>Foundation 7-14 · 5×5</span><span>Advance 15-22 · 6×6</span><span>Challenge 23-28 · 7×7</span><span>Master 29-32 · 8×8</span></div>
+      <div class="stages" style="margin-top:6px"><span style="background:#fff4e2;color:#8a5c10">Scrolls:<b id="scrollCount">0</b></span><span style="background:#fff4e2;color:#8a5c10">Blueprints:<b id="bpCount">0</b>/6</span><span style="background:#fff8d9;color:#8a5c10">Stars:<b id="starTotal">0</b>/96</span></div>
+    </div>
+    <div class="route-title"><span>Adventure Paths</span><span class="line"></span><span style="font-size:11px;font-weight:500;color:var(--ink3)" id="routeHint">Unlocks as you progress</span></div>
+    <div class="route-map" id="routeMap">
+      <div class="rmap-bg" id="rmapBg"></div>
+      <div class="rmap-shade"></div>
+      <div class="route-nodes" id="routeNodes"></div>
+    </div>
+    <div class="route-cards" id="routeCards"></div>
+    <div class="foot">WONGDU · Puzzle Game ｜ 32 levels, all uniquely solvable · 3 paths unlock by difficulty</div>
+  </div>
+
+  <div id="screenGame" class="screen">
+    <div class="top">
+      <div class="icon-btn" id="btnBack">←</div>
+      <div class="brand" style="font-size:16px" id="gameTitle">Level 1</div>
+      <div class="icon-btn" id="btnRestart">↻</div>
+    </div>
+    <div class="status">
+      <div class="lv-info"><div class="lb" id="stageLb">Tutorial · 4×4</div><div class="name" id="levelName">Level 1</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+        <div style="display:flex;gap:5px">
+          <div class="undo-badge" id="undoBadge">Move 3</div>
+          <div class="undo-badge restart" id="restartBadge">Restart 3</div>
+        </div>
+        <div class="bones" id="bones"></div>
+      </div>
+    </div>
+    <div class="board-wrap"><div class="board" id="board"></div></div>
+    <div class="oracle" id="oracle">
+      <div class="sigil"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#fff" opacity=".92"/><path d="M12 2.5 L13.6 7 L18 5.6 L15.8 9.6 L20.5 12 L15.8 14.4 L18 18.4 L13.6 17 L12 21.5 L10.4 17 L6 18.4 L8.2 14.4 L3.5 12 L8.2 9.6 L6 5.6 L10.4 7 Z" fill="#fff" opacity=".85"/></svg></div>
+      <div class="txt" id="oracleTxt"><b>ORACLE</b> · Awaiting the warden…</div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--blue)"></i>Paw</span>
+      <span><i style="background:var(--red)"></i>Locked X</span>
+      <span><i style="background:var(--amber)"></i>Radar hint</span>
+    </div>
+    <div class="trace" id="traceBox">Mistake log:<b id="traceCount">0</b><span class="trace-detail" id="traceDetail">No mistakes yet</span></div>
+    <div class="tools" id="tools">
+      <div class="tool active" data-tool="dog">
+        <div class="ico">
+          <svg viewBox="0 0 48 48" aria-label="Westie">
+            <defs>
+              <radialGradient id="gFur" cx="50%" cy="34%" r="78%"><stop offset="0%" stop-color="#fffdf8"/><stop offset="68%" stop-color="#f3eee3"/><stop offset="100%" stop-color="#d9d0bc"/></radialGradient>
+              <linearGradient id="gEar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f8f4ea"/><stop offset="100%" stop-color="#ddd4bf"/></linearGradient>
+            </defs>
+            <path d="M12 21 Q7.5 5.5 15 9.5 Q20.5 12.5 20.5 18.5 Z" fill="url(#gEar)" stroke="#c9bfa4" stroke-width="1"/>
+            <path d="M36 21 Q40.5 5.5 33 9.5 Q27.5 12.5 27.5 18.5 Z" fill="url(#gEar)" stroke="#c9bfa4" stroke-width="1"/>
+            <path d="M13.6 17.5 Q13 11.5 16.4 13.6" stroke="#f2b7c2" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+            <path d="M34.4 17.5 Q35 11.5 31.6 13.6" stroke="#f2b7c2" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+            <ellipse cx="24" cy="28.5" rx="15.5" ry="13.5" fill="url(#gFur)"/>
+            <ellipse cx="24" cy="33.5" rx="9.6" ry="7.6" fill="#fffef9"/>
+            <ellipse cx="18" cy="26" rx="2.4" ry="2.9" fill="#3a3430"/>
+            <ellipse cx="30" cy="26" rx="2.4" ry="2.9" fill="#3a3430"/>
+            <circle cx="18.9" cy="24.9" r="0.9" fill="#fff"/><circle cx="30.9" cy="24.9" r="0.9" fill="#fff"/>
+            <ellipse cx="24" cy="31.6" rx="2.7" ry="2.1" fill="#453d36"/>
+            <ellipse cx="23.2" cy="30.9" rx="0.9" ry="0.6" fill="#8d837a"/>
+            <path d="M24 33.7 L24 35.6 M24 35.6 Q21.8 37.6 20.2 36.2 M24 35.6 Q26.2 37.6 27.8 36.2" stroke="#453d36" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+            <circle cx="14.5" cy="22" r="0.7" fill="#c9bfa4"/><circle cx="33.5" cy="22" r="0.7" fill="#c9bfa4"/>
+          </svg>
+        </div>
+        <div class="nm">Westie</div>
+      </div>
+      <div class="tool" data-tool="x">
+        <div class="ico">
+          <svg viewBox="0 0 48 48" aria-label="Paw">
+            <defs>
+              <linearGradient id="gPaw" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7ea7dd"/><stop offset="100%" stop-color="#3b7ddd"/></linearGradient>
+            </defs>
+            <ellipse cx="12.5" cy="19" rx="4" ry="5" fill="url(#gPaw)"/>
+            <ellipse cx="20" cy="14.5" rx="4.3" ry="5.6" fill="url(#gPaw)"/>
+            <ellipse cx="28" cy="14.5" rx="4.3" ry="5.6" fill="url(#gPaw)"/>
+            <ellipse cx="35.5" cy="19" rx="4" ry="5" fill="url(#gPaw)"/>
+            <path d="M24 24 C31 24 34.5 29 33.5 34 C32.8 38 28.5 40.5 24 40.5 C19.5 40.5 15.2 38 14.5 34 C13.5 29 17 24 24 24 Z" fill="url(#gPaw)"/>
+            <ellipse cx="18.6" cy="17.6" rx="1.5" ry="2" fill="#fff" opacity=".55"/>
+            <ellipse cx="26.8" cy="17.6" rx="1.5" ry="2" fill="#fff" opacity=".55"/>
+            <ellipse cx="22" cy="30" rx="4.5" ry="3" fill="#fff" opacity=".28"/>
+            <ellipse cx="20.5" cy="17" rx="1.2" ry="1.6" fill="#fff" opacity=".55"/>
+          </svg>
+        </div>
+        <div class="nm">Paw</div>
+      </div>
+      <div class="tool" data-tool="radar" id="toolRadar">
+        <div class="ico">
+          <svg viewBox="0 0 48 48" aria-label="Radar">
+            <defs>
+              <linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f6cf6b"/><stop offset="100%" stop-color="#d99a1f"/></linearGradient>
+              <radialGradient id="gLens" cx="42%" cy="38%" r="70%"><stop offset="0%" stop-color="#f2faff"/><stop offset="100%" stop-color="#bfe0f5"/></radialGradient>
+            </defs>
+            <circle cx="21" cy="21" r="12.5" fill="url(#gLens)" stroke="url(#gGold)" stroke-width="3.6"/>
+            <circle cx="21" cy="21" r="12.5" fill="none" stroke="#a8740e" stroke-width=".8" opacity=".5"/>
+            <path d="M30.2 30.2 L40 40" stroke="url(#gGold)" stroke-width="5.4" stroke-linecap="round"/>
+            <path d="M31 31.4 L39.4 39.6" stroke="#a8740e" stroke-width="1" opacity=".45" stroke-linecap="round"/>
+            <path d="M13 15.5 Q15.5 11.5 20 11.5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".85"/>
+            <g fill="#fffef7" stroke="#d9c8a0" stroke-width=".7">
+              <circle cx="17.2" cy="19.6" r="2.5"/><circle cx="24.8" cy="19.6" r="2.5"/>
+              <rect x="17" y="21.4" width="8" height="4.4" rx="2.2"/>
+            </g>
+            <path d="M18 23.6 Q21 25 24 23.6" stroke="#e8d9b8" stroke-width="1" fill="none"/>
+          </svg>
+        </div>
+        <div class="nm">Radar</div>
+        <div class="cnt" id="cntRadar">3</div>
+      </div>
+      <div class="tool" data-tool="bone" id="toolBone">
+        <div class="ico">
+          <svg viewBox="0 0 48 48" aria-label="Bone+">
+            <defs>
+              <linearGradient id="gBone" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fffef8"/><stop offset="100%" stop-color="#e6dcc4"/></linearGradient>
+            </defs>
+            <g transform="rotate(-24 24 22)">
+              <rect x="13" y="18.6" width="22" height="7.6" rx="3.8" fill="url(#gBone)" stroke="#cfc2a0" stroke-width="1"/>
+              <circle cx="12.6" cy="18.9" r="4.6" fill="url(#gBone)" stroke="#cfc2a0" stroke-width="1"/>
+              <circle cx="12.6" cy="25.9" r="4.6" fill="url(#gBone)" stroke="#cfc2a0" stroke-width="1"/>
+              <circle cx="35.4" cy="18.9" r="4.6" fill="url(#gBone)" stroke="#cfc2a0" stroke-width="1"/>
+              <circle cx="35.4" cy="25.9" r="4.6" fill="url(#gBone)" stroke="#cfc2a0" stroke-width="1"/>
+              <path d="M16 20.6 Q24 18.8 32 20.6" stroke="#fff" stroke-width="1.6" fill="none" opacity=".8"/>
+            </g>
+            <circle cx="35.5" cy="35.5" r="9" fill="#2ea34c"/>
+            <circle cx="35.5" cy="35.5" r="9" fill="none" stroke="#1d7a36" stroke-width="1.2" opacity=".55"/>
+            <path d="M35.5 31.4 L35.5 39.6 M31.4 35.5 L39.6 35.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="nm">Bone+</div>
+        <div class="cnt" id="cntBone">2</div>
+      </div>
+      <div class="tool" data-tool="purify" id="toolPurify">
+        <div class="ico">
+          <svg viewBox="0 0 48 48" aria-label="Purify">
+            <defs>
+              <linearGradient id="gPaper" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff9e8"/><stop offset="100%" stop-color="#f3e2b8"/></linearGradient>
+              <linearGradient id="gStar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7ea7dd"/><stop offset="100%" stop-color="#3b7ddd"/></linearGradient>
+            </defs>
+            <rect x="12" y="7" width="24" height="34" rx="3" fill="url(#gPaper)" stroke="#d9c48f"/>
+            <rect x="14.5" y="9.5" width="19" height="29" rx="2" fill="none" stroke="#e3cf9d" stroke-dasharray="3 2"/>
+            <path d="M18 15 L30 27 M30 15 L18 27" stroke="#e05252" stroke-width="2.4" stroke-linecap="round" opacity=".38"/>
+            <path d="M24 19.5 L25.9 25.1 L31.5 27 L25.9 28.9 L24 34.5 L22.1 28.9 L16.5 27 L22.1 25.1 Z" fill="url(#gStar)"/>
+            <path d="M24 21.6 L25.1 24.9 L28.4 26 L25.1 27.1 L24 30.4 L22.9 27.1 L19.6 26 L22.9 24.9 Z" fill="#bfe0f5" opacity=".92"/>
+            <circle cx="33.5" cy="11.5" r="1.7" fill="#ffe08a"/>
+            <circle cx="14.5" cy="34" r="1.4" fill="#ffe08a"/>
+          </svg>
+        </div>
+        <div class="nm">Purify</div>
+        <div class="cnt" id="cntPurify">2</div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="btn" id="btnClear">Clear</div>
+      <div class="btn primary" id="btnCheck">Check</div>
+    </div>
+    <div class="mini-stats">
+      <div class="mini"><div class="n" id="statTime">0s</div><div class="l">Time</div></div>
+      <div class="mini"><div class="n" id="statDogs">0/4</div><div class="l">Westies</div></div>
+      <div class="mini"><div class="n" id="statItems">0</div><div class="l">Items</div></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <div class="big-icon" id="mIcon"></div>
+      <h3 id="mTitle">Cleared!</h3>
+      <div class="modal-stars" id="mStars"></div>
+      <div id="mDesc" class="modal-desc"></div>
+      <div class="row" id="mRow">
+        <div class="btn" id="mSecondary">Play Again</div>
+        <div class="btn primary" id="mPrimary">Next</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="levels.js"></script>
+<script>
+(function(){
+  const DATA = (typeof WANGDU_DATA!=='undefined') ? WANGDU_DATA : {levels:[],daily:null};
+  const LEVELS = DATA.levels || [];
+  const DAILY = DATA.daily;
+  const REGION_COLORS = ['c0','c1','c2','c3','c4','c5','c6','c7','c8'];
+  const DAILY_UNLOCK = 8; // Daily Puzzle需通关第 8 关解锁
+
+  const SAVE_KEY='wangdu_save_v1';
+  let save = loadSave();
+  function loadSave(){
+    const base={completed:{},scrolls:0,blueprints:0,stars:{},restarts:{},restartsDay:'',stats:{plays:0,wins:0,fails:0,itemUses:0,dogsPlaced:0}};
+    try{ return Object.assign(base, JSON.parse(localStorage.getItem(SAVE_KEY)||'{}')); }
+    catch(e){ return base; }
+  }
+  function persist(){ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }
+  // 难度差异化配额：网格越大越易卡死 → 移子更多；重开代价随难度递增
+  function undoMaxFor(size){ return size<=4?2 : (size<=6?3 : (size<=8?4 : 5)); }
+  function restartMaxFor(size){ return size<=5?3 : (size<=7?2 : 1); }
+  // 重开配额按天重置（跨会话持久，防退出重进刷次数）
+  function ensureRestartDay(){
+    const d=new Date().toDateString();
+    if(save.restartsDay!==d){ save.restarts={}; save.restartsDay=d; persist(); }
+  }
+  function maxUnlocked(){
+    let m=1;
+    for(const lv of LEVELS){ if(save.completed[lv.id]) m=Math.max(m, lv.id+1); }
+    return Math.min(m, LEVELS.length);
+  }
+  function dailyUnlocked(){ return !!save.completed[DAILY_UNLOCK]; }
+
+  let cur=null;
+  const $=id=>document.getElementById(id);
+  const boardEl=$('board');
+
+  // ===== 音效引擎：原版真实音频优先 + 程序化兜底 =====
+  const Sfx=(function(){
+    let ctx=null;
+    function ac(){ if(!ctx){ try{ ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return ctx; }
+    function tone(freq,dur,type,vol,delay){
+      const c=ac(); if(!c) return;
+      const t0=c.currentTime+(delay||0);
+      const o=c.createOscillator(), g=c.createGain();
+      o.type=type||'sine'; o.frequency.setValueAtTime(freq,t0);
+      g.gain.setValueAtTime(0.0001,t0);
+      g.gain.exponentialRampToValueAtTime(vol||0.16,t0+0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+      o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0+dur+0.02);
+    }
+    // 真实音频播放器（Audio 元素兼容 file:// 直开）
+    function makePlayer(url, volume, loop){
+      const a=new Audio(url); a.preload='auto'; a.volume=volume; a.loop=!!loop;
+      return ()=>{ try{ a.currentTime=0; }catch(e){} a.play().catch(()=>{}); };
+    }
+    const playClick=makePlayer('assets/audios/btn-click.mp3',.55);
+    const playReveal=makePlayer('assets/audios/cat-reveal.wav',.85);
+    const playLoad=makePlayer('assets/audios/game-load.mp3',.6);
+    let bgm=null, bgmPlaying=false;
+    return {
+      dog(){ tone(520,.12,'sine',.18); tone(680,.14,'sine',.14,.09); },
+      cross(){ playClick(); },
+      click(){ playClick(); },
+      error(){ tone(220,.18,'sawtooth',.14); tone(160,.22,'sawtooth',.12,.1); },
+      hint(){ tone(720,.1,'sine',.12); tone(920,.12,'sine',.1,.08); },
+      win(){ playReveal(); [523,659,784,1047].forEach((f,i)=>tone(f,.22,'sine',.13,i*.1)); },
+      load(){ playLoad(); },
+      bgmToggle(){
+        if(!bgm){ bgm=new Audio('assets/audios/background.mp3'); bgm.loop=true; bgm.volume=.35; }
+        if(bgmPlaying){ bgm.pause(); bgmPlaying=false; }
+        else { bgm.play().catch(()=>{}); bgmPlaying=true; }
+        return bgmPlaying;
+      },
+      bgmPlaying(){ return bgmPlaying; }
+    };
+  })();
+
+  // 匿名埋点（默认关闭）：在 <head> 设置 window.__WD_ANALYTICS_ON=true 并加载 gtag 后自动生效
+  function track(ev, params){
+    try{
+      if(window.__WD_ANALYTICS_ON && typeof window.gtag==='function') window.gtag('event', ev, params||{});
+      else if(window.__WD_DEBUG_TRACK) console.debug('[track]', ev, params||{});
+    }catch(e){}
+  }
+  const LID=()=>cur?(cur.isDaily?'daily':cur.level.id):null;
+
+  // ===== 星级评级：仅用「用时 + 道具次数 + 失误」三项，不加付费/体力 =====
+  const STAR_PATH='M12 2.6 L14.9 9.3 L22.2 10.1 L16.7 15 L18.3 22.2 L12 18.4 L5.7 22.2 L7.3 15 L1.8 10.1 L9.1 9.3 Z';
+  function starSvg(on,i){ return '<svg viewBox="0 0 24 24" class="'+(on?'on':'off')+'" style="animation-delay:'+(i*0.14)+'s"><path d="'+STAR_PATH+'" fill="'+(on?'#ffc83d':'#d8dee9')+'" stroke="'+(on?'#e0a91b':'#c3ccdb')+'" stroke-width="1.2"/></svg>'; }
+  function targetSecsFor(size){ const t={4:60,5:90,6:120,7:180,8:240,9:300}; return t[size]||180; }
+  function starsFor(size,sec,items,mistakes){
+    const t=targetSecsFor(size);
+    if(sec<=t && items<=1 && mistakes===0) return 3;
+    if(sec<=t*1.5 && items<=3) return 2;
+    return 1;
+  }
+
+  function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1600); }
+
+  // 神谕终端：神墟扫迹主题提示区
+  const STAGE_EN={'引导期':'Tutorial','建立期':'Foundation','进阶期':'Advance','挑战期':'Challenge','大师期':'Master','每日谜题':'Daily Puzzle'};
+  const STAGE_ORACLE={ '引导期':'The ruins wake · blight is shallow. Step freely', '建立期':'Blight gathers · one per row, column and region — never again', '进阶期':'The oracle whispers · rule out the neighbors first', '挑战期':'Thick blight · one wrong step scars forever', '大师期':'Twelve gods are watching · no hints, no way back', 'Daily Puzzle':'Wardens worldwide share this board · the clock runs' };
+  function oracle(msg){
+    const o=$('oracleTxt'); if(!o) return;
+    o.innerHTML='<b>ORACLE</b> · '+msg;
+    const box=$('oracle'); box.classList.remove('flash'); void box.offsetWidth; box.classList.add('flash');
+  }
+  function oracleIntro(level,isDaily){
+    if(isDaily){ oracle(STAGE_ORACLE['Daily Puzzle']); return; }
+    const base=STAGE_ORACLE[level.stage]||'Enter the ruins · read the oracle';
+    oracle(`${base} (Level ${level.id})`);
+  }
+  function showScreen(id){ $('screenHome').classList.toggle('on', id==='home'); $('screenGame').classList.toggle('on', id==='game'); }
+
+  // ===== Adventure Paths系统 =====
+  const ROUTES=[
+    {id:'forest',name:'Forest of Life',img:'assets/path-forest.jpg',lv:[1,12],need:0,needTxt:'Open',desc:'Tutorial · Foundation'},
+    {id:'light', name:'Castle of Light',img:'assets/path-light.jpg', lv:[13,24],need:10,needTxt:'Clear 10 levels',desc:'Advance · Challenge'},
+    {id:'dark',  name:'Dark Gate',img:'assets/path-dark.jpg', lv:[25,32],need:20,needTxt:'Clear 20 levels',desc:'Challenge · Master'}
+  ];
+  let currentRoute='forest';
+  function totalCompleted(){ return Object.keys(save.completed).length; }
+  function routeOpen(r){ return totalCompleted()>=r.need; }
+  function levelsOfRoute(r){ return LEVELS.filter(l=>l.id>=r.lv[0]&&l.id<=r.lv[1]); }
+
+  function renderRouteCards(){
+    const box=$('routeCards'); box.innerHTML='';
+    ROUTES.forEach(r=>{
+      const open=routeOpen(r);
+      const el=document.createElement('div');
+      el.className='rcard'+(currentRoute===r.id?' active':'')+(open?'':' locked');
+      el.innerHTML=`<img src="${r.img}" alt="${r.name}"><div class="rshade"></div>`+
+        (open?`<div class="rprog">${levelsOfRoute(r).filter(l=>save.completed[l.id]).length}/${r.lv[1]-r.lv[0]+1}</div>`
+             :`<div class="rlock">${r.needTxt}</div>`)+
+        `<div class="rinfo"><b>${r.name}</b><span>Lv ${r.lv[0]}-${r.lv[1]} · ${r.desc}</span></div>`;
+      el.onclick=()=>{
+        if(!open){ Sfx.error(); toast(`${r.name} unlocks after ${r.need} cleared (currently ${totalCompleted()})`); return; }
+        Sfx.click();
+        if(currentRoute!==r.id){ currentRoute=r.id; renderRouteCards(); renderRouteMap(); }
+      };
+      box.appendChild(el);
+    });
+  }
+
+  const LOCK_SVG='<svg viewBox="0 0 24 24" style="width:15px;height:15px"><rect x="5.5" y="10.5" width="13" height="9.5" rx="2.5" fill="#8a93a8"/><path d="M8.5 10.5 V7.8 a3.5 3.5 0 0 1 7 0 V10.5" fill="none" stroke="#8a93a8" stroke-width="2.1"/><circle cx="12" cy="14.8" r="1.5" fill="#f0f2f6"/><path d="M12 15.6 L12 17.4" stroke="#f0f2f6" stroke-width="1.3" stroke-linecap="round"/></svg>';
+
+  function renderRouteMap(){
+    const r=ROUTES.find(x=>x.id===currentRoute)||ROUTES[0];
+    const open=routeOpen(r);
+    $('rmapBg').style.backgroundImage=`url('${r.img}')`;
+    const box=$('routeNodes'); box.innerHTML='';
+    const lvs=levelsOfRoute(r);
+    const unlocked=maxUnlocked();
+    const rows=[]; for(let i=0;i<lvs.length;i+=4) rows.push(lvs.slice(i,i+4));
+    rows.forEach((row,ri)=>{
+      const ordered=ri%2===1?row.slice().reverse():row;
+      ordered.forEach(lv=>{
+        const isDone=!!save.completed[lv.id];
+        const isLocked=!open||lv.id>unlocked;
+        const isCur=lv.id===unlocked&&!isDone;
+        const el=document.createElement('div');
+        el.className='node'+(isDone?' done':'')+(isCur?' cur':'')+(isLocked?' locked':'');
+        if(isLocked) el.innerHTML=LOCK_SVG+`<span class="sub">Locked</span>`;
+        else if(isDone){ const st=Math.max(1,(save.stars&&save.stars[lv.id])||1); el.innerHTML=`${lv.id}<span class="sub">${'★'.repeat(st)}</span>`; }
+        else el.innerHTML=`${lv.id}<span class="sub">${lv.size+'×'+lv.size}</span>`;
+        if(!isLocked) el.onclick=()=>{ Sfx.click(); startLevel(lv,false); };
+        else el.onclick=()=>toast(`Clear Level ${lv.id-1} to unlock`);
+        box.appendChild(el);
+      });
+    });
+  }
+
+  function renderHome(){
+    const unlocked=maxUnlocked(), dUnlocked=dailyUnlocked();
+    if($('coverStat')) $('coverStat').textContent=`Level ${unlocked} unlocked`;
+    if($('scrollCount')) $('scrollCount').textContent=save.scrolls||0;
+    if($('bpCount')) $('bpCount').textContent=save.blueprints||0;
+    if($('starTotal')) $('starTotal').textContent=Object.values(save.stars||{}).reduce((a,b)=>a+b,0);
+    renderRouteCards(); renderRouteMap();
+    const dc=$('dailyCard');
+    dc.classList.toggle('locked',!dUnlocked);
+    const svgTrophy='<svg viewBox="0 0 48 48" style="width:30px;height:30px"><defs><linearGradient id="gTr2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffe08a"/><stop offset="100%" stop-color="#e5a213"/></linearGradient></defs><path d="M14 8 L34 8 L33 20 Q32 27 24 28.5 Q16 27 15 20 Z" fill="url(#gTr2)" stroke="#b97f0a"/><path d="M14 10 Q7 11 8.5 17 Q9.6 21 15 20.5" fill="none" stroke="url(#gTr2)" stroke-width="2.6"/><path d="M34 10 Q41 11 39.5 17 Q38.4 21 33 20.5" fill="none" stroke="url(#gTr2)" stroke-width="2.6"/><rect x="21" y="28.5" width="6" height="6" fill="#d99a1f"/><rect x="15.5" y="34.5" width="17" height="5" rx="2" fill="url(#gTr2)" stroke="#b97f0a"/><path d="M19 12 L29 12 L28.4 17 Q24 19.5 19.6 17 Z" fill="#fff" opacity=".35"/></svg>';
+    const svgLock='<svg viewBox="0 0 24 24" style="width:26px;height:26px"><rect x="5.5" y="10.5" width="13" height="9.5" rx="2.5" fill="#8a93a8"/><path d="M8.5 10.5 V7.8 a3.5 3.5 0 0 1 7 0 V10.5" fill="none" stroke="#8a93a8" stroke-width="2.1"/><circle cx="12" cy="14.8" r="1.5" fill="#f0f2f6"/><path d="M12 15.6 L12 17.4" stroke="#f0f2f6" stroke-width="1.3" stroke-linecap="round"/></svg>';
+    $('dailyBadge').innerHTML=dUnlocked?svgTrophy:svgLock;
+    $('dailyDesc').textContent=dUnlocked?'Same board worldwide, daily challenge':`Unlocks after Level ${DAILY_UNLOCK}`;
+    dc.onclick=()=>{ if(!dUnlocked){toast(`Clear Level ${DAILY_UNLOCK} to unlock`);return;} if(DAILY) startLevel(DAILY,true); };
+  }
+
+  // 通关奖励：Next道具加成（消费后清零）+ 神之图纸收集
+  let pendingBonus={radar:0,bone:0};
+  const SCROLL_NAMES=['Era · Rat','Era · Ox','Era · Tiger','Era · Rabbit','Era · Dragon','Era · Snake'];
+
+  function startLevel(level,isDaily,useBonus){
+    const size=level.size;
+    const bonus=useBonus?pendingBonus:{radar:0,bone:0};
+    if(useBonus) pendingBonus={radar:0,bone:0};
+    ensureRestartDay();
+    const rkey=isDaily?'daily':level.id;
+    const restartMax=restartMaxFor(size);
+    const restartLeft=Math.max(0, restartMax-((save.restarts&&save.restarts[rkey])||0));
+    cur={ level,isDaily,size,regions:level.regions,solution:level.solution,
+      grid:Array.from({length:size},()=>Array(size).fill(null)), // null | 'dog' | 'x'
+      bad:new Set(), // 错误红叉位置（永久锁定，可追溯）
+      mistakes:[], // 失误追溯记录
+      bones:3,maxBones:3,tool:'dog',
+      radarLeft:3+(bonus.radar||0), boneLeft:2+(bonus.bone||0), purifyLeft:2,
+      undoLeft:undoMaxFor(size), restartMax, restartLeft, clearLeft:2,
+      itemUses:0,
+      startTime:Date.now(),timer:null,hints:new Set()
+    };
+    save.stats.plays++; persist(); track('level_start',{level_id:LID(),size:size,is_daily:!!isDaily});
+    $('gameTitle').textContent=isDaily?'Daily Puzzle':`Level ${level.id}`;
+    $('stageLb').textContent=`${STAGE_EN[level.stage]||level.stage} · ${size}×${size}`;
+    $('levelName').textContent=isDaily?'9×9 · Worldwide':`Level ${level.id}`;
+    $('cntRadar').textContent=cur.radarLeft; $('cntBone').textContent=cur.boneLeft; $('cntPurify').textContent=cur.purifyLeft;
+    $('undoBadge').textContent='Move '+cur.undoLeft; $('undoBadge').classList.remove('empty');
+    $('restartBadge').textContent='Restart '+cur.restartLeft; $('restartBadge').classList.toggle('empty',cur.restartLeft<=0);
+    renderClearBtn();
+    setTool('dog'); renderBones(); renderBoard(); renderTools(); renderTrace(); updateMini();
+    const rb=$('btnRestart'); if(rb) rb.classList.remove('dead-hint');
+    oracleIntro(level,isDaily);
+    clearInterval(cur.timer); cur.timer=setInterval(updateMini,1000);
+    Sfx.load();
+    showScreen('game');
+  }
+
+  function renderBones(){
+    const box=$('bones'); box.innerHTML='';
+    for(let i=0;i<cur.maxBones;i++){
+      const wrap=document.createElement('div'); wrap.className='bone-wrap';
+      const img=document.createElement('img');
+      img.className='bone'+(i>=cur.bones?' lost':''); img.src='assets/big-bone.png';
+      wrap.appendChild(img); box.appendChild(wrap);
+    }
+  }
+  function bumpBones(){
+    const wraps=document.querySelectorAll('.bone');
+    wraps.forEach((b,i)=>{ if(i===cur.bones){ b.classList.add('shake'); setTimeout(()=>b.classList.remove('shake'),450);
+      const m=document.createElement('div'); m.className='bone-minus'; m.textContent='-1'; b.parentNode.appendChild(m); setTimeout(()=>m.remove(),800); }});
+  }
+
+  // 计算被已放Westies排除的空格（行/列/同区/8邻域）——Minesweeper-style elimination可视化
+  function excludedSet(){
+    const ex=new Set();
+    for(let r=0;r<cur.size;r++)for(let c=0;c<cur.size;c++){
+      if(cur.grid[r][c]!=='dog') continue;
+      const reg=cur.regions[r][c];
+      for(let rr=0;rr<cur.size;rr++)for(let cc=0;cc<cur.size;cc++){
+        if(cur.grid[rr][cc]) continue;
+        const sameRow=rr===r, sameCol=cc===c, sameReg=cur.regions[rr][cc]===reg;
+        const near=Math.abs(rr-r)<=1&&Math.abs(cc-c)<=1;
+        if(sameRow||sameCol||sameReg||near) ex.add(rr+','+cc);
+      }
+    }
+    return ex;
+  }
+  function renderBoard(){
+    boardEl.style.gridTemplateColumns=`repeat(${cur.size},1fr)`;
+    boardEl.style.gap= cur.size<=5?'4px':(cur.size<=7?'3px':'2px');
+    boardEl.innerHTML='';
+    const excluded=excludedSet();
+    let dogIdx=0;
+    for(let r=0;r<cur.size;r++){
+      for(let c=0;c<cur.size;c++){
+        const cell=document.createElement('div');
+        cell.className='cell wave-in';
+        cell.style.background=`var(${REGION_COLORS[cur.regions[r][c]%9]})`;
+        cell.style.animationDelay=((cur.size-1-r+c)*0.028)+'s'; // 对角线波浪（左下→右上）
+        const key=r+','+c, v=cur.grid[r][c];
+        if(v==='dog'){ const w=document.createElement('div'); w.className='w w'+(dogIdx++%6); w.style.backgroundImage="url('assets/westie-characters.png')"; cell.appendChild(w); }
+        else if(v==='x'){
+          const x=document.createElement('div'); x.className='xmark'; cell.appendChild(x);
+          if(cur.bad.has(key)) cell.classList.add('bad');
+        } else if(excluded.has(key)){
+          cell.classList.add('excluded');
+          const e=document.createElement('span'); e.className='eliminated'; e.textContent='✕'; cell.appendChild(e);
+        }
+        if(cur.hints.has(key)){ cell.classList.add('hint-glow','hint-border'); }
+        cell.onclick=()=>onCell(r,c);
+        boardEl.appendChild(cell);
+      }
+    }
+  }
+  function setTool(t){ cur.tool=t; document.querySelectorAll('.tool').forEach(el=>el.classList.toggle('active',el.dataset.tool===t)); }
+  function renderTools(){
+    $('toolRadar').classList.toggle('disabled',cur.radarLeft<=0);
+    $('toolBone').classList.toggle('disabled',cur.boneLeft<=0);
+    $('toolPurify').classList.toggle('disabled',cur.purifyLeft<=0);
+  }
+  function renderTrace(){
+    $('traceCount').textContent=cur.mistakes.length;
+    $('traceDetail').textContent=cur.mistakes.length? cur.mistakes.map(m=>`(${m[0]+1},${m[1]+1})`).join(' ')+' marked X' : 'No mistakes yet';
+  }
+
+  function onCell(r,c){
+    if(!cur) return; const key=r+','+c;
+    if(cur.bad.has(key)){ toast('Locked cell — this red X is permanent'); return; }
+    if(cur.tool==='dog'){
+      if(cur.grid[r][c]==='dog'){
+        // 移子（撤回）限次：防止无限试错
+        if(cur.undoLeft<=0){
+          Sfx.error();
+          toast('Out of moves — only a restart resets this level');
+          oracle('MIND DRAINED · No moves left this level. Use ↻ Restart to reset');
+          return;
+        }
+        cur.undoLeft--; track('undo_use',{left:cur.undoLeft,level_id:LID()}); $('undoBadge').textContent='Move '+cur.undoLeft;
+        $('undoBadge').classList.toggle('empty',cur.undoLeft<=0);
+        cur.grid[r][c]=null; Sfx.click(); checkDeadlock();
+        if(cur.undoLeft>0) oracle(`MOVE · Picked up the Westie — ${cur.undoLeft} moves left`);
+        else oracle('MOVE · Last one — after this, only a restart');
+      }
+      else attemptPlace(r,c);
+    } else if(cur.tool==='x'){
+      cur.grid[r][c] = cur.grid[r][c]==='x'?null:'x';
+      if(cur.grid[r][c]==='x') Sfx.cross();
+    } else if(cur.tool==='purify'){
+      if(cur.purifyLeft<=0){ toast('No purify charms left'); return; }
+      if(!cur.bad.has(key)){ toast('Tap a cell with a red X to purify it'); return; }
+      cur.purifyLeft--; cur.itemUses++; save.stats.itemUses++; persist();
+      track('item_use',{tool:'purify',level_id:LID()});
+      cur.bad.delete(key);
+      cur.mistakes=cur.mistakes.filter(m=>!(m[0]===r&&m[1]===c));
+      $('cntPurify').textContent=cur.purifyLeft;
+      Sfx.hint();
+      if(navigator.vibrate) navigator.vibrate(30);
+      if(cur.purifyLeft>0){ toast(`X purified (${cur.purifyLeft} charms left)`); oracle(`PURIFY · (${r+1},${c+1}) cleansed — ${cur.purifyLeft} charms left`); }
+      else { toast('X purified — charms exhausted'); oracle(`PURIFY · (${r+1},${c+1}) cleansed — no charms left`); }
+      renderTools(); checkDeadlock();
+    }
+    renderBoard(); renderTools(); updateMini();
+  }
+
+  // Radar：点击工具卡立即探测（无需再点格子），显示最多 9 处合法候选
+  function useRadar(){
+    if(!cur) return;
+    if(cur.radarLeft<=0){ toast('Bone radar exhausted'); return; }
+    const spots=[];
+    for(let r=0;r<cur.size&&spots.length<9;r++)for(let c=0;c<cur.size&&spots.length<9;c++){
+      if(cur.grid[r][c]||cur.bad.has(r+','+c)) continue;
+      if(!violates(r,c)) spots.push(r+','+c);
+    }
+    cur.radarLeft--; cur.itemUses++; save.stats.itemUses++; persist();
+    track('item_use',{tool:'radar',level_id:LID()});
+    $('cntRadar').textContent=cur.radarLeft; renderTools();
+    if(spots.length){
+      cur.hints=new Set(spots); Sfx.hint();
+      if(navigator.vibrate) navigator.vibrate(30);
+      renderBoard();
+      oracle(`SIGHT · ${spots.length} safe tiles revealed (gold frame) — tap to place`);
+      toast(`Sight: ${spots.length} safe tiles · ${cur.radarLeft} radar left`);
+    } else {
+      Sfx.hint(); renderBoard();
+      oracle('The sight finds no safe tile right now');
+      toast('No safe tile to reveal');
+    }
+  }
+
+  function violates(r,c){ return !!violatesReason(r,c); }
+  // 数独式约束精确判定：每行/每列/每色区各一只 + 互不相邻，返回具体违规原因
+  function violatesReason(r,c){
+    for(let i=0;i<cur.size;i++){
+      if(i!==c && cur.grid[r][i]==='dog') return 'Another Westie is in this row';
+      if(i!==r && cur.grid[i][c]==='dog') return 'Another Westie is in this column';
+    }
+    for(let rr=0;rr<cur.size;rr++)for(let cc=0;cc<cur.size;cc++)
+      if(cur.regions[rr][cc]===cur.regions[r][c] && cur.grid[rr][cc]==='dog') return 'Another Westie is in this region';
+    for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+      if(!dr&&!dc) continue; const nr=r+dr,nc=c+dc;
+      if(nr>=0&&nr<cur.size&&nc>=0&&nc<cur.size&&cur.grid[nr][nc]==='dog') return 'Too close to another Westie (no touching, even diagonally)';
+    }
+    return null;
+  }
+  function attemptPlace(r,c){
+    const key=r+','+c;
+    const reason=violatesReason(r,c);
+    if(reason){
+      cur.grid[r][c]='x'; cur.bad.add(key); cur.mistakes.push([r,c]);
+      cur.bones--; save.stats.fails++; persist(); Sfx.error();
+      if(navigator.vibrate) navigator.vibrate(120);
+      const cell=boardEl.children[r*cur.size+c];
+      if(cell){ cell.classList.add('bad','wrong'); const cr=document.createElement('div'); cr.className='crack'; cr.innerHTML='<svg viewBox="0 0 48 48" style="width:34px;height:34px"><defs><linearGradient id="gBk" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fffef8"/><stop offset="100%" stop-color="#ddd2b8"/></linearGradient></defs><g transform="rotate(-24 24 24)"><rect x="8" y="10" width="17" height="6.4" rx="3.2" fill="url(#gBk)" stroke="#cfc2a0"/><circle cx="8" cy="10.4" r="3.7" fill="url(#gBk)" stroke="#cfc2a0"/><circle cx="8" cy="16.2" r="3.7" fill="url(#gBk)" stroke="#cfc2a0"/><rect x="23" y="14" width="17" height="6.4" rx="3.2" fill="url(#gBk)" stroke="#cfc2a0" transform="rotate(18 31.5 17.2)"/><circle cx="39" cy="13" r="3.6" fill="url(#gBk)" stroke="#cfc2a0"/><circle cx="41.5" cy="18.6" r="3.6" fill="url(#gBk)" stroke="#cfc2a0"/><path d="M23 9 L26 15 L23 20 L26.5 24" stroke="#e05252" stroke-width="2.2" fill="none" stroke-linecap="round"/></g></svg>'; }
+      bumpBones(); renderTrace();
+      toast(`Wrong! ${reason} — ${cur.bones} bones left`);
+      oracle(`BLIGHT · ${reason}. This tile is scarred forever`);
+      setTimeout(()=>{ renderBoard(); checkDeadlock(); },420);
+      if(cur.bones<=0) setTimeout(lose,500);
+      return;
+    }
+    cur.grid[r][c]='dog'; save.stats.dogsPlaced++; persist(); Sfx.dog();
+    if(navigator.vibrate) navigator.vibrate(35);
+    if(cur.hints.size){ cur.hints.clear(); oracle('Sight fades · the oracle approves this step'); }
+    if(save.stats.dogsPlaced===1) setTimeout(()=>{ oracle('TIP · Tap a placed Westie to pick it up again — moves are limited per level'); },1500);
+    setTimeout(checkDeadlock,60);
+  }
+
+  // ===== 死局检测：当前局面是否仍存在可行解 =====
+  function hasSolutionFromState(){
+    const n=cur.size;
+    const fixed={}; for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(cur.grid[r][c]==='dog') fixed[r]=c;
+    const isBad=(r,c)=>cur.bad.has(r+','+c);
+    let found=false;
+    function bt(row, usedCols, usedRegions, prevCol){
+      if(found) return;
+      if(row===n){ found=true; return; }
+      if(fixed[row]!==undefined){
+        const c=fixed[row];
+        if(usedCols.has(c)||isBad(row,c)) return;
+        const reg=cur.regions[row][c];
+        if(usedRegions.has(reg)) return;
+        if(prevCol!==null && Math.abs(prevCol-c)===1) return;
+        bt(row+1, new Set([...usedCols,c]), new Set([...usedRegions,reg]), c);
+        return;
+      }
+      for(let c=0;c<n;c++){
+        if(usedCols.has(c)||isBad(row,c)) continue;
+        const reg=cur.regions[row][c];
+        if(usedRegions.has(reg)) continue;
+        if(prevCol!==null && Math.abs(prevCol-c)===1) continue;
+        bt(row+1, new Set([...usedCols,c]), new Set([...usedRegions,reg]), c);
+      }
+    }
+    bt(0,new Set(),new Set(),null);
+    return found;
+  }
+  function checkDeadlock(){
+    if(!cur) return;
+    let dogs=0; for(const row of cur.grid) for(const v of row) if(v==='dog') dogs++;
+    const remaining=cur.size-dogs;
+    if(remaining<=0) return;
+    if(!hasSolutionFromState()){
+      cur.dead=true;
+      track('deadlock',{level_id:LID()});
+      if(cur.undoLeft>0){
+        oracle(`DEAD END · Pick up a Westie to escape (${cur.undoLeft} moves left), or ↻ restart`);
+        toast(`No solution from here — pick up a Westie (${cur.undoLeft} moves left)`);
+      } else {
+        oracle('DEAD END · No moves left — tap ↻ to restart');
+        toast('No solution and no moves left — please restart');
+      }
+      const rb=$('btnRestart'); if(rb) rb.classList.add('dead-hint');
+    } else if(cur.dead){
+      cur.dead=false;
+      const rb=$('btnRestart'); if(rb) rb.classList.remove('dead-hint');
+      oracle('DEAD END SOLVED · The path reopens');
+    }
+  }
+  function findHintSpot(){ for(const [r,c] of cur.solution){ if(cur.grid[r][c]!=='dog'&&!cur.bad.has(r+','+c)) return [r,c]; } return null; }
+  function updateMini(){
+    if(!cur) return;
+    $('statTime').textContent=Math.floor((Date.now()-cur.startTime)/1000)+'s';
+    let dogs=0; for(const row of cur.grid) for(const v of row) if(v==='dog') dogs++;
+    $('statDogs').textContent=dogs+'/'+cur.size;
+    $('statItems').textContent=cur.itemUses;
+  }
+
+  document.querySelectorAll('.tool').forEach(el=>el.addEventListener('click',()=>{
+    const t=el.dataset.tool;
+    if(t==='radar'){ useRadar(); return; }
+    if(t==='dog'||t==='x'||t==='purify'){ Sfx.click(); setTool(t); }
+  }));
+  $('toolBone').onclick=()=>{
+    if(!cur){ return; }
+    if(cur.boneLeft<=0){ toast('Bone supply exhausted'); return; }
+    if(cur.bones>=cur.maxBones){ toast('Bones are already full'); return; }
+    cur.bones++; cur.boneLeft--; cur.itemUses++; save.stats.itemUses++; persist();
+    track('item_use',{tool:'bone',level_id:LID()});
+    Sfx.click();
+    renderBones(); renderTools(); updateMini();
+    $('cntBone').textContent=cur.boneLeft;
+    // 生效动画：新恢复的骨棒闪光弹跳 + 终端提示
+    const wraps=document.querySelectorAll('.bone');
+    const b=wraps[cur.bones-1];
+    if(b){ b.classList.add('gain'); setTimeout(()=>b.classList.remove('gain'),700); }
+    toast(`Bone restored +1 (${cur.boneLeft} supplies left)`);
+    oracle(`BONE RESTORED · ${cur.bones}/${cur.maxBones} bones, ${cur.boneLeft} supplies left`);
+  };
+  // 清除标记：只清「狗+爪印」，保留红叉/骨棒/道具/计时，不占重开配额——限次 2
+  function renderClearBtn(){
+    const b=$('btnClear'); if(!b||!cur) return;
+    b.textContent='Clear ('+cur.clearLeft+')';
+    b.classList.toggle('disabled',cur.clearLeft<=0);
+  }
+  $('btnClear').onclick=()=>{
+    if(!cur) return;
+    if(cur.clearLeft<=0){ Sfx.error(); toast('No clears left this level'); oracle('MIND SET · No clears left. Use ↻ Restart for a full reset'); return; }
+    cur.clearLeft--; track('clear_use',{left:cur.clearLeft,level_id:LID()}); Sfx.click();
+    cur.grid=Array.from({length:cur.size},()=>Array(cur.size).fill(null));
+    cur.hints.clear();
+    renderBoard(); renderClearBtn();
+    toast('Marks cleared (red X kept) · '+cur.clearLeft+' left');
+    oracle(`Cleared your marks · ${cur.clearLeft} clears left this level`);
+  };
+  $('btnCheck').onclick=()=>{
+    if(!cur)return; Sfx.click(); let ok=true;
+    for(const [r,c] of cur.solution){ if(cur.grid[r][c]!=='dog'){ ok=false; break; } }
+    let dogs=0; for(const row of cur.grid) for(const v of row) if(v==='dog') dogs++;
+    if(dogs!==cur.size) ok=false;
+    if(ok) win(); else toast('Not quite yet — keep thinking');
+  };
+
+  function win(){
+    clearInterval(cur.timer); Sfx.win(); save.stats.wins++;
+    const firstClear=!cur.isDaily && !save.completed[cur.level.id];
+    if(!cur.isDaily) save.completed[cur.level.id]=true; persist();
+    const sec=Math.floor((Date.now()-cur.startTime)/1000);
+    const stars=starsFor(cur.size,sec,cur.itemUses,cur.mistakes.length);
+    if(!cur.isDaily){
+      save.stars=save.stars||{};
+      save.stars[cur.level.id]=Math.max(save.stars[cur.level.id]||0, stars);
+      persist();
+    }
+    track('level_win',{level_id:LID(),duration_s:sec,mistakes:cur.mistakes.length,items_used:cur.itemUses,stars:stars});
+    const nextUnlocked = !cur.isDaily && cur.level.id===maxUnlocked()-1;
+
+    // 通关奖励：神谕残页 + 里程碑神之图纸 + 首通道具加成（Next生效）
+    let rewardTxt='';
+    if(!cur.isDaily){
+      save.scrolls=(save.scrolls||0)+1;
+      rewardTxt='Oracle Scroll ×1';
+      if(cur.level.id%5===0){
+        save.blueprints=(save.blueprints||0)+1;
+        const nm=SCROLL_NAMES[(save.blueprints-1)%SCROLL_NAMES.length];
+        rewardTxt+=` · Blueprint "${nm}"`;
+      }
+      if(firstClear){
+        pendingBonus={radar:cur.level.id%2===1?1:0, bone:cur.level.id%2===0?1:0};
+        if(pendingBonus.radar) rewardTxt+=' · Next level: Bone Radar +1';
+        if(pendingBonus.bone) rewardTxt+=' · Next level: Bone Supply +1';
+      }
+    }
+    if(!cur.isDaily){ oracle(`Level ${cur.level.id} seal broken · You receive ${rewardTxt}`); }
+
+    openModal('win','Level Clear!','',
+      'Play Again',()=>startLevel(cur.level,cur.isDaily),
+      cur.isDaily?'Home':'Next',()=>{
+        const idx=LEVELS.findIndex(l=>l.id===cur.level.id);
+        if(idx>=0&&idx<LEVELS.length-1) startLevel(LEVELS[idx+1],false,true); else {showScreen('home');renderHome();}
+      });
+    $('mStars').innerHTML=[0,1,2].map(i=>starSvg(i<stars,i)).join('');
+    $('mDesc').innerHTML=
+      '<div class="clear-stats">'+
+        '<div class="cs time"><b>'+sec+'s</b><span>TIME</span></div>'+
+        '<div class="cs bone"><b>'+cur.bones+'</b><span>BONES</span></div>'+
+        '<div class="cs '+(cur.mistakes.length?'bad':'ok')+'"><b>'+cur.mistakes.length+'</b><span>MISTAKES</span></div>'+
+      '</div>'+
+      (rewardTxt?'<div class="clear-reward">'+rewardTxt+'</div>':'')+
+      (nextUnlocked?'<div class="clear-unlock">▲ Next level unlocked</div>':'');
+  }
+  function lose(){
+    clearInterval(cur.timer);
+    track('level_lose',{level_id:LID(),mistakes:cur.mistakes.length});
+    const can = cur.restartLeft>0;
+    if(can){
+      openModal('bone','Out of Bones',`Don't give up — logic puzzles take a few tries. The red X marks keep your trail.\n(Restarts left this level: ${cur.restartLeft})`,
+        'Restart',doRestart,'Home',()=>{showScreen('home');renderHome();});
+    } else {
+      openModal('bone','Out of Bones','No restarts left today (refills tomorrow). Your red X marks keep the trail — come back tomorrow.',
+        'Home',()=>{showScreen('home');renderHome();},
+        'View Stats',()=>{ $('overlay').classList.remove('show'); if($('btnStats')) $('btnStats').click(); });
+    }
+  }
+  // 弹窗图标：独立精修 SVG（奖杯 / 碎骨 / 统计图）
+  const MODAL_ICONS={
+    win:'<svg viewBox="0 0 48 48" style="width:52px;height:52px"><defs><linearGradient id="gTrophy" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffe08a"/><stop offset="100%" stop-color="#e5a213"/></linearGradient></defs><path d="M14 8 L34 8 L33 20 Q32 27 24 28.5 Q16 27 15 20 Z" fill="url(#gTrophy)" stroke="#b97f0a" stroke-width="1"/><path d="M14 10 Q7 11 8.5 17 Q9.6 21 15 20.5" fill="none" stroke="url(#gTrophy)" stroke-width="2.6"/><path d="M34 10 Q41 11 39.5 17 Q38.4 21 33 20.5" fill="none" stroke="url(#gTrophy)" stroke-width="2.6"/><rect x="21" y="28.5" width="6" height="6" fill="#d99a1f"/><rect x="15.5" y="34.5" width="17" height="5" rx="2" fill="url(#gTrophy)" stroke="#b97f0a" stroke-width="1"/><path d="M19 12 L29 12 L28.4 17 Q24 19.5 19.6 17 Z" fill="#fff" opacity=".35"/><circle cx="10" cy="10" r="1.4" fill="#f6cf6b"/><circle cx="38" cy="9" r="1.4" fill="#f6cf6b"/><circle cx="41" cy="30" r="1.2" fill="#f6cf6b"/></svg>',
+    bone:'<svg viewBox="0 0 48 48" style="width:52px;height:52px"><defs><linearGradient id="gBk2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fffef8"/><stop offset="100%" stop-color="#ddd2b8"/></linearGradient></defs><g transform="rotate(-16 24 26)"><rect x="6" y="14" width="17" height="6.6" rx="3.3" fill="url(#gBk2)" stroke="#cfc2a0"/><circle cx="6" cy="14.5" r="3.8" fill="url(#gBk2)" stroke="#cfc2a0"/><circle cx="6" cy="20.4" r="3.8" fill="url(#gBk2)" stroke="#cfc2a0"/><rect x="24" y="18" width="17" height="6.6" rx="3.3" fill="url(#gBk2)" stroke="#cfc2a0" transform="rotate(20 32.5 21.3)"/><circle cx="40.5" cy="16.6" r="3.8" fill="url(#gBk2)" stroke="#cfc2a0"/><circle cx="43" cy="22.4" r="3.8" fill="url(#gBk2)" stroke="#cfc2a0"/><path d="M22.5 12 L26 18.5 L22.5 24 L26.5 29" stroke="#e05252" stroke-width="2.4" fill="none" stroke-linecap="round"/></g></svg>',
+    stats:'<svg viewBox="0 0 48 48" style="width:52px;height:52px"><defs><linearGradient id="gBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6fa8ec"/><stop offset="100%" stop-color="#2f6fd0"/></linearGradient></defs><rect x="8" y="26" width="8" height="14" rx="2.5" fill="url(#gBar)"/><rect x="20" y="18" width="8" height="22" rx="2.5" fill="url(#gBar)"/><rect x="32" y="10" width="8" height="30" rx="2.5" fill="url(#gBar)"/><rect x="8" y="26" width="8" height="4" rx="2" fill="#fff" opacity=".35"/><rect x="20" y="18" width="8" height="4" rx="2" fill="#fff" opacity=".35"/><rect x="32" y="10" width="8" height="4" rx="2" fill="#fff" opacity=".35"/><path d="M9 14 L20 8 L32 4" stroke="#22a06b" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M28 4.5 L33.5 3 L32 8.5" fill="none" stroke="#22a06b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  };
+  function openModal(iconKey,title,desc,secTxt,secFn,priTxt,priFn){
+    $('mIcon').innerHTML=MODAL_ICONS[iconKey]||''; $('mTitle').textContent=title; $('mDesc').textContent=desc; $('mStars').innerHTML='';
+    $('mSecondary').textContent=secTxt; $('mPrimary').textContent=priTxt;
+    $('mSecondary').onclick=()=>{closeModal();secFn();}; $('mPrimary').onclick=()=>{closeModal();priFn();};
+    $('overlay').classList.add('show');
+  }
+  function closeModal(){ $('overlay').classList.remove('show'); }
+  $('btnBack').onclick=()=>{ Sfx.click(); clearInterval(cur&&cur.timer); showScreen('home'); renderHome(); };
+  $('btnRestart').onclick=()=>{ doRestart(); };
+
+  // 重开本关：按难度限次，消耗持久化（跨天恢复）
+  function doRestart(){
+    if(!cur){ return; }
+    if(cur.restartLeft<=0){
+      Sfx.error();
+      toast('No restarts left today (refills tomorrow)');
+      oracle('MIND SCATTERED · No restarts left today. Keep solving with what you have');
+      return;
+    }
+    cur.restartLeft--;
+    const rkey=cur.isDaily?'daily':cur.level.id;
+    ensureRestartDay();
+    save.restarts[rkey]=(save.restarts[rkey]||0)+1; persist();
+    track('restart_use',{left:cur.restartLeft,level_id:LID()});
+    Sfx.click();
+    startLevel(cur.level,cur.isDaily);
+  }
+  $('btnBgm').onclick=()=>{ const on=Sfx.bgmToggle(); $('btnBgm').textContent=on?'Music: On':'Music: Off'; if(on) Sfx.click(); };
+  $('btnStats').onclick=()=>{
+    const s=save.stats, rate=s.plays?Math.round(s.wins/s.plays*100):0;
+    openModal('stats','Stats',`Played ${s.plays} · Cleared ${s.wins} · Win rate ${rate}%\nUnlocked up to Level ${maxUnlocked()} · Items used ${s.itemUses}`,
+      'Back',()=>{},'Continue',()=>{});
+  };
+
+  renderHome();
+})();
+</script>
+</body>
+</html>
